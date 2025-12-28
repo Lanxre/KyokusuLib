@@ -5,7 +5,7 @@ import { ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import { correctProfileImage } from "@/api/utils/str";
 import BookMarkIcon from "@/assets/images/bookmark-white.png";
-import LogoIcon from "@/assets/images/KLibIcon.png";
+import LogoIcon from "@/assets/images/kyokusulib_logo_2.png";
 import NotificationIcon from "@/assets/images/ringing.png";
 import SearchIcon from "@/assets/images/search-interface-symbol.png";
 import CloseIcon from "@/assets/images/special/close.png";
@@ -45,12 +45,12 @@ const goToLogin = () => {
 </script>
 
 <template>
-  <header class="relative w-full border-b-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-[#0f0f0f] z-50 sticky top-0 text-zinc-900 dark:text-white transition-colors duration-300">
+  <header class="w-full border-b-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-[#0f0f0f] z-50 sticky top-0 text-zinc-900 dark:text-white transition-colors duration-300">
     <div class="mx-auto flex items-center justify-between px-4 py-4 md:px-8 lg:px-12 max-w-screen-2xl">
       
       <div class="flex items-center gap-4 md:gap-8 flex-1">
-        <RouterLink to="/" class="flex-shrink-0" @click="closeMobileMenu">
-          <img :src="LogoIcon" alt="KLib Logo" class="h-12 w-12 md:h-14 md:w-14 brightness-0 dark:invert transition-all" />
+        <RouterLink to="/" class="shrink-0" @click="closeMobileMenu">
+          <img :src="LogoIcon" alt="KLib Logo" class="h-12 w-12 md:h-14 md:w-14 dark:invert transition-all" />
         </RouterLink>
 
         <nav class="hidden md:flex items-center gap-2 lg:gap-4">
