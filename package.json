@@ -1,0 +1,17 @@
+{
+  "name": "kyokusulib",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run backend & bun run frontend",
+    "backend": "cd backend && go run ./cmd/api/main.go",
+    "frontend": "cd frontend && bun run dev"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
