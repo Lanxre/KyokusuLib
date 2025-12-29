@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	service "github.com/lanxre/kyokusulib/internal/services"
+	"github.com/lanxre/kyokusulib/internal/utils/response"
 )
 
 type contextKey string
@@ -22,7 +23,7 @@ func AuthMiddleware(next http.HandlerFunc, jwtSecret string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("KYOKUSU_API_TOKEN")
 		if err != nil {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			response.Error(w, http.StatusUnauthorized, "Unauthorized")
 			return
 		}
 
