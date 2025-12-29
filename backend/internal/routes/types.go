@@ -25,3 +25,11 @@ type SocialNetworkRoutes struct {
 type UserRoutes struct {
 	Handler *handlers.UserHandler
 }
+
+type RanobeRoutes struct {
+	Handler *handlers.RanobeHandler
+}
+
+type AuthorRoutes struct {
+	Handler *handlers.AuthorHandler
+}

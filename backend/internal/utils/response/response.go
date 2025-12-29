@@ -14,3 +14,7 @@ func JSON(w http.ResponseWriter, status int, payload interface{}) {
 func Error(w http.ResponseWriter, status int, message string) {
 	JSON(w, status, map[string]string{"error": message})
 }
+
+func Success(w http.ResponseWriter, status int, entity any) {
+	JSON(w, status, map[string]any{"message": entity})
+}
