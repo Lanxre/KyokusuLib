@@ -6,9 +6,19 @@ export const useApi = createFetch({
 		beforeFetch({ options }) {
 			return { options };
 		},
-		onFetchError({ data, error }) {
-			console.log("API Error:", error);
-			return { data, error };
-		},
+		async onFetchError(ctx) {
+            if (ctx.response && ctx.response.headers.get('content-type')?.includes('application/json')) {
+                try {
+                    const errorData = await ctx.response.clone().json();
+                    ctx.data = errorData;
+                    if (errorData && errorData.error) {
+                        ctx.error = errorData.error;
+                    }
+                } catch (e) {
+                    console.error("Error parsing failed request:", e);
+                }
+            }
+            return ctx;
+        },
 	},
 });

@@ -14,7 +14,7 @@ const { isSelfProfile, isPublicAccount } = useProfile();
     <div class="min-h-screen flex flex-col">
         <HeaderApp/>
        
-        <main class="flex-grow">
+        <main class="grow">
             <ProfileSelfContent v-if="isSelfProfile"/>
             <ProfilePublic v-else-if="!isSelfProfile && isPublicAccount"/>
             <ProfilePrivate v-else-if="!isSelfProfile && !isPublicAccount"/>

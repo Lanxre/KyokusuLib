@@ -8,7 +8,7 @@ import SettingsContent from "@/layouts/settings/SettingsContent.vue";
     <div class="min-h-screen flex flex-col">
         <HeaderApp/>
        
-        <main class="flex-grow">
+        <main class="grow">
             <SettingsContent/>
         </main>
         <FooterApp/>

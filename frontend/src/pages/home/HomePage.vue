@@ -8,7 +8,7 @@ import MainContent from "@/layouts/home/MainContent.vue";
     <div class="min-h-screen flex flex-col">
         <HeaderApp/>
        
-        <main class="flex-grow">
+        <main class="grow">
             <MainContent/>
         </main>
         <FooterApp/>
