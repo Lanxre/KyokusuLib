@@ -156,6 +156,21 @@ func (s *AuthService) VerifyUser(token string) error {
 	return s.Repo.MarkUserVerified(user.ID)
 }
 
+func (s *AuthService) UpdateStatus(ctx context.Context, userID int, status bool) error {
+	user, err := s.Repo.GetByID(userID)
+	if err != nil || user == nil {
+		return errors.New("user not found")
+	}
+	
+	if status {
+		err = s.Repo.UpdateStatus(userID, "online")
+	} else {
+		err = s.Repo.UpdateStatus(userID, "offline")
+	}
+
+	return err
+}
+
 func (s *AuthService) hashPassword(pwd string) (string, error) {
 	b, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
 	return string(b), err

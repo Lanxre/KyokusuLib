@@ -16,7 +16,7 @@ func (a *AuthRoutes) Register(cfg *config.Config, r *mux.Router) {
 
 func (a *AuthRoutes) RegisterBase(s *mux.Router, cfg *config.Config) {
 	s.HandleFunc("/me", middleware.AuthMiddleware(a.Handler.GetMe, cfg.JWTSecret)).Methods("GET")
-	s.HandleFunc("/logout", a.Handler.Logout).Methods("POST")
+	s.HandleFunc("/logout", middleware.AuthMiddleware(a.Handler.Logout, cfg.JWTSecret)).Methods("POST")
 	s.HandleFunc("/register", a.Handler.Register).Methods("POST")
 	s.HandleFunc("/login", a.Handler.Login).Methods("POST")
 	s.HandleFunc("/verify-email", a.Handler.VerifyEmail).Methods("GET")

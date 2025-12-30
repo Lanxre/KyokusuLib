@@ -1,6 +1,9 @@
 package service
 
 import (
+	"context"
+	"time"
+
 	"github.com/lanxre/kyokusulib/internal/models/dto"
 	"github.com/lanxre/kyokusulib/internal/repository"
 )
@@ -33,4 +36,14 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 		Banner:   userDb.Banner,
 
 	}, err
+}
+
+func (s *UserService) UpdateUserStatus(ctx context.Context, userId int, dto dto.UpdateUserStatusDTO) error {
+ 	lastActiveTime := time.UnixMilli(dto.LastActive)
+
+    if dto.LastActive == 0 {
+        lastActiveTime = time.Now()
+    }
+    
+	return s.Repo.UpdateDtoStatus(ctx, userId, dto.Status, lastActiveTime)
 }

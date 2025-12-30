@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"time"
@@ -250,6 +251,12 @@ func (r *UserRepository) DeleteExpiredUnverified() error {
 func (r *UserRepository) UpdateStatus(userID int, status string) error {
 	query := `UPDATE users SET status = $1, last_login = $2 WHERE id = $3`
 	_, err := r.DB.Exec(query, status, time.Now(), userID)
+	return err
+}
+
+func (r *UserRepository) UpdateDtoStatus(ctx context.Context, userId int, status string, lastActive time.Time) error {
+	query := `UPDATE users SET status = $1, last_login = $2 WHERE id = $3`
+	_, err := r.DB.Exec(query, status, lastActive, userId)
 	return err
 }
 

@@ -4,8 +4,10 @@ import { correctProfileImage } from '@/api/utils/str';
 import Separator from '@/components/ui/Separator/Separtor.vue';
 import EditIcon from "@/assets/images/special/setting.png";
 import { useProfile } from '@/composables/api/profile/useProfile';
+import { useActivityStore } from '@/stores/activity';
 
 const { profileData, accountCreated, userRoleColor, userGender } = useProfile();
+const { isUserActive } = useActivityStore();
 const activeTab = ref('overview');
 
 const tabs = [
@@ -40,7 +42,7 @@ const tabs = [
             <div class="relative -mt-16 md:-mt-20 mb-8 flex flex-col md:flex-row items-end md:items-end gap-6">
                 
                 <!-- Avatar -->
-                <div class="relative flex-shrink-0">
+                <div class="relative shrink-0">
                     <div class="w-32 h-32 md:w-40 md:h-40 rounded-2xl border-4 border-white dark:border-zinc-900 bg-zinc-800 overflow-hidden shadow-xl">
                         <img 
                             :src="correctProfileImage(profileData!.picture)" 
@@ -49,7 +51,11 @@ const tabs = [
                         />
                     </div>
                     <!-- Online Status -->
-                    <div class="absolute bottom-2 right-2 w-5 h-5 bg-green-500 border-4 border-white dark:border-zinc-900 rounded-full" title="Онлайн"></div>
+                    <div 
+                        class="absolute bottom-2 right-2 w-5 h-5 border-4 border-white dark:border-zinc-900 rounded-full"
+                        title="Онлайн"
+                        :class="{ 'bg-green-500' : isUserActive, 'bg-red-500' : !isUserActive }"
+                    ></div>
                 </div>
 
                 <!-- Main Info -->

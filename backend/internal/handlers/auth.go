@@ -340,6 +340,18 @@ func (h *AuthHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		http.Error(w, "User not found in context", http.StatusInternalServerError)
+		return
+	}
+	
+	err := h.AuthService.UpdateStatus(r.Context(), userID, false)
+	if err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+	
 	http.SetCookie(w, &http.Cookie{
 		Name:     "KYOKUSU_API_TOKEN",
 		Value:    "",

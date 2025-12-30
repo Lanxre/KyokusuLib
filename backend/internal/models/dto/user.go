@@ -1,6 +1,8 @@
 package dto
 
-import "time"
+import (
+	"time"
+)
 
 type UserDTO struct {
 	Id 		  string
@@ -23,4 +25,9 @@ type GetUserDTO struct {
 	Gender							string		`json:"gender"`
 	
 	IsPublic             		    bool        `json:"is_public"`
+}
+
+type UpdateUserStatusDTO struct {
+	Status 	 string `json:"status"`
+	LastActive int64 `json:"last_active"`
 }
