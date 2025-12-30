@@ -5,6 +5,7 @@ import HomePage from "@/pages/home/HomePage.vue";
 import NotFoundPage from "@/pages/not-found/NotFoundPage.vue";
 import SettingsPage from "@/pages/settings/SettingsPage.vue";
 import ProfilePage from "@/pages/profile/ProfilePage.vue";
+import AddAuthorPage from "@/pages/forms/AddAuthorPage.vue";
 import { useAuthStore } from "@/stores/auth";
 
 const routes = [
@@ -49,6 +50,12 @@ const routes = [
 		path: "/profile/:id",
 		name: "profile",
 		component: ProfilePage,
+		meta: { requiresAuth: true },
+	},
+	{
+	  path: "/author/add",
+		name: "add-author",
+		component: AddAuthorPage,
 		meta: { requiresAuth: true },
 	},
 	{

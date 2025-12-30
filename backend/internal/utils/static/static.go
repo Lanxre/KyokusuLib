@@ -12,6 +12,7 @@ const (
 	UPLOAD_DIR string = "./uploads"
 	UPLOAD_AVATAR_DIR string = "./uploads/avatars"
 	UPLOAD_BANNER_DIR string = "./uploads/banners"
+	UPLOAD_AUTHOR_DIR string = "./uploads/authors"
 )
 
 func CreateStaticDirs(r *mux.Router) error {
@@ -24,6 +25,10 @@ func CreateStaticDirs(r *mux.Router) error {
 	}
 
 	if err := createBannerDir(); err != nil {
+		return err
+	}
+
+	if err := createAuthorDir(); err != nil {
 		return err
 	}
 
@@ -53,6 +58,14 @@ func createStaticDir() error {
 
 func createBannerDir() error {
 	if err := os.MkdirAll(UPLOAD_BANNER_DIR, os.ModePerm); err != nil {
+		log.Fatalf("Failed to create uploads avatars directory: %v", err)
+	}
+
+	return nil
+}
+
+func createAuthorDir() error {
+	if err := os.MkdirAll(UPLOAD_AUTHOR_DIR, os.ModePerm); err != nil {
 		log.Fatalf("Failed to create uploads avatars directory: %v", err)
 	}
 

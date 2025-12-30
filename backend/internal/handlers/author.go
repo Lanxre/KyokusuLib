@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/lanxre/kyokusulib/internal/models/db"
-	"github.com/lanxre/kyokusulib/internal/utils/response"
 	service "github.com/lanxre/kyokusulib/internal/services"
+	"github.com/lanxre/kyokusulib/internal/utils/response"
 )
 
 type AuthorHandler struct {
@@ -22,17 +22,49 @@ func NewAuthorHandler(service *service.AuthorService) *AuthorHandler {
 
 func (h *AuthorHandler) CreateAuthor(w http.ResponseWriter, r *http.Request) {
 	var author db.Author
-	if err := json.NewDecoder(r.Body).Decode(&author); err != nil {
-		response.Error(w, http.StatusBadRequest, "Invalid data")
+	
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		response.Error(w, http.StatusBadRequest, "File too big or invalid format")
 		return
 	}
+	
+	name    := r.FormValue("name")
+	bio     := r.FormValue("bio")
+	country := r.FormValue("country")
+	metier  := r.FormValue("metier")
+	
+	author.Name    = name
+	author.Bio     = bio
+	author.Country = country
+	author.Metier  = metier
 	
 	if author.Name == "" {
 		response.Error(w, http.StatusBadRequest, "Name cannot be empty")
 		return
 	}
 	
-	if err := h.service.CreateAuthor(r.Context(), author.Name); err != nil {
+	authorDb, err := h.service.GetAuthorByName(r.Context(), author.Name)
+
+	if authorDb != nil {
+		response.Error(w, http.StatusConflict, fmt.Sprintf("Автор %s уже добавлен", authorDb.Name))
+		return
+	}
+	
+	var avatarURL string
+	file, header, err := r.FormFile("picture")
+	if err == nil {
+		defer file.Close()
+		url, uploadErr := h.service.UploadAuthorImage(r.Context(), file, header)
+		if uploadErr != nil {
+			response.Error(w, http.StatusInternalServerError, "Failed to upload image")
+			return
+		}
+		avatarURL = url
+	}
+	
+	author.Picture = avatarURL
+
+	if err := h.service.CreateAuthor(r.Context(), &author); err != nil {
 		response.Error(w, http.StatusInternalServerError, "Failed to create author")
 		return
 	}
