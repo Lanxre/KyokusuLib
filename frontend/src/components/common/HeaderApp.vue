@@ -14,21 +14,30 @@ import MenuIcon from "@/assets/images/special/menu.png";
 import ReferIcon from "@/assets/images/special/refer.png";
 import SettingsIcon from "@/assets/images/special/setting.png";
 import PersonIcon from "@/assets/images/special/user.png";
+import ColorPaletteIcon from "@/assets/images/special/color-palette.png";
+import BookIcon from "@/assets/images/special/open-book.png";
+import WritterIcon from "@/assets/images/special/writer.png";
+import MangaIcon from "@/assets/images/special/comic.png";
 import { useAuthStore } from "@/stores/auth";
+import { useRolePermissions } from "@/composables/api/role/useRolePermissions";
+import { KyokusuAppRole } from "@/types/enums/role-enum";
 
 const router = useRouter();
 const authStore = useAuthStore();
 const { user, isAuthenticated } = storeToRefs(authStore);
+const { hasPermission } = useRolePermissions();
+
 const isMobileMenuOpen = ref(false);
 const isUserDropdownOpen = ref(false);
+const isContentSubmenuOpen = ref(false);
 const userDropdownRef = ref(null);
 
-const toggleMobileMenu = () =>
-	(isMobileMenuOpen.value = !isMobileMenuOpen.value);
+const toggleMobileMenu = () => (isMobileMenuOpen.value = !isMobileMenuOpen.value);
 const closeMobileMenu = () => (isMobileMenuOpen.value = false);
 
 onClickOutside(userDropdownRef, () => {
 	isUserDropdownOpen.value = false;
+    isContentSubmenuOpen.value = false;
 });
 
 const handleLogout = async () => {
@@ -54,24 +63,24 @@ const goToLogin = () => {
         </RouterLink>
 
         <nav class="hidden md:flex items-center gap-2 lg:gap-4">
-          <RouterLink to="/catalog" class="px-6 py-3 rounded-2xl bg-zinc-300 hover:bg-zinc-400 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white">Каталог</RouterLink>
-          <RouterLink to="/top" class="px-6 py-3 rounded-2xl bg-zinc-300 hover:bg-zinc-400 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white">Топы</RouterLink>
-          <RouterLink to="/forum" class="px-6 py-3 rounded-2xl bg-zinc-300 hover:bg-zinc-400 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white">Форум</RouterLink>
+          <RouterLink to="/catalog" class="px-6 py-3 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white">Каталог</RouterLink>
+          <RouterLink to="/top" class="px-6 py-3 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white">Топы</RouterLink>
+          <RouterLink to="/forum" class="px-6 py-3 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white">Форум</RouterLink>
         </nav>
       </div>
 
       <div class="flex items-center gap-3 md:gap-4">
-        <div class="hidden w-64 md:flex items-center gap-3 px-4 py-3 rounded-full bg-zinc-300 hover:bg-zinc-400 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors cursor-pointer group">
+        <div class="hidden w-64 md:flex items-center gap-3 px-4 py-3 rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors cursor-pointer group">
           <img :src="SearchIcon" alt="Search" class="h-5 w-5 opacity-70 group-hover:opacity-100 transition-opacity dark:invert" />
           <span class="text-sm lg:text-base font-medium text-zinc-500 group-hover:text-zinc-900 dark:text-zinc-400 dark:group-hover:text-white transition-colors">Поиск</span>
         </div>
         
-        <button class="p-3 rounded-full bg-zinc-300 hover:bg-zinc-400 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors">
+        <button class="p-3 rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors">
           <img :src="NotificationIcon" alt="Notifications" class="h-6 w-6 dark:invert" />
         </button>
 
-        <RouterLink to="/bookmarks" class="hidden sm:flex items-center gap-2 px-4 py-3 rounded-full bg-zinc-300 hover:bg-zinc-400 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors">
-          <img :src="BookMarkIcon" alt="Bookmarks" class="h-5 w-5 invert-0 dark:invert" />
+        <RouterLink to="/bookmarks" class="hidden sm:flex items-center gap-2 px-4 py-3 rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors">
+          <img :src="BookMarkIcon" alt="Bookmarks" class="h-5 w-5 invert dark:invert-0" />
           <span class="hidden lg:inline font-medium">Закладки</span>
         </RouterLink>
 
@@ -81,7 +90,7 @@ const goToLogin = () => {
                 @click="isUserDropdownOpen = !isUserDropdownOpen"
                 class="flex items-center gap-2 focus:outline-none"
             >
-                <div class="h-10 w-10 cursor-pointer rounded-full bg-zinc-300 dark:bg-zinc-700 flex items-center justify-center overflow-hidden border-2 border-transparent hover:border-zinc-500 dark:hover:border-zinc-300/50 transition-colors">
+                <div class="h-10 w-10 cursor-pointer rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center overflow-hidden border-2 border-transparent hover:border-zinc-400 dark:hover:border-zinc-300/50 transition-colors">
                     <img :src="correctProfileImage(user.picture)" class="w-full h-full object-cover" alt="Avatar" />
                 </div>
             </button>
@@ -96,30 +105,66 @@ const goToLogin = () => {
             </button>
 
             <Transition name="fade">
-                <div v-if="isUserDropdownOpen" class="absolute right-0 mt-3 w-48 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl py-2 px-2 overflow-hidden flex flex-col z-[60]">
-                    <div class="px-4 py-2 border-b border-zinc-200 dark:border-zinc-700/50 mb-1">
-                        <p class="text-sm font-semibold text-zinc-900 dark:text-white truncate">{{ user?.name }}</p>
-                        <p class="text-xs text-zinc-500 truncate">{{ user?.email }}</p>
-                    </div>
-                    
-                    <RouterLink to="/profile" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors text-left w-full" @click="isUserDropdownOpen = false">
-                      <span>Профиль</span>
-                      <img :src="PersonIcon" class="h-4 w-4 dark:brightness-0 dark:invert"/>
-                    </RouterLink>
-                    
-                    <RouterLink to="/settings" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors text-left w-full" @click="isUserDropdownOpen = false">
-                      <span>Настройки</span>
-                      <img :src="SettingsIcon" class="h-4 w-4 dark:brightness-0 dark:invert"/>
-                    </RouterLink>
-                    
-                    <div class="h-px bg-zinc-200 dark:bg-zinc-700/50 my-1"></div>
-                    
-                    <button @click="handleLogout" class="flex justify-between gap-4 items-center rounded-full cursor-pointer px-4 py-2 text-sm text-zinc-600 hover:bg-red-50 hover:text-red-500 dark:text-zinc-300 dark:hover:bg-red-500/10 dark:hover:text-red-300 transition-colors text-left w-full">
-                      <span>Выйти</span>
-                      <img :src="LogOutIcon" class="h-4 w-4 dark:brightness-0 dark:invert"/>
-                    </button>
-                </div>
-            </Transition>
+               <div v-if="isUserDropdownOpen" class="absolute right-0 mt-3 w-56 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl py-2 px-2 overflow-visible flex flex-col z-[60]">
+                 
+                 <div class="px-4 py-2 border-b border-zinc-200 dark:border-zinc-700/50 mb-1">
+                   <p class="text-sm font-semibold text-zinc-900 dark:text-white truncate">{{ user?.name }}</p>
+                   <p class="text-xs text-zinc-500 truncate">{{ user?.email }}</p>
+                 </div>
+           
+                 <RouterLink to="/profile" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors text-left w-full" @click="isUserDropdownOpen = false">
+                   <span>Профиль</span>
+                   <img :src="PersonIcon" class="h-4 w-4 dark:brightness-0 dark:invert" />
+                 </RouterLink>
+           
+                 <RouterLink to="/settings" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors text-left w-full" @click="isUserDropdownOpen = false">
+                   <span>Настройки</span>
+                   <img :src="SettingsIcon" class="h-4 w-4 dark:brightness-0 dark:invert" />
+                 </RouterLink>
+           
+                 <div 
+                   class="relative"
+                   @mouseenter="isContentSubmenuOpen = true"
+                   @mouseleave="isContentSubmenuOpen = false"
+                 >
+                     <div v-if="hasPermission(KyokusuAppRole.MODERATOR)" class="flex justify-between gap-4 items-center rounded-full cursor-pointer px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors text-left w-full">
+                       <span>Добавить контент</span>
+                       <div class="flex items-center gap-2">
+                            <img :src="ColorPaletteIcon" class="h-4 w-4 dark:brightness-0 dark:invert" />
+                        </div>
+                     </div>
+           
+                   <Transition name="fade">
+                     <div 
+                       v-if="isContentSubmenuOpen" 
+                       class="absolute top-0 left-full ml-2 w-36 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl py-2 px-2 z-[70]"
+                     > 
+                       <RouterLink to="/manga/add" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors w-full" @click="isUserDropdownOpen = false">
+                         <span>Мангу</span>
+                         <img :src="MangaIcon" class="h-4 w-4 dark:brightness-0 dark:invert" />
+                       </RouterLink>
+           
+                       <RouterLink to="/ranobe/add" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors w-full" @click="isUserDropdownOpen = false">
+                         <span>Ранобэ</span>
+                         <img :src="BookIcon" class="h-4 w-4 dark:brightness-0 dark:invert" />
+                       </RouterLink>
+           
+                       <RouterLink to="/author/add" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors w-full" @click="isUserDropdownOpen = false">
+                         <span>Автора</span>
+                         <img :src="WritterIcon" class="h-4 w-4 dark:brightness-0 dark:invert" />
+                       </RouterLink>
+                     </div>
+                   </Transition>
+                 </div>
+           
+                 <div class="h-px bg-zinc-200 dark:bg-zinc-700/50 my-1"></div>
+           
+                 <button @click="handleLogout" class="flex justify-between gap-4 items-center rounded-full cursor-pointer px-4 py-2 text-sm text-zinc-600 hover:bg-red-50 hover:text-red-500 dark:text-zinc-300 dark:hover:bg-red-500/10 dark:hover:text-red-300 transition-colors text-left w-full">
+                   <span>Выйти</span>
+                   <img :src="LogOutIcon" class="h-4 w-4 dark:brightness-0 dark:invert" />
+                 </button>
+               </div>
+             </Transition>
         </div>
 
         <button 
@@ -134,20 +179,21 @@ const goToLogin = () => {
     <Transition name="slide-fade">
       <div 
         v-if="isMobileMenuOpen" 
-        class="absolute left-0 w-full border-t border-zinc-200 dark:border-zinc-700 bg-white/95 dark:bg-[#0f0f0f]/95 backdrop-blur-md md:hidden overflow-hidden shadow-xl"
+        class="absolute left-0 w-full h-[calc(100vh-80px)] overflow-y-auto border-t border-zinc-200 dark:border-zinc-700 bg-white/95 dark:bg-[#0f0f0f]/95 backdrop-blur-md md:hidden shadow-xl"
       >
-        <nav class="flex flex-col p-4 gap-2">
+        <nav class="flex flex-col p-4 gap-2 pb-10">
             <div v-if="isAuthenticated && user" class="flex items-center gap-3 p-3 bg-zinc-100 dark:bg-zinc-800/50 rounded-xl mb-2">
-                 <div class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center overflow-hidden">
-                    <img v-if="user.picture" :src="user.picture" class="w-full h-full object-cover" />
-                    <span v-else class="font-bold text-white">{{ user.name?.charAt(0).toUpperCase() }}</span>
-                </div>
+                <RouterLink :to="`/profile/${user.id}`" class="h-10 w-10 shrink-0 rounded-full flex items-center justify-center overflow-hidden" @click="closeMobileMenu">
+                    <div class="h-10 w-10 rounded-full bg-zinc-600 flex items-center justify-center overflow-hidden">
+                        <img :src="correctProfileImage(user.picture)" class="w-full h-full object-cover" />
+                    </div>
+                </RouterLink>
                 <div class="flex-1 min-w-0">
                     <p class="font-medium text-zinc-900 dark:text-white truncate">{{ user.name }}</p>
                     <p class="text-xs text-zinc-500 dark:text-zinc-400 truncate">{{ user.email }}</p>
                 </div>
                 <button @click="handleLogout" class="p-2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                    <img :src="LogOutIcon" class="h-5 w-5 dark:invert" />
                 </button>
             </div>
             
@@ -170,6 +216,28 @@ const goToLogin = () => {
             <img :src="BookMarkIcon" class="h-5 w-5 invert dark:invert-0" />
             <span>Закладки</span>
           </RouterLink>
+
+          <div v-if="hasPermission(KyokusuAppRole.MODERATOR)" class="w-full border-t border-zinc-200 dark:border-zinc-700 my-2 opacity-50"></div>
+
+          <div v-if="hasPermission(KyokusuAppRole.MODERATOR)" class="flex flex-col gap-2">
+            <p class="text-xs text-zinc-500 uppercase font-bold px-2 mb-1">Добавить контент</p>
+            
+            <RouterLink to="/manga/add" class="flex justify-center items-center gap-3 px-6 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-900/30 hover:bg-zinc-200 dark:hover:bg-zinc-800 w-full transition-colors text-zinc-700 dark:text-zinc-200" @click="closeMobileMenu">
+                <img :src="MangaIcon" class="h-5 w-5 dark:invert opacity-70" />
+                <span>Мангу</span>
+            </RouterLink>
+
+            <RouterLink to="/ranobe/add" class="flex items-center gap-3 px-6 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-900/30 hover:bg-zinc-200 dark:hover:bg-zinc-800 w-full justify-center transition-colors text-zinc-700 dark:text-zinc-200" @click="closeMobileMenu">
+                <img :src="BookIcon" class="h-5 w-5 dark:invert opacity-70" />
+                <span>Ранобэ</span>
+            </RouterLink>
+
+            <RouterLink to="/author/add" class="flex items-center gap-3 px-6 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-900/30 hover:bg-zinc-200 dark:hover:bg-zinc-800 w-full justify-center transition-colors text-zinc-700 dark:text-zinc-200" @click="closeMobileMenu">
+                <img :src="WritterIcon" class="h-5 w-5 dark:invert opacity-70" />
+                <span>Автора</span>
+            </RouterLink>
+          </div>
+
         </nav>
       </div>
     </Transition>
@@ -180,13 +248,13 @@ const goToLogin = () => {
 .slide-fade-enter-active,
 .slide-fade-leave-active {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  max-height: 500px;
   opacity: 1;
+  transform: translateY(0);
 }
 .slide-fade-enter-from,
 .slide-fade-leave-to {
-  max-height: 0;
   opacity: 0;
+  transform: translateY(-10px);
 }
 
 .fade-enter-active,
@@ -198,4 +266,4 @@ const goToLogin = () => {
   opacity: 0;
   transform: translateY(-5px);
 }
-</style>
+</style>1

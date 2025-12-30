@@ -6,7 +6,7 @@ export function correctProfileImageLink(link: string) {
 }
 
 export function correctProfileImage(picture: string) {
-	if (
+  if (
 		picture !== undefined &&
 		picture !== null &&
 		picture.startsWith("/uploads")

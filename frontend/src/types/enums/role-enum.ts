@@ -3,3 +3,10 @@ export enum KyokusuAppRole {
 	MODERATOR = "moderator",
 	USER = "user",
 }
+
+export const ROLE_WEIGHTS: Record<KyokusuAppRole, number> = {
+    [KyokusuAppRole.USER]: 10,
+    [KyokusuAppRole.MODERATOR]: 50,
+    [KyokusuAppRole.ADMIN]: 100,
+};
+

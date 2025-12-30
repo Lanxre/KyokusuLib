@@ -7,6 +7,7 @@ import SettingsPage from "@/pages/settings/SettingsPage.vue";
 import ProfilePage from "@/pages/profile/ProfilePage.vue";
 import AddAuthorPage from "@/pages/forms/AddAuthorPage.vue";
 import { useAuthStore } from "@/stores/auth";
+import { KyokusuAppRole, ROLE_WEIGHTS } from "@/types/enums/role-enum";
 
 const routes = [
 	{
@@ -56,7 +57,7 @@ const routes = [
 	  path: "/author/add",
 		name: "add-author",
 		component: AddAuthorPage,
-		meta: { requiresAuth: true },
+		meta: { requiresAuth: true, minRole: KyokusuAppRole.MODERATOR },
 	},
 	{
 		path: "/:pathMatch(.*)*",
@@ -73,6 +74,9 @@ const router = createRouter({
 router.beforeEach(async (to, _, next) => {
 	const authStore = useAuthStore();
 	const hasCookie = document.cookie.includes("KYOKUSU_API_TOKEN");
+	
+	const userRole = (authStore.user?.role as KyokusuAppRole) || KyokusuAppRole.USER;
+  const userWeight = ROLE_WEIGHTS[userRole];
 
 	if (hasCookie && !authStore.isAuthenticated) {
 		try {
@@ -81,6 +85,15 @@ router.beforeEach(async (to, _, next) => {
 			console.error("Auth init failed in router", e);
 		}
 	}
+	
+	if (to.meta.minRole) {
+      const requiredRole = to.meta.minRole as KyokusuAppRole;
+      const requiredWeight = ROLE_WEIGHTS[requiredRole];
+
+      if (userWeight < requiredWeight) {
+          return next('/');
+      }
+  }
 
 
 	if (to.meta.requiresAuth && !authStore.isAuthenticated) {
