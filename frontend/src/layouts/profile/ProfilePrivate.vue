@@ -22,7 +22,7 @@ const activeTab = ref('overview');
 <template>
     <div class="min-h-screen bg-zinc-50 dark:bg-radial-[at_center] dark:from-zinc-900 cursor-default dark:to-zinc-950 dark:to-90% text-zinc-900 dark:text-zinc-200 transition-colors duration-300 font-sans">
         
-        <div class="h-48 md:h-64 w-full bg-gradient-to-r from-zinc-800 to-zinc-700 relative overflow-hidden group">
+        <div class="h-48 md:h-64 w-full bg-linear-to-r from-zinc-800 to-zinc-700 relative overflow-hidden group">
             <img 
                 v-if="profileData?.banner" 
                 :src="correctProfileImage(profileData.banner)" 
@@ -36,7 +36,7 @@ const activeTab = ref('overview');
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
             <div class="relative -mt-16 md:-mt-20 mb-8 flex flex-col md:flex-row items-end md:items-end gap-6">
                 
-                <div class="relative flex-shrink-0">
+                <div class="relative shrink-0">
                     <div class="w-32 h-32 md:w-40 md:h-40 rounded-2xl border-4 border-white dark:border-zinc-900 bg-zinc-800 overflow-hidden shadow-xl">
                         <img 
                             :src="correctProfileImage(profileData?.picture || '')" 
@@ -92,7 +92,7 @@ const activeTab = ref('overview');
                     
                     <div class="bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
                         <h3 class="text-lg font-semibold text-zinc-900 dark:text-white mb-4">О себе</h3>
-                        <p class="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap break-words leading-relaxed">
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap wrap-break-words leading-relaxed">
                             {{ profileData?.about || 'Пользователь предпочел не рассказывать о себе.' }}
                         </p>
                         

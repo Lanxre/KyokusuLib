@@ -27,4 +27,5 @@ export interface GetUserDto {
 	gender: GenderSetting.MALE | GenderSetting.FEMALE | GenderSetting.HIDDEN;
 	birthday: string;
 	is_public: boolean;
+  last_login: string;
 }

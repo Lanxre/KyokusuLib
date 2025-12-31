@@ -33,3 +33,7 @@ type RanobeRoutes struct {
 type AuthorRoutes struct {
 	Handler *handlers.AuthorHandler
 }
+
+type UserActivityRoutes struct {
+	Handler *handlers.UserActivityHandler
+}

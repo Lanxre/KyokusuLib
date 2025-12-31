@@ -62,6 +62,63 @@ export function useProfile() {
         return 'Неизвестно';
     });
 
+    const lastLogin = computed(() => {
+      if (!profileData.value || !profileData.value.is_public) {
+        return 'Неизвестно';
+      }
+    
+      const lastLoginUTC = (profileData.value as User).last_login;
+      if (!lastLoginUTC) {
+        return 'Неизвестно';
+      }
+    
+      const date = new Date(lastLoginUTC);
+    
+      const today = new Date();
+      const isToday =
+        date.getFullYear() === today.getFullYear() &&
+        date.getMonth() === today.getMonth() &&
+        date.getDate() === today.getDate();
+    
+      date.setHours(date.getHours() - 3);
+      
+      if (isToday) {
+        return date.toLocaleTimeString('ru-RU', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      } else {
+        return date.toLocaleDateString('ru-RU', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        });
+      }
+    });
+    
+    const isLogin = computed(() => {
+      if (!profileData.value || !profileData.value.is_public) {
+        return false;
+      }
+      
+      const lastLoginUTC = (profileData.value as User).last_login;
+      if (!lastLoginUTC) {
+        return false;
+      }
+    
+      const date = new Date(lastLoginUTC);
+    
+      const today = new Date();
+      const isToday =
+        date.getFullYear() === today.getFullYear() &&
+        date.getMonth() === today.getMonth() &&
+        date.getDate() === today.getDate();
+    
+      date.setHours(date.getHours() - 3);
+      
+      return isToday;
+    });
+
     const userRoleColor = computed(() => getRoleColor(profileData.value?.role));
     
     const userGender = computed(() => getGenderText(profileData.value?.gender));
@@ -109,6 +166,8 @@ export function useProfile() {
         profileTabs,
         
         accountCreated,
+        lastLogin,
+        isLogin,
         userRoleColor,
         userGender,
 

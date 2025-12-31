@@ -25,6 +25,7 @@ type GetUserDTO struct {
 	Gender							string		`json:"gender"`
 	
 	IsPublic             		    bool        `json:"is_public"`
+	LastLogin					    time.Time	`json:"last_login"`
 }
 
 type UpdateUserStatusDTO struct {

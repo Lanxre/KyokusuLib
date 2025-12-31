@@ -3,10 +3,8 @@ import { ref } from 'vue';
 import { correctProfileImage } from '@/api/utils/str';
 import Separator from '@/components/ui/Separator/Separtor.vue';
 import { useProfile } from '@/composables/api/profile/useProfile';
-import { useActivityStore } from '@/stores/activity';
 
-const { profileData, profileTabs, userRoleColor, userGender } = useProfile();
-const { isUserActive } = useActivityStore();
+const { profileData, profileTabs, userRoleColor, userGender, lastLogin, isLogin } = useProfile();
 const activeTab = ref('overview');
 
 </script>
@@ -15,7 +13,7 @@ const activeTab = ref('overview');
     <div class="min-h-screen bg-zinc-50 dark:bg-radial-[at_center] dark:from-zinc-900 cursor-default dark:to-zinc-950 dark:to-90% text-zinc-900 dark:text-zinc-200 transition-colors duration-300 font-sans">
         
          <!-- Banner -->
-        <div class="h-48 md:h-64 w-full bg-gradient-to-r from-zinc-800 to-zinc-700 relative overflow-hidden group">
+        <div class="h-48 md:h-64 w-full bg-linear-to-r from-zinc-800 to-zinc-700 relative overflow-hidden group">
             <!-- Изображение баннера -->
             <img 
                 v-if="profileData?.banner" 
@@ -48,7 +46,7 @@ const activeTab = ref('overview');
                     <div 
                         class="absolute bottom-2 right-2 w-5 h-5 border-4 border-white dark:border-zinc-900 rounded-full"
                         title="Онлайн"
-                        :class="{ 'bg-green-500' : isUserActive, 'bg-red-500' : !isUserActive }"
+                        :class="{ 'bg-green-500' : isLogin, 'bg-red-500' : !isLogin }"
                     ></div>
                 </div>
 
@@ -81,11 +79,15 @@ const activeTab = ref('overview');
                     <div class="bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
                         <h3 class="text-lg font-semibold text-zinc-900 dark:text-white mb-4">О себе</h3>
                         
-                        <p class="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap break-words leading-relaxed">
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap wrap-break-words leading-relaxed">
                             {{ profileData?.about || 'Пользователь предпочел не рассказывать о себе.' }}
                         </p>
                         
                         <div class="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-zinc-500">Последняя активность</span>
+                                <span class="text-zinc-700 dark:text-zinc-300 font-medium">{{ lastLogin }}</span>
+                            </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-zinc-500">Пол</span>
                                 <span class="text-zinc-700 dark:text-zinc-300 font-medium capitalize">

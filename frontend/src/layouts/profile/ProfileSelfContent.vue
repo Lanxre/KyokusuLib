@@ -4,24 +4,21 @@ import { correctProfileImage } from '@/api/utils/str';
 import Separator from '@/components/ui/Separator/Separtor.vue';
 import EditIcon from "@/assets/images/special/setting.png";
 import { useProfile } from '@/composables/api/profile/useProfile';
+import { useUserActivity } from '@/composables/api/profile/useUserActivity';
 import { useActivityStore } from '@/stores/activity';
+import TabActivity from '@/layouts/profile/activity/TabActivity.vue';
 
-const { profileData, accountCreated, userRoleColor, userGender } = useProfile();
+const { profileData, accountCreated, profileTabs, userRoleColor, userGender, lastLogin } = useProfile();
+const { activities, isLoadingActivities } = useUserActivity();
 const { isUserActive } = useActivityStore();
 const activeTab = ref('overview');
-
-const tabs = [
-    { id: 'overview', label: 'Обзор' },
-    { id: 'bookmarks', label: 'Закладки' },
-    { id: 'comments', label: 'Комментарии' },
-];
 </script>
 
 <template>
     <div class="min-h-screen bg-zinc-50 dark:bg-radial-[at_center] dark:from-zinc-900 cursor-default dark:to-zinc-950 dark:to-90% text-zinc-900 dark:text-zinc-200 transition-colors duration-300 font-sans">
         
        <!-- Banner -->
-        <div class="h-48 md:h-64 w-full bg-gradient-to-r from-zinc-800 to-zinc-700 relative overflow-hidden group">
+        <div class="h-48 md:h-64 w-full bg-linear-to-r from-zinc-800 to-zinc-700 relative overflow-hidden group">
             <!-- Изображение баннера -->
             <img 
                 v-if="profileData?.banner" 
@@ -94,7 +91,7 @@ const tabs = [
                     <div class="bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
                         <h3 class="text-lg font-semibold text-zinc-900 dark:text-white mb-4">О себе</h3>
                         
-                        <p class="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap break-words leading-relaxed">
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap wrap-break-words leading-relaxed">
                             {{ profileData?.about || 'Пользователь предпочел не рассказывать о себе.' }}
                         </p>
                         
@@ -102,6 +99,10 @@ const tabs = [
                             <div class="flex justify-between text-sm">
                                 <span class="text-zinc-500">Дата регистрации</span>
                                 <span class="text-zinc-700 dark:text-zinc-300 font-medium">{{ accountCreated }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-zinc-500">Последняя активность</span>
+                                <span class="text-zinc-700 dark:text-zinc-300 font-medium">{{ lastLogin }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-zinc-500">Пол</span>
@@ -132,7 +133,7 @@ const tabs = [
                     <!-- Tabs Navigation -->
                     <div class="flex gap-1 border-b border-zinc-200 dark:border-zinc-800 mb-6 overflow-x-auto no-scrollbar">
                         <button 
-                            v-for="tab in tabs" 
+                            v-for="tab in profileTabs" 
                             :key="tab.id"
                             @click="activeTab = tab.id"
                             class="px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-pointer"
@@ -150,15 +151,10 @@ const tabs = [
                     <div class="min-h-[300px]">
                         <transition name="fade" mode="out-in">
                             <div v-if="activeTab === 'overview'" key="overview" class="space-y-6">
-                                <div class="bg-white dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 rounded-xl p-8 flex flex-col items-center justify-center text-center">
-                                    <div class="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4">
-                                        <svg class="w-8 h-8 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                        </svg>
-                                    </div>
-                                    <h4 class="text-lg font-medium text-zinc-900 dark:text-white">Активность отсутствует</h4>
-                                    <p class="text-zinc-500 text-sm mt-1">Здесь будет отображаться последняя активность пользователя.</p>
-                                </div>
+                                <TabActivity
+                                    :activities="activities"
+                                    :isLoading="isLoadingActivities"
+                                />
                             </div>
 
                             <div v-else-if="activeTab === 'bookmarks'" key="bookmarks">

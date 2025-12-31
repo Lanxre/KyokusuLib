@@ -28,11 +28,13 @@ func main() {
 	userRepo := repository.NewUserRepository(db)
 	userProfileSettingsRepo := repository.NewUserProfileSettingRepository(db)
 	userSocialRepo := repository.NewUserSocialsRepository(db)
+	userActivitiesRepo := repository.NewUserActivityRepository(db)
 	
 	authorRepo := repository.NewAuthorRepository(db)
 
 	authService := service.NewAuthService(userRepo)
 	userService := service.NewUserService(userRepo)
+	userActivityService := service.NewUserActivityService(userActivitiesRepo)
 	emailService := service.NewEmailService(cfg.KyokusuEmailName, cfg.KyokusuEmailPass)
 	profileSettingService := service.NewProfileSettingService(userRepo, userProfileSettingsRepo)
 	socialService := service.NewSocialsService(userSocialRepo)
@@ -49,6 +51,7 @@ func main() {
 	profileSettingHandler := handlers.NewProfileSettingHandler(profileSettingService)
 	socialNetworkHandler := handlers.NewSocialNetworkHandler(cfg, socialService)
 	authorHandler := handlers.NewAuthorHandler(authorService)
+	userActivityHandler := handlers.NewUserActivityHandler(userActivityService)
 
 	rts := []routes.Route{
 		&routes.HealthRoutes{Handler: healthHandler},
@@ -58,6 +61,7 @@ func main() {
 		&routes.SocialNetworkRoutes{Handler: socialNetworkHandler},
 		&routes.UserRoutes{Handler: userHandler},
 		&routes.AuthorRoutes{Handler: authorHandler},
+		&routes.UserActivityRoutes{Handler: userActivityHandler},
 	}
 
 	r := routes.NewRouter(cfg, rts...)
