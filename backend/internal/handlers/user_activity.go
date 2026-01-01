@@ -3,7 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/lanxre/kyokusulib/internal/middleware"
 	"github.com/lanxre/kyokusulib/internal/models/dto"
 	service "github.com/lanxre/kyokusulib/internal/services"
@@ -55,4 +57,27 @@ func (h *UserActivityHandler) GetUserActivities(w http.ResponseWriter, r *http.R
 	}
 
 	response.Success(w, http.StatusOK, activities)
+}
+
+func (h *UserActivityHandler) GetUserActivityById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr, ok := vars["id"]
+	if !ok {
+		response.Error(w, http.StatusBadRequest, "User ID is missing")
+		return
+	}
+
+	userID, err := strconv.Atoi(idStr)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid user ID format")
+		return
+	}
+
+	activity, err := h.Service.GetUserActivity(r.Context(), userID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(w, http.StatusOK, activity)
 }

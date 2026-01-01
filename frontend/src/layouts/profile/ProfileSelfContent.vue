@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { correctProfileImage } from '@/api/utils/str';
 import Separator from '@/components/ui/Separator/Separtor.vue';
 import EditIcon from "@/assets/images/special/setting.png";
@@ -9,9 +9,14 @@ import { useActivityStore } from '@/stores/activity';
 import TabActivity from '@/layouts/profile/activity/TabActivity.vue';
 
 const { profileData, accountCreated, profileTabs, userRoleColor, userGender, lastLogin } = useProfile();
-const { activities, isLoadingActivities } = useUserActivity();
+const { activities, fetchActivities, isLoadingActivities } = useUserActivity();
 const { isUserActive } = useActivityStore();
 const activeTab = ref('overview');
+
+onMounted(async () => {
+    await fetchActivities();
+});
+
 </script>
 
 <template>

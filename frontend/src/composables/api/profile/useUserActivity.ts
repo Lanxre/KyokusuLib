@@ -1,4 +1,4 @@
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 import { useApi } from '@/api/api';
 import type { GetActivityResponse, UserActivity } from '@/types/backend/user_activity';
 
@@ -28,15 +28,34 @@ export function useUserActivity() {
             isLoadingActivities.value = false;
         }
     };
-
-    onMounted(async () => {
-        await fetchActivities();
-    });
+    
+    const fetchByUserId = async (userId: number) => {
+        isLoadingActivities.value = true;
+        error.value = null;
+        console.log(userId)
+        try {
+            const { data } = await useApi(`/api/user/activities/${userId}`, { 
+                credentials: 'include' 
+            })
+            .get()
+            .json<GetActivityResponse>();
+            
+            activities.value = data.value?.message || [];
+          
+        } catch (e: any) {
+            console.error(e);
+            error.value = e.message || "Failed to fetch activities";
+            activities.value = [];
+        } finally {
+            isLoadingActivities.value = false;
+        }
+    };
 
     return {
         activities,
         isLoadingActivities,
         error,
-        fetchActivities
+        fetchActivities,
+        fetchByUserId
     };
 }
