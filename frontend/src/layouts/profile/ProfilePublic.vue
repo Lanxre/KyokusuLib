@@ -26,7 +26,7 @@ onMounted(async () => {
                 v-if="profileData?.banner" 
                 :src="correctProfileImage(profileData.banner)" 
                 alt="Profile Banner"
-                class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                class="absolute inset-0 w-full h-full transition-transform duration-700"
             />
             <div class="absolute inset-0 bg-black/20"></div>
             <div class="absolute -bottom-10 -right-10 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
@@ -122,7 +122,7 @@ onMounted(async () => {
                             v-for="tab in profileTabs" 
                             :key="tab.id"
                             @click="activeTab = tab.id"
-                            class="px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-zinc-500 rounded-t-lg"
+                            class="px-4 py-3 text-sm font-medium border-b-2 cursor-pointer transition-colors whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-zinc-500 rounded-t-lg"
                             :class="[
                                 activeTab === tab.id 
                                     ? 'border-zinc-900 dark:border-white text-zinc-900 dark:text-white' 
