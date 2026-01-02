@@ -32,7 +32,6 @@ export function useUserActivity() {
     const fetchByUserId = async (userId: number) => {
         isLoadingActivities.value = true;
         error.value = null;
-        console.log(userId)
         try {
             const { data } = await useApi(`/api/user/activities/${userId}`, { 
                 credentials: 'include' 

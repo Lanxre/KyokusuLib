@@ -25,4 +25,6 @@ func (a *ProfileSettingRoutes) Register(cfg *config.Config, r *mux.Router) {
 	s.HandleFunc("/settings", middleware.AuthMiddleware(a.Handler.UpdateProfileSettings, cfg.JWTSecret)).Methods("PUT")
 	s.HandleFunc("/settings/notify", middleware.AuthMiddleware(a.Handler.GetNotifySettings, cfg.JWTSecret)).Methods("GET")
 	s.HandleFunc("/settings/notify", middleware.AuthMiddleware(a.Handler.UpdateNotifySettings, cfg.JWTSecret)).Methods("PATCH")
+	s.HandleFunc("/settings/interface", middleware.AuthMiddleware(a.Handler.UpdateUserInterface, cfg.JWTSecret)).Methods("PATCH")
+	
 }

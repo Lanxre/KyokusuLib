@@ -1,10 +1,11 @@
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useApi } from "@/api/api";
-import type { UserInterfaceSettings } from "@/types/backend/profile_settings";
+import type { UserInterfaceSettingsPatch, UserInterfaceSettings } from "@/types/backend/profile_settings";
 import { ThemeSetting } from "@/types/enums/theme-enum";
 
 export function useInterfaceSettings() {
     const isDarkTheme = ref(document.documentElement.classList.contains(ThemeSetting.DARK_THEME));
+    const isShowTag = ref(false);
 
     const updateBackendTheme = async (theme: string) => {
         try {
@@ -13,6 +14,16 @@ export function useInterfaceSettings() {
                 .json();
         } catch (e) {
             console.error("Failed to save theme preference", e);
+        }
+    };
+    
+    const updateInterfaceSettings = async (settings: UserInterfaceSettingsPatch) => {
+        try {
+            await useApi("/api/profile/settings/interface", { credentials: "include" })
+                .patch(settings)
+                .json();
+        } catch (e) {
+            console.error("Failed to save interface settings", e);
         }
     };
 
@@ -31,7 +42,7 @@ export function useInterfaceSettings() {
         updateBackendTheme(newTheme);
     };
 
-    const syncWithBackend = async () => {
+    const syncSettingWithBackend = async () => {
         try {
             const { data } = await useApi("/api/profile/settings", { credentials: "include" })
                 .json<UserInterfaceSettings>();
@@ -42,18 +53,32 @@ export function useInterfaceSettings() {
                     isDarkTheme.value = backendIsDark;
                 }
             }
+            
+            if (data.value && data.value.is_show_tag) {
+                isShowTag.value = data.value.is_show_tag;
+            }
+            
         } catch (e) {
             console.log(e)
         }
     };
+    
 
     watch(isDarkTheme, (val) => {
         applyTheme(val);
     });
-
-    syncWithBackend();
+    
+    watch(isShowTag, (val) => {
+        isShowTag.value = val;
+        updateInterfaceSettings({ is_show_tag: val });
+    });
+    
+    onMounted(async () => {
+        await syncSettingWithBackend();
+    });
 
     return {
         isDarkTheme,
+        isShowTag
     };
 }

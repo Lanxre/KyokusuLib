@@ -22,7 +22,7 @@ func (r *UserProfileSettingRepository) GetUserProfileSettings(ctx context.Contex
 	settings := &db.UserProfileSetting{}
 
 	query := `
-		SELECT theme, is_app_notify, is_new_published_notify
+		SELECT theme, is_app_notify, is_new_published_notify, is_show_tag
 		FROM user_profile_settings
 		WHERE user_id = $1`
 
@@ -30,6 +30,7 @@ func (r *UserProfileSettingRepository) GetUserProfileSettings(ctx context.Contex
 		&settings.Theme,
 		&settings.IsAppNotify,
 		&settings.IsNewPublishedNotify,
+		&settings.IsShowTag,
 	)
 	if err != nil {
 		return nil, err
@@ -55,10 +56,54 @@ func (r *UserProfileSettingRepository) DeleteUserProfileSettings(ctx context.Con
 	return err
 }
 
+func (r *UserProfileSettingRepository) UpdateUserInterfaceSettings(ctx context.Context, userID int, settings dto.UserInterfacePatchDTO) error {
+	var (
+		setClauses []string
+		args       []any
+		argID      = 1
+	)
+	
+	if settings.IsShowTag != nil {
+		setClauses = append(setClauses, fmt.Sprintf("is_show_tag = $%d", argID))
+		args = append(args, *settings.IsShowTag)
+		argID++
+	}
+
+	if len(setClauses) == 0 {
+		return nil
+	}
+
+	args = append(args, userID)
+
+	query := fmt.Sprintf(
+		"UPDATE user_profile_settings SET %s WHERE user_id = $%d",
+		strings.Join(setClauses, ", "),
+		argID,
+	)
+
+	result, err := r.DB.ExecContext(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+
+	
+	rowsAffected, err := result.RowsAffected()
+	
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return nil
+	}
+
+	return nil
+}
+
 func (r *UserProfileSettingRepository) UpdateNotifySettings(ctx context.Context, userID int, settings dto.NotifySettingsPatchDTO) error {
 	var (
 		setClauses []string
-		args       []interface{}
+		args       []any
 		argID      = 1
 	)
 	

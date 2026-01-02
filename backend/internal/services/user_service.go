@@ -35,7 +35,7 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 		IsPublic: userDb.IsPublic,
 		LastLogin: userDb.LastLogin,
 		Banner:   userDb.Banner,
-
+		Tag:      userDb.Tag,
 	}, err
 }
 

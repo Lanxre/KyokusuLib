@@ -26,6 +26,7 @@ type GetUserDTO struct {
 	
 	IsPublic             		    bool        `json:"is_public"`
 	LastLogin					    time.Time	`json:"last_login"`
+	Tag								string		`json:"tag"`
 }
 
 type UpdateUserStatusDTO struct {

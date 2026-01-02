@@ -96,7 +96,7 @@ func (s *ProfileSettingService) UploadAndSetAvatar(ctx context.Context, userID i
 	}
 
 	avatarURL := fmt.Sprintf("/uploads/avatars/%s", newFilename)
-	
+
 	err = s.Repo.UpdateAvatar(userID, avatarURL)
 	if err != nil {
 		os.Remove(savePath)
@@ -128,7 +128,7 @@ func (s *ProfileSettingService) UploadAndSetBanner(ctx context.Context, userID i
 	}
 
 	bannerURL := fmt.Sprintf("/uploads/banners/%s", newFilename)
-	
+
 	err = s.Repo.UpdateBanner(userID, bannerURL)
 	if err != nil {
 		os.Remove(savePath)
@@ -232,4 +232,8 @@ func (s *ProfileSettingService) UpdateNotifySettings(ctx context.Context, userID
 
 func (s *ProfileSettingService) ResetSettings(ctx context.Context, userID int) error {
 	return s.ProfileSettingsRepo.DeleteUserProfileSettings(ctx, userID)
+}
+
+func (s *ProfileSettingService) UpdateInterfaceSettings(ctx context.Context, userID int, settings dto.UserInterfacePatchDTO) error {
+	return s.ProfileSettingsRepo.UpdateUserInterfaceSettings(ctx, userID, settings)
 }

@@ -14,6 +14,7 @@ export interface User {
 	gender: GenderSetting.MALE | GenderSetting.FEMALE | GenderSetting.HIDDEN;
 	birthday: string;
 	is_public: boolean;
+	tag: string;
 }
 
 export interface GetUserDto {
@@ -27,5 +28,6 @@ export interface GetUserDto {
 	gender: GenderSetting.MALE | GenderSetting.FEMALE | GenderSetting.HIDDEN;
 	birthday: string;
 	is_public: boolean;
-  last_login: string;
+	last_login: string;
+	tag: string;
 }

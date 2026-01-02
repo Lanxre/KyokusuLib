@@ -5,8 +5,12 @@ import { useProfile } from "@/composables/api/profile/useProfile";
 import ProfilePrivate from "@/layouts/profile/ProfilePrivate.vue";
 import ProfilePublic from "@/layouts/profile/ProfilePublic.vue";
 import ProfileSelfContent from "@/layouts/profile/ProfileSelfContent.vue";
+import { GetUserDto } from "@/types/backend/user";
+import { onMounted } from "vue";
 
-const { isSelfProfile, isPublicAccount } = useProfile();
+const { profileData, isSelfProfile, isPublicAccount, init } = useProfile();
+
+onMounted(init);
 
 </script>
 
@@ -16,7 +20,7 @@ const { isSelfProfile, isPublicAccount } = useProfile();
        
         <main class="grow">
             <ProfileSelfContent v-if="isSelfProfile"/>
-            <ProfilePublic v-else-if="!isSelfProfile && isPublicAccount"/>
+            <ProfilePublic v-else-if="!isSelfProfile && isPublicAccount" :profileData="profileData as GetUserDto"/>
             <ProfilePrivate v-else-if="!isSelfProfile && !isPublicAccount"/>
         </main>
         <FooterApp/>

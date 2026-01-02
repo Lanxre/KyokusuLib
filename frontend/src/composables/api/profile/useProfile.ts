@@ -149,14 +149,12 @@ export function useProfile() {
 
     const init = () => {
         const id = Number(route.params.id);
-        if (!isNaN(id)) {
-            loadProfileData(id);
+        if (!isNaN(id) && authStore.user?.id !== id) {
+          loadProfileData(id);
         }
     };
 
-    onMounted(init);
-
-    watch(() => route.params.id, init, { immediate: true });
+    watch(() => route.params.id, init);
 
     return {
         profileData,
@@ -173,6 +171,7 @@ export function useProfile() {
 
         getRoleColor,
         getGenderText,
-        loadProfileData
+        loadProfileData,
+        init,
     };
 }

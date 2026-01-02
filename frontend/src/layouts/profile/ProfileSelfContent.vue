@@ -7,10 +7,13 @@ import { useProfile } from '@/composables/api/profile/useProfile';
 import { useUserActivity } from '@/composables/api/profile/useUserActivity';
 import { useActivityStore } from '@/stores/activity';
 import TabActivity from '@/layouts/profile/activity/TabActivity.vue';
+import TagSelector from '@/components/features/TagSelector/TagSelector.vue';
+import { useInterfaceSettings } from '@/composables/api/settings/useInterfaceSettings';
 
 const { profileData, accountCreated, profileTabs, userRoleColor, userGender, lastLogin } = useProfile();
 const { activities, fetchActivities, isLoadingActivities } = useUserActivity();
 const { isUserActive } = useActivityStore();
+const { isShowTag } = useInterfaceSettings();
 const activeTab = ref('overview');
 
 onMounted(async () => {
@@ -72,7 +75,10 @@ onMounted(async () => {
                             </h1>
                             <div class="flex flex-row gap-4 justify-start items-center">
                                 <p class="text-left ml-1 text-zinc-500 dark:text-zinc-400 font-medium mt-1">ID: #{{ profileData?.id }}</p>
-                                <div class="flex dark:bg-zinc-800 px-2 mt-2 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold">Опыт пользователя: 0 </div>
+                                <div class="flex flex-row gap-4">
+                                    <TagSelector v-if="isShowTag" v-model="profileData!.tag" />
+                                    <div class="flex dark:bg-zinc-800 px-2 mt-1 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold">Опыт пользователя: 0 </div>
+                                </div>
                             </div>
                         </div>
 

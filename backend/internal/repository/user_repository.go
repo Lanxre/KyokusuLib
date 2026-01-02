@@ -57,9 +57,11 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 			u.verification_token, u.verification_token_expires_at,
 			u.reset_token, u.reset_token_expires_at,
 			u.create_at,
-			p.name, p.picture, p.banner, p.about, p.birthday, p.gender
+			p.name, p.picture, p.banner, p.about, p.birthday, p.gender,
+			t.tag
 		FROM users u
 		LEFT JOIN user_profiles p ON p.user_id = u.id
+		LEFT JOIN user_tags t ON t.id = p.tag_id
 		WHERE u.` + field + ` = $1`
 
 	err := r.DB.QueryRow(query, value).Scan(
@@ -82,6 +84,7 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 		&about,
 		&birthday,
 		&gender,
+		&u.Tag,
 	)
 
 	if err != nil {
@@ -208,29 +211,57 @@ func (r *UserRepository) UpdateProfile(u *db.User) error {
 }
 
 func (r *UserRepository) createOrUpdateProfile(u *db.User) error {
+	tx, err := r.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var tagID int
+	if u.Tag != "" {
+		err := tx.QueryRow("SELECT id FROM user_tags WHERE tag = $1", u.Tag).Scan(&tagID)	
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				tagID = 1
+			} else {
+				return err
+			}
+		}
+	} else {
+		tagID = 1 
+	}
+
 	query := `
-		INSERT INTO user_profiles (user_id, name, picture, about, birthday, gender)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO user_profiles (user_id, name, picture, about, birthday, gender, tag_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (user_id) DO UPDATE
 		SET name = EXCLUDED.name,
 		    picture = EXCLUDED.picture,
 		    about = EXCLUDED.about,
 		    birthday = EXCLUDED.birthday,
-		    gender = EXCLUDED.gender`
+		    gender = EXCLUDED.gender,
+		    tag_id = EXCLUDED.tag_id`
 
-	_, err := r.DB.Exec(query,
+	_, err = tx.Exec(query,
 		u.ID,
 		u.Name,
 		u.Picture,
 		u.About,
 		u.Birthday,
 		u.Gender,
+		tagID,
 	)
+	if err != nil {
+		return err
+	}
 
 	query_public := `UPDATE users SET ispublic = $1 WHERE id = $2`
-	_, err = r.DB.Exec(query_public, u.IsPublic, u.ID)
+	_, err = tx.Exec(query_public, u.IsPublic, u.ID)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return tx.Commit()
 }
 
 func (r *UserRepository) Delete(id int) error {

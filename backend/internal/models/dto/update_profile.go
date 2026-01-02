@@ -39,6 +39,10 @@ type NotifySettingsPatchDTO struct {
 	IsNewPublishedNotify *bool `json:"is_new_published_notify"`
 }
 
+type UserInterfacePatchDTO struct {
+	IsShowTag *bool `json:"is_show_tag"`
+}
+
 func (d *UpdateProfileDTO) Validate() error {
 	if err := validation.LoginValidate(d.Nickname); err != nil {
 		return err

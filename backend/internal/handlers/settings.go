@@ -7,6 +7,7 @@ import (
 	"github.com/lanxre/kyokusulib/internal/middleware"
 	"github.com/lanxre/kyokusulib/internal/models/dto"
 	service "github.com/lanxre/kyokusulib/internal/services"
+	"github.com/lanxre/kyokusulib/internal/utils/response"
 )
 
 type ProfileSettingHandler struct {
@@ -285,4 +286,25 @@ func (h *ProfileSettingHandler) UpdateNotifySettings(w http.ResponseWriter, r *h
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Notify settings was updated"})
+}
+
+func (h *ProfileSettingHandler) UpdateUserInterface(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		http.Error(w, "User not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	var req dto.UserInterfacePatchDTO
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.Service.UpdateInterfaceSettings(r.Context(), userID, req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	
+	response.Success(w, http.StatusOK, "Interface settings was updated")
 }

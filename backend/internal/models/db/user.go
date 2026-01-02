@@ -34,6 +34,7 @@ type User struct {
 	About							string		`json:"about"`
 	Birthday						*time.Time	`json:"birthday"`
 	Gender							UserGenere	`json:"gender"`
+	Tag								string		`json:"tag"`
 }
 
 

@@ -1,11 +1,17 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 	"log"
+	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
+)
+
+const (
+	DefaultTimeout = 5 * time.Second
 )
 
 func NewPostgresDB(databaseURL string) *sql.DB {
@@ -19,7 +25,9 @@ func NewPostgresDB(databaseURL string) *sql.DB {
 	}
 
 	runMigrations(db)
-
+	
+	runSeeds(db)
+	
 	return db
 }
 
@@ -34,3 +42,21 @@ func runMigrations(db *sql.DB) {
 
 	log.Println("Database migrations check completed")
 }
+
+func runSeeds(db *sql.DB) {
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
+	defer cancel()
+
+	log.Println("Checking seed data...")
+	
+	tagsQuery := `
+		INSERT INTO user_tags (tag)
+		VALUES 
+			('Читатель')
+		ON CONFLICT (tag) DO NOTHING;
+	`
+	if _, err := db.ExecContext(ctx, tagsQuery); err != nil {
+		log.Printf("Warning: failed to seed tags: %v", err)
+	}
+}
+

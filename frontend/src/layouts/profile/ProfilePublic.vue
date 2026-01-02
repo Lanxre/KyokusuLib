@@ -5,16 +5,22 @@ import Separator from '@/components/ui/Separator/Separtor.vue';
 import TabActivity from '@/layouts/profile/activity/TabActivity.vue';
 import { useProfile } from '@/composables/api/profile/useProfile';
 import { useUserActivity } from '@/composables/api/profile/useUserActivity';
+import { GetUserDto } from '@/types/backend/user';
 
-const { profileData, profileTabs, userRoleColor, userGender, lastLogin, isLogin } = useProfile();
+const props = defineProps<{
+    profileData: GetUserDto;
+}>()
+
+const { profileTabs, userRoleColor, userGender, lastLogin, isLogin } = useProfile();
 const { activities, fetchByUserId, isLoadingActivities } = useUserActivity();
 const activeTab = ref('overview');
 
 onMounted(async () => {
-    if (profileData.value) {
-      await fetchByUserId(profileData.value.id);
+    if (props.profileData) {
+      await fetchByUserId(props.profileData.id);
     }
 });
+
 </script>
 
 <template>

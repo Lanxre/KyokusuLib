@@ -11,3 +11,8 @@ export interface UserProfileSettings {
 	gender: "male" | "female" | "hidden";
 	birthdate: string;
 }
+
+export interface UserTag {
+  id: number;
+  name: string;
+}
