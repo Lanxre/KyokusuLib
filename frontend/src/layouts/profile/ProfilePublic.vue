@@ -11,7 +11,7 @@ const props = defineProps<{
     profileData: GetUserDto;
 }>()
 
-const { profileTabs, userRoleColor, userGender, lastLogin, isLogin } = useProfile();
+const { profileTabs, userRoleColor, getGenderText, getLastLogin, getIsLogin } = useProfile();
 const { activities, fetchByUserId, isLoadingActivities } = useUserActivity();
 const activeTab = ref('overview');
 
@@ -54,8 +54,8 @@ onMounted(async () => {
                     <!-- Online Status -->
                     <div 
                         class="absolute bottom-2 right-2 w-5 h-5 border-4 border-white dark:border-zinc-900 rounded-full transition-colors duration-300"
-                        :title="isLogin ? 'Онлайн' : 'Оффлайн'"
-                        :class="isLogin ? 'bg-green-500' : 'bg-red-500'"
+                        :title="getIsLogin(profileData?.last_login) ? 'Онлайн' : 'Оффлайн'"
+                        :class="getIsLogin(profileData?.last_login) ? 'bg-green-500' : 'bg-red-500'"
                     ></div>
                 </div>
 
@@ -95,12 +95,12 @@ onMounted(async () => {
                         <div class="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
                             <div class="flex justify-between text-sm">
                                 <span class="text-zinc-500">Последняя активность</span>
-                                <span class="text-zinc-700 dark:text-zinc-300 font-medium">{{ lastLogin }}</span>
+                                <span class="text-zinc-700 dark:text-zinc-300 font-medium">{{ getLastLogin(profileData?.last_login) }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-zinc-500">Пол</span>
                                 <span class="text-zinc-700 dark:text-zinc-300 font-medium capitalize">
-                                    {{ userGender }}
+                                    {{ getGenderText(profileData?.gender) }}
                                 </span>
                             </div>
                         </div>

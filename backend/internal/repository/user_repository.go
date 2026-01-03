@@ -358,3 +358,34 @@ func (r *UserRepository) MarkUserVerified(userID int) error {
 	_, err := r.DB.Exec(query, userID)
 	return err
 }
+
+func (r *UserRepository) GetUserTags(ctx context.Context, userID int) ([]*db.UserTag, error) {
+    const query = `
+        SELECT ut.id, ut.tag
+        FROM user_tags ut
+        JOIN users_user_tags uut ON ut.id = uut.tag_id
+        WHERE uut.user_id = $1
+        ORDER BY ut.tag
+    `
+
+    rows, err := r.DB.QueryContext(ctx, query, userID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var tags []*db.UserTag
+    for rows.Next() {
+        var t db.UserTag
+        if err := rows.Scan(&t.TagID, &t.Tag); err != nil {
+            return nil, err
+        }
+        tags = append(tags, &t)
+    }
+
+    if err := rows.Err(); err != nil {
+        return nil, err
+    }
+
+    return tags, nil
+}

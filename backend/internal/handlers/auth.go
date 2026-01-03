@@ -23,6 +23,7 @@ type AuthHandler struct {
 	OAuthConfigGoogle  *oauth2.Config
 	OAuthConfigDiscord *oauth2.Config
 	AuthService        *service.AuthService
+	UserService        *service.UserService
 	EmailService       *service.EmailService
 	SocialService	   *service.SocialsService
 
@@ -34,6 +35,7 @@ type AuthHandler struct {
 
 func NewAuthHandler(cfg *config.Config, 
 	authService *service.AuthService, 
+	userService *service.UserService,
 	emailService *service.EmailService,
 	socialService *service.SocialsService,
 ) *AuthHandler {
@@ -61,6 +63,7 @@ func NewAuthHandler(cfg *config.Config,
 		AuthService:  authService,
 		EmailService: emailService,
 		SocialService: socialService,
+		UserService: userService,
 
 		JWTSecret:   cfg.JWTSecret,
 		FrontendURL: cfg.FrontendURL,
@@ -325,11 +328,13 @@ func (h *AuthHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "User not found in context", http.StatusInternalServerError)
 		return
 	}
-	user, err := h.AuthService.Repo.GetByID(userID)
+	
+	user, err := h.UserService.GetUserById(userID)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
+	
 	if user == nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return

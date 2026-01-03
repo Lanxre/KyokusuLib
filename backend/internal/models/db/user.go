@@ -37,6 +37,7 @@ type User struct {
 	Tag								string		`json:"tag"`
 }
 
-
-
-
+type UserTag struct {
+	TagID int `json:"tag_id"`
+	Tag   string `json:"tag"`
+}

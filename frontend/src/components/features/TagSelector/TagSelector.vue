@@ -1,35 +1,32 @@
 <script setup lang="ts">
+import { UserTagDTO } from '@/types/backend/user';
 import { ref, onMounted, onUnmounted } from 'vue';
-import { useUserTags } from '@/composables/api/profile/useProfileTag';
 
 const props = defineProps<{
     modelValue: string;
+    tags: UserTagDTO[];
 }>();
 
 const emit = defineEmits<{
     (e: 'update:modelValue', value: string): void;
 }>();
 
-const { availableTags, isLoadingTags, fetchTags, updateUserTag } = useUserTags();
 
 const isOpen = ref(false);
 const containerRef = ref<HTMLElement | null>(null);
 
 const toggleDropdown = async () => {
     isOpen.value = !isOpen.value;
-    if (isOpen.value && availableTags.value.length === 0) {
-        await fetchTags();
-    }
 };
 
 const selectTag = async (tag: string) => {
     isOpen.value = false;
     emit('update:modelValue', tag);
     
-    const success = await updateUserTag(tag);
-    if (!success) {
-        // Если ошибка, можно откатить значение (опционально, если сохранить старое)
-    }
+    // const success = await updateUserTag(tag);
+    // if (!success) {
+       
+    // }
 };
 
 const handleClickOutside = (event: MouseEvent) => {
@@ -69,21 +66,18 @@ onUnmounted(() => {
                 v-if="isOpen"
                 class="absolute left-0 mt-2 w-48 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl py-1 z-50 max-h-60 overflow-y-auto custom-scrollbar"
             >
-                <div v-if="isLoadingTags" class="px-4 py-2 text-xs text-zinc-500 text-center">
-                    Загрузка...
-                </div>
                 
-                <div v-else-if="availableTags.length === 0" class="px-4 py-2 text-xs text-zinc-500 text-center">
+                <div v-if="props.tags.length === 0" class="px-2 py-2 text-xs text-zinc-500 text-center">
                     Нет тегов
                 </div>
 
                 <template v-else>
                     <div 
-                        v-for="tagItem in availableTags" 
+                        v-for="tagItem in props.tags" 
                         :key="tagItem.id"
                         @click="selectTag(tagItem.tag)"
-                        class="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer transition-colors"
-                        :class="{ 'bg-zinc-100 dark:bg-zinc-800 font-medium': tagItem.tag === modelValue }"
+                        class="px-2 ml-2 mr-2 rounded-2xl text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer transition-colors"
+                        :class="{ 'bg-zinc-100 dark:bg-zinc-500/40 font-medium': tagItem.tag === modelValue }"
                     >
                         {{ tagItem.tag }}
                     </div>

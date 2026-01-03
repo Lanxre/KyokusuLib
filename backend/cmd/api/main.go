@@ -45,7 +45,7 @@ func main() {
 	authService.StartCleanupWorker(ctx)
 
 	healthHandler := &handlers.HealthHandler{}
-	authHandler := handlers.NewAuthHandler(cfg, authService, emailService, socialService)
+	authHandler := handlers.NewAuthHandler(cfg, authService, userService, emailService, socialService)
 	userHandler := handlers.NewUserHandler(userService)
 	emailHandler := handlers.NewEmailHandler(cfg, emailService)
 	profileSettingHandler := handlers.NewProfileSettingHandler(profileSettingService)

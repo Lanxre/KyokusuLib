@@ -22,6 +22,11 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 	if err != nil {
 		return nil, err
 	}
+	
+	userTags, err := s.GetUserTags(userId)
+	if err != nil {
+		return nil, err
+	}
 
 	return  &dto.GetUserDTO{
 		ID:       userDb.ID,
@@ -34,8 +39,10 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 		Gender:   string(userDb.Gender),
 		IsPublic: userDb.IsPublic,
 		LastLogin: userDb.LastLogin,
+		CreateAt: userDb.CreateAt,
 		Banner:   userDb.Banner,
-		Tag:      userDb.Tag,
+		ActiveTag:      userDb.Tag,
+		AllTags:        userTags,
 	}, err
 }
 
@@ -47,4 +54,21 @@ func (s *UserService) UpdateUserStatus(ctx context.Context, userId int, dto dto.
     }
     
 	return s.Repo.UpdateDtoStatus(ctx, userId, dto.Status, lastActiveTime)
+}
+
+func (s *UserService) GetUserTags(userId int) ([]dto.UserTagDTO, error) {
+	tags, err := s.Repo.GetUserTags(context.Background(), userId)
+	if err != nil {
+		return nil, err
+	}
+	
+	userTags := make([]dto.UserTagDTO, len(tags))
+	for i, tag := range tags {
+		userTags[i] = dto.UserTagDTO{
+			ID:    tag.TagID,
+			Tag:   tag.Tag,
+		}
+	}
+	
+	return userTags, nil
 }

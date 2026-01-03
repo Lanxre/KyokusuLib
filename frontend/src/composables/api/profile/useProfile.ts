@@ -1,10 +1,10 @@
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useUserApi } from "@/api/user/userApi";
 import { useAuthStore } from "@/stores/auth";
 import { GenderSetting } from "@/types/enums/gender-enum";
 import { KyokusuAppRole } from "@/types/enums/role-enum";
-import type { User, GetUserDto } from "@/types/backend/user";
+import type { GetUserDto } from "@/types/backend/user";
 
 export function useProfile() {
     const route = useRoute();
@@ -26,7 +26,7 @@ export function useProfile() {
         return authStore.isAuthenticated && authStore.user?.id === routeId;
     });
 
-    const profileData = computed<User | GetUserDto | null>(() => {
+    const profileData = computed<GetUserDto | null>(() => {
         if (isSelfProfile.value) {
             return authStore.user;
         }
@@ -56,8 +56,8 @@ export function useProfile() {
     };
 
     const accountCreated = computed(() => {
-        if (isSelfProfile.value && profileData.value) {
-            return new Date((profileData.value as User).create_at).toLocaleDateString('ru-RU');
+        if (profileData.value && isSelfProfile.value || profileData.value?.is_public ) {
+            return new Date(profileData.value.create_at).toLocaleDateString('ru-RU');
         }
         return 'Неизвестно';
     });
@@ -67,7 +67,7 @@ export function useProfile() {
         return 'Неизвестно';
       }
     
-      const lastLoginUTC = (profileData.value as User).last_login;
+      const lastLoginUTC = profileData.value.last_login;
       if (!lastLoginUTC) {
         return 'Неизвестно';
       }
@@ -96,12 +96,36 @@ export function useProfile() {
       }
     });
     
+    const getLastLogin = (last_login: string) => {
+        const date = new Date(last_login);
+        const today = new Date();
+        const isToday =
+          date.getFullYear() === today.getFullYear() &&
+          date.getMonth() === today.getMonth() &&
+          date.getDate() === today.getDate();
+    
+        date.setHours(date.getHours() - 3);
+    
+        if (isToday) {
+          return date.toLocaleTimeString('ru-RU', {
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+        } else {
+          return date.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          });
+        }
+    };
+    
     const isLogin = computed(() => {
       if (!profileData.value || !profileData.value.is_public) {
         return false;
       }
       
-      const lastLoginUTC = (profileData.value as User).last_login;
+      const lastLoginUTC = profileData.value.last_login;
       if (!lastLoginUTC) {
         return false;
       }
@@ -118,6 +142,19 @@ export function useProfile() {
       
       return isToday;
     });
+    
+    const getIsLogin = (last_login: string) => {
+      const date = new Date(last_login);
+      const today = new Date();
+      const isToday =
+        date.getFullYear() === today.getFullYear() &&
+        date.getMonth() === today.getMonth() &&
+        date.getDate() === today.getDate();
+    
+      date.setHours(date.getHours() - 3);
+      
+      return isToday;
+    }
 
     const userRoleColor = computed(() => getRoleColor(profileData.value?.role));
     
@@ -171,6 +208,8 @@ export function useProfile() {
 
         getRoleColor,
         getGenderText,
+        getLastLogin,
+        getIsLogin,
         loadProfileData,
         init,
     };
