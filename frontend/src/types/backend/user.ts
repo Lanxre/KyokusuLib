@@ -15,9 +15,14 @@ export interface GetUserDto {
 	create_at: string;
 	active_tag: string;
 	tags: UserTagDTO[];
+	settings: PublicUserSettingsDTO;
 }
 
 export interface UserTagDTO {
 	id: number;
 	tag: string;
+}
+
+export interface PublicUserSettingsDTO {
+	is_show_tag: boolean;
 }

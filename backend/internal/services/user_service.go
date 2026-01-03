@@ -27,6 +27,10 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 	if err != nil {
 		return nil, err
 	}
+	
+	userPublicSettings := dto.PublicUserSettingsDTO{
+		IsShowTag: userDb.IsShowTag,
+	}
 
 	return  &dto.GetUserDTO{
 		ID:       userDb.ID,
@@ -43,6 +47,8 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 		Banner:   userDb.Banner,
 		ActiveTag:      userDb.Tag,
 		AllTags:        userTags,
+		Settings:       userPublicSettings,
+		
 	}, err
 }
 
@@ -54,6 +60,10 @@ func (s *UserService) UpdateUserStatus(ctx context.Context, userId int, dto dto.
     }
     
 	return s.Repo.UpdateDtoStatus(ctx, userId, dto.Status, lastActiveTime)
+}
+
+func (s *UserService) UpdateUserTag(ctx context.Context, userId int, dto dto.UpdateUserTagDTO) error {
+	return s.Repo.UpdateUserTag(ctx, userId, dto.ID)
 }
 
 func (s *UserService) GetUserTags(userId int) ([]dto.UserTagDTO, error) {

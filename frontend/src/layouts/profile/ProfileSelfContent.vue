@@ -76,7 +76,7 @@ onMounted(async () => {
                             <div class="flex flex-row gap-4 justify-start items-center">
                                 <p class="text-left ml-1 text-zinc-500 dark:text-zinc-400 font-medium mt-1">ID: #{{ profileData?.id }}</p>
                                 <div class="flex flex-row gap-4">
-                                    <TagSelector v-if="isShowTag" v-model="profileData!.active_tag" :tags="profileData!.tags" />
+                                    <TagSelector v-if="isShowTag && profileData?.active_tag" v-model="profileData.active_tag" :tags="profileData.tags" />
                                     <div class="flex dark:bg-zinc-800 px-2 mt-1 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold">Опыт пользователя: 0 </div>
                                 </div>
                             </div>

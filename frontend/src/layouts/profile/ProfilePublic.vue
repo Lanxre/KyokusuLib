@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue';
 import { correctProfileImage } from '@/api/utils/str';
 import Separator from '@/components/ui/Separator/Separtor.vue';
 import TabActivity from '@/layouts/profile/activity/TabActivity.vue';
+import TagSelector from '@/components/features/TagSelector/TagSelector.vue';
 import { useProfile } from '@/composables/api/profile/useProfile';
 import { useUserActivity } from '@/composables/api/profile/useUserActivity';
 import { GetUserDto } from '@/types/backend/user';
@@ -20,6 +21,7 @@ onMounted(async () => {
       await fetchByUserId(props.profileData.id);
     }
 });
+
 
 </script>
 
@@ -71,7 +73,10 @@ onMounted(async () => {
                             </h1>
                             <div class="flex flex-row gap-4 justify-start items-center">
                                 <p class="text-left ml-1 text-zinc-500 dark:text-zinc-400 font-medium mt-1">ID: #{{ profileData?.id }}</p>
-                                <div class="flex dark:bg-zinc-800 px-2 mt-2 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold">Опыт пользователя: 0 </div>
+                                <div class="flex flex-row gap-4">
+                                    <TagSelector v-if="profileData.settings.is_show_tag && profileData?.active_tag" v-model="profileData.active_tag" :tags="profileData.tags" />
+                                    <div class="flex dark:bg-zinc-800 px-2 mt-1 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold">Опыт пользователя: 0 </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -88,7 +93,7 @@ onMounted(async () => {
                     <div class="bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
                         <h3 class="text-lg font-semibold text-zinc-900 dark:text-white mb-4">О себе</h3>
                         
-                        <p class="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap break-words leading-relaxed">
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap wrap-break-words leading-relaxed">
                             {{ profileData?.about || 'Пользователь предпочел не рассказывать о себе.' }}
                         </p>
                         

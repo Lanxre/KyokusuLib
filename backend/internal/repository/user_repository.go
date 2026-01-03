@@ -58,10 +58,12 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 			u.reset_token, u.reset_token_expires_at,
 			u.create_at,
 			p.name, p.picture, p.banner, p.about, p.birthday, p.gender,
-			t.tag
+			t.tag,
+			ups.is_show_tag
 		FROM users u
 		LEFT JOIN user_profiles p ON p.user_id = u.id
 		LEFT JOIN user_tags t ON t.id = p.tag_id
+		LEFT JOIN user_profile_settings ups ON ups.user_id = u.id
 		WHERE u.` + field + ` = $1`
 
 	err := r.DB.QueryRow(query, value).Scan(
@@ -85,6 +87,7 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 		&birthday,
 		&gender,
 		&u.Tag,
+		&u.IsShowTag,
 	)
 
 	if err != nil {
@@ -388,4 +391,13 @@ func (r *UserRepository) GetUserTags(ctx context.Context, userID int) ([]*db.Use
     }
 
     return tags, nil
+}
+
+func (r *UserRepository) UpdateUserTag(ctx context.Context, userID int, tagID int) error {
+	query := `UPDATE user_profiles
+		SET tag_id = $2
+		WHERE user_id = $1`
+		
+	_, err := r.DB.Exec(query, tagID, userID)
+	return err
 }

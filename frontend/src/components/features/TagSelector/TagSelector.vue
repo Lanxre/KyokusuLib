@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useProfile } from '@/composables/api/profile/useProfile';
+import { useUserTag } from '@/composables/api/profile/useUserTag';
 import { UserTagDTO } from '@/types/backend/user';
 import { ref, onMounted, onUnmounted } from 'vue';
 
@@ -11,7 +13,8 @@ const emit = defineEmits<{
     (e: 'update:modelValue', value: string): void;
 }>();
 
-
+const { isSelfProfile } = useProfile();
+const { updateUserTag } = useUserTag();
 const isOpen = ref(false);
 const containerRef = ref<HTMLElement | null>(null);
 
@@ -19,14 +22,11 @@ const toggleDropdown = async () => {
     isOpen.value = !isOpen.value;
 };
 
-const selectTag = async (tag: string) => {
+const selectTag = async (dto: UserTagDTO) => {
     isOpen.value = false;
-    emit('update:modelValue', tag);
+    emit('update:modelValue', dto.tag);
     
-    // const success = await updateUserTag(tag);
-    // if (!success) {
-       
-    // }
+    await updateUserTag(dto);
 };
 
 const handleClickOutside = (event: MouseEvent) => {
@@ -51,7 +51,8 @@ onUnmounted(() => {
             class="flex items-center justify-center dark:bg-zinc-800 px-3 py-0.5 mt-1 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold cursor-pointer hover:border-zinc-500 transition-colors select-none text-sm"
         >
             <span>{{ modelValue || 'Выбрать тег' }}</span>
-            <svg 
+            <svg
+                v-if="isSelfProfile"
                 class="w-3 h-3 ml-2 transition-transform duration-200"
                 :class="{ 'rotate-180': isOpen }"
                 fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -63,7 +64,7 @@ onUnmounted(() => {
         <!-- Выпадающий список -->
         <Transition name="fade">
             <div 
-                v-if="isOpen"
+                v-if="isOpen && isSelfProfile"
                 class="absolute left-0 mt-2 w-48 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl py-1 z-50 max-h-60 overflow-y-auto custom-scrollbar"
             >
                 
@@ -75,7 +76,7 @@ onUnmounted(() => {
                     <div 
                         v-for="tagItem in props.tags" 
                         :key="tagItem.id"
-                        @click="selectTag(tagItem.tag)"
+                        @click="selectTag(tagItem)"
                         class="px-2 ml-2 mr-2 rounded-2xl text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer transition-colors"
                         :class="{ 'bg-zinc-100 dark:bg-zinc-500/40 font-medium': tagItem.tag === modelValue }"
                     >

@@ -74,3 +74,24 @@ func (h *UserHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Profile updated successfully"})
 }
+
+func (h *UserHandler) UpdateUserTag(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		http.Error(w, "User not found in context", http.StatusInternalServerError)
+		return
+	}
+	
+	var req dto.UpdateUserTagDTO
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if err := h.UserService.UpdateUserTag(r.Context(), userID, req); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(w, http.StatusOK, "Тэг профиля успешно обновлен")
+}

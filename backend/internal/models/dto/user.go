@@ -29,6 +29,7 @@ type GetUserDTO struct {
 	CreateAt 						time.Time 	`json:"create_at"`
 	ActiveTag						string		`json:"active_tag"`
 	AllTags							[]UserTagDTO	`json:"tags"`
+	Settings						PublicUserSettingsDTO	`json:"settings"`
 }
 
 type UpdateUserStatusDTO struct {
@@ -39,4 +40,13 @@ type UpdateUserStatusDTO struct {
 type UserTagDTO struct {
 	ID 	  int `json:"tag_id"`
 	Tag   string `json:"tag"`
+}
+
+type UpdateUserTagDTO struct {
+	ID int 	   `json:"id"`
+	Tag string `json:"tag"`
+}
+
+type PublicUserSettingsDTO struct {
+	IsShowTag						bool		`json:"is_show_tag"`
 }
