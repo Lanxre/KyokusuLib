@@ -14,11 +14,9 @@ type UserSocials struct {
 	
 	DiscordID  string `json:"discord_id,omitempty"`
 	GoogleID   string `json:"google_id,omitempty"`
-	TelegramID string `json:"telegram_id,omitempty"`
 
 	IsDiscordConnected  bool `json:"is_discord_connected"`
 	IsGoogleConnected   bool `json:"is_google_connected"`
-	IsTelegramConnected bool `json:"is_telegram_connected"`
 
 	DiscordRefreshToken string
 	GoogleRefreshToken  string
