@@ -10,10 +10,11 @@ import (
 
 type UserService struct {
 	Repo *repository.UserRepository
+	UserProfileRepo *repository.UserProfileRepository
 }
 
-func NewUserService(repo *repository.UserRepository) *UserService {
-	return &UserService{Repo: repo}
+func NewUserService(repo *repository.UserRepository, userProfileRepo *repository.UserProfileRepository) *UserService {
+	return &UserService{Repo: repo, UserProfileRepo: userProfileRepo}
 }
 
 func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
@@ -31,7 +32,13 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 	userPublicSettings := dto.PublicUserSettingsDTO{
 		IsShowTag: userDb.IsShowTag,
 	}
+	
+	userLevel, err := s.UserProfileRepo.GetUserLevel(context.Background(), userId)
 
+	if err != nil {
+		return nil, err
+	}
+	
 	return  &dto.GetUserDTO{
 		ID:       userDb.ID,
 		Name:     userDb.Name,
@@ -49,10 +56,10 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 		AllTags:        userTags,
 		Settings:       userPublicSettings,
 		UserLevel:      dto.UserLevelDTO{
-			Level:         userDb.UserLevel.Level,
-			Experience:    userDb.UserLevel.Experience,
-			LevelTitle:    userDb.UserLevel.LevelTitle,
-			XPForNext:     userDb.UserLevel.XPForNext,
+			Level:      userLevel.Level,
+			Experience: userLevel.Experience,
+			LevelTitle: userLevel.LevelTitle,
+			XPForNext:  userLevel.XPForNext,
 		},
 	}, err
 }

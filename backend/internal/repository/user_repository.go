@@ -48,12 +48,6 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 		about                        sql.NullString
 		birthday                     sql.NullTime
 		gender                       sql.NullString
-		
-		level                int
-        experience           int64
-        levelTitle           sql.NullString
-        xpForThisLevel       sql.NullInt64
-        xpForNextLevel       sql.NullInt64
 	)
 
 	query := `
@@ -65,18 +59,11 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 			u.create_at,
 			p.name, p.picture, p.banner, p.about, p.birthday, p.gender,
 			t.tag,
-			ups.is_show_tag,
-			p.level,
-		    p.experience,
-		    ld.title AS level_title,
-		    ld.total_xp_required AS xp_for_this_level,
-		    COALESCE(next_ld.total_xp_required, ld.total_xp_required) AS xp_for_next_level
+			ups.is_show_tag
 		FROM users u
 		LEFT JOIN user_profiles p ON p.user_id = u.id
 		LEFT JOIN user_tags t ON t.id = p.tag_id
 		LEFT JOIN user_profile_settings ups ON ups.user_id = u.id
-		LEFT JOIN level_definitions ld ON ld.level = p.level
-		LEFT JOIN level_definitions next_ld ON next_ld.level = p.level + 1
 		WHERE u.` + field + ` = $1`
 
 	err := r.DB.QueryRow(query, value).Scan(
@@ -101,11 +88,6 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 		&gender,
 		&u.Tag,
 		&u.IsShowTag,
-		&level,
-        &experience,
-        &levelTitle,
-        &xpForThisLevel,
-        &xpForNextLevel,
 	)
 
 	if err != nil {
@@ -148,22 +130,6 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 	if banner.Valid {
 		u.Banner = banner.String
 	}
-	
-	u.UserLevel = db.UserLevel{
-        Level:      level,
-        Experience: experience,
-        LevelTitle: "Новичок",
-        XPForNext:  0,
-    }
-
-    if levelTitle.Valid {
-        u.UserLevel.LevelTitle = levelTitle.String
-    }
-    
-    if xpForNextLevel.Valid && xpForThisLevel.Valid {
-        needed := max(xpForNextLevel.Int64 - experience, 0)
-        u.UserLevel.XPForNext = needed
-    }
     
 	return u, nil
 }

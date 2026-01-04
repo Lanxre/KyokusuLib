@@ -29,11 +29,12 @@ func main() {
 	userProfileSettingsRepo := repository.NewUserProfileSettingRepository(db)
 	userSocialRepo := repository.NewUserSocialsRepository(db)
 	userActivitiesRepo := repository.NewUserActivityRepository(db)
+	userProfileRepo := repository.NewUserProfileRepository(db)
 	
 	authorRepo := repository.NewAuthorRepository(db)
 
 	authService := service.NewAuthService(userRepo)
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, userProfileRepo)
 	userActivityService := service.NewUserActivityService(userActivitiesRepo)
 	emailService := service.NewEmailService(cfg.KyokusuEmailName, cfg.KyokusuEmailPass)
 	profileSettingService := service.NewProfileSettingService(userRepo, userProfileSettingsRepo)
