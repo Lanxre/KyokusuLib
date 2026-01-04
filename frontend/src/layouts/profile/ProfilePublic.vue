@@ -4,7 +4,7 @@ import { correctProfileImage } from '@/api/utils/str';
 import Separator from '@/components/ui/Separator/Separtor.vue';
 import TabActivity from '@/layouts/profile/activity/TabActivity.vue';
 import TagSelector from '@/components/features/TagSelector/TagSelector.vue';
-import UserExperiance from '@/components/features/UserExperiance/UserExperiance.vue';
+import UserExperiance from '@/components/features/UserExperience/UserExperience.vue';
 import { useProfile } from '@/composables/api/profile/useProfile';
 import { useUserActivity } from '@/composables/api/profile/useUserActivity';
 import { GetUserDto } from '@/types/backend/user';

@@ -8,7 +8,7 @@ import { useUserActivity } from '@/composables/api/profile/useUserActivity';
 import { useActivityStore } from '@/stores/activity';
 import TabActivity from '@/layouts/profile/activity/TabActivity.vue';
 import TagSelector from '@/components/features/TagSelector/TagSelector.vue';
-import UserExperiance from '@/components/features/UserExperiance/UserExperiance.vue';
+import UserExperiance from '@/components/features/UserExperience/UserExperience.vue';
 import { useInterfaceSettings } from '@/composables/api/settings/useInterfaceSettings';
 
 const { profileData, accountCreated, profileTabs, userRoleColor, userGender, lastLogin } = useProfile();
