@@ -4,6 +4,7 @@ import { correctProfileImage } from '@/api/utils/str';
 import Separator from '@/components/ui/Separator/Separtor.vue';
 import TabActivity from '@/layouts/profile/activity/TabActivity.vue';
 import TagSelector from '@/components/features/TagSelector/TagSelector.vue';
+import UserExperiance from '@/components/features/UserExperiance/UserExperiance.vue';
 import { useProfile } from '@/composables/api/profile/useProfile';
 import { useUserActivity } from '@/composables/api/profile/useUserActivity';
 import { GetUserDto } from '@/types/backend/user';
@@ -62,7 +63,7 @@ onMounted(async () => {
                 </div>
 
                 <!-- Main Info -->
-                <div class="flex-1 pb-2 w-full md:w-auto">
+                <div class="flex-1 pb-1 h-20 w-full md:w-auto">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <h1 class="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
@@ -75,7 +76,12 @@ onMounted(async () => {
                                 <p class="text-left ml-1 text-zinc-500 dark:text-zinc-400 font-medium mt-1">ID: #{{ profileData?.id }}</p>
                                 <div class="flex flex-row gap-4">
                                     <TagSelector v-if="profileData.settings.is_show_tag && profileData?.active_tag" v-model="profileData.active_tag" :tags="profileData.tags" />
-                                    <div class="flex dark:bg-zinc-800 px-2 mt-1 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold">Опыт пользователя: 0 </div>
+                                    <UserExperiance 
+                                        v-if="profileData?.user_level" 
+                                        :level="profileData.user_level.level" 
+                                        :currentExp="profileData?.user_level.experience" 
+                                        :expToNextLevel="profileData?.user_level.xp_needed_for_next"
+                                    />
                                 </div>
                             </div>
                         </div>

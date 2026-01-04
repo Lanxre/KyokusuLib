@@ -48,7 +48,12 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 		ActiveTag:      userDb.Tag,
 		AllTags:        userTags,
 		Settings:       userPublicSettings,
-		
+		UserLevel:      dto.UserLevelDTO{
+			Level:         userDb.UserLevel.Level,
+			Experience:    userDb.UserLevel.Experience,
+			LevelTitle:    userDb.UserLevel.LevelTitle,
+			XPForNext:     userDb.UserLevel.XPForNext,
+		},
 	}, err
 }
 

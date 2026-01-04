@@ -36,6 +36,14 @@ type User struct {
 	Birthday						*time.Time	`json:"birthday"`
 	Gender							UserGenere	`json:"gender"`
 	Tag								string		`json:"tag"`
+	UserLevel						UserLevel	`json:"user_level"`
+}
+
+type UserLevel struct {
+	Level         int    `json:"level"`
+    Experience    int64  `json:"experience"`
+    LevelTitle    string `json:"level_title"`
+    XPForNext     int64  `json:"xp_needed_for_next"`
 }
 
 type UserTag struct {

@@ -1,3 +1,4 @@
+import { s } from "node_modules/vite/dist/node/chunks/moduleRunnerTransport";
 import { GenderSetting } from "../enums/gender-enum";
 
 export interface GetUserDto {
@@ -16,6 +17,7 @@ export interface GetUserDto {
 	active_tag: string;
 	tags: UserTagDTO[];
 	settings: PublicUserSettingsDTO;
+	user_level: UserLevel;
 }
 
 export interface UserTagDTO {
@@ -25,4 +27,11 @@ export interface UserTagDTO {
 
 export interface PublicUserSettingsDTO {
 	is_show_tag: boolean;
+}
+
+export interface UserLevel {
+  level: number;
+  experience: number;
+  xp_needed_for_next: number;
+  level_title: string;
 }

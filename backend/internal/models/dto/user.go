@@ -30,6 +30,14 @@ type GetUserDTO struct {
 	ActiveTag						string		`json:"active_tag"`
 	AllTags							[]UserTagDTO	`json:"tags"`
 	Settings						PublicUserSettingsDTO	`json:"settings"`
+	UserLevel						UserLevelDTO	`json:"user_level"`
+}
+
+type UserLevelDTO struct {
+	Level         int    `json:"level"`
+    Experience    int64  `json:"experience"`
+    LevelTitle    string `json:"level_title"`
+    XPForNext     int64  `json:"xp_needed_for_next"`
 }
 
 type UpdateUserStatusDTO struct {

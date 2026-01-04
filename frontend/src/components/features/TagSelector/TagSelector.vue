@@ -48,7 +48,7 @@ onUnmounted(() => {
     <div class="relative" ref="containerRef">
         <div 
             @click="toggleDropdown"
-            class="flex items-center justify-center dark:bg-zinc-800 px-3 py-0.5 mt-1 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold cursor-pointer hover:border-zinc-500 transition-colors select-none text-sm"
+            class="flex items-center justify-center dark:bg-zinc-800 px-3 py-0.5 h-8 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold cursor-pointer hover:border-zinc-500 transition-colors select-none text-sm"
         >
             <span>{{ modelValue || 'Выбрать тег' }}</span>
             <svg

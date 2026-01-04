@@ -23,22 +23,20 @@ func (r *UserSocialsRepository) GetUserSocials(ctx context.Context, userID int) 
 	var (
 		discordID  sql.NullString
 		googleID   sql.NullString
-		telegramID sql.NullString
 		googleRefreshToken sql.NullString
 		discordRefreshToken sql.NullString
 	)
 
 	query := `
-		SELECT discord_id, google_id, telegram_id, is_discord_connected, is_google_connected, is_telegram_connected, discord_refresh_token, google_refresh_token
+		SELECT discord_id, google_id, is_discord_connected, is_google_connected, discord_refresh_token, google_refresh_token
 		FROM user_socials
 		WHERE user_id = $1`
 
-	err := r.DB.QueryRowContext(ctx, query, userID).Scan(&discordID, 
+	err := r.DB.QueryRowContext(ctx, query, userID).Scan(
+		&discordID, 
 		&googleID, 
-		&telegramID, 
 		&socials.IsDiscordConnected, 
-		&socials.IsGoogleConnected, 
-		&socials.IsTelegramConnected,
+		&socials.IsGoogleConnected,
 		&discordRefreshToken,
 		&googleRefreshToken,
 	)
@@ -54,9 +52,6 @@ func (r *UserSocialsRepository) GetUserSocials(ctx context.Context, userID int) 
 	}
 	if googleID.Valid {
 		socials.GoogleID = googleID.String
-	}
-	if telegramID.Valid {
-		socials.TelegramID = telegramID.String
 	}
 
 	if discordRefreshToken.Valid {
@@ -83,9 +78,6 @@ func (r *UserSocialsRepository) LinkSocial(ctx context.Context, userID int, prov
 		column = "google_id"
 		is_connected = "is_google_connected"
 		token = "google_refresh_token"
-	case db.TELEGRAM_PROVIDER:
-		column = "telegram_id"
-		is_connected = "is_telegram_connected"
 	default:
 		return errors.New("unknown provider")
 	}
@@ -120,8 +112,6 @@ func (r *UserSocialsRepository) UnlinkSocial(ctx context.Context, userID int, pr
 	case db.GOOGLE_PROVIDER:
 		is_connected = "is_google_connected"
 		token = "google_refresh_token"
-	case db.TELEGRAM_PROVIDER:
-		is_connected = "is_telegram_connected"
 	default:
 		return errors.New("unknown provider")
 	}
