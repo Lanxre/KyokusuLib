@@ -58,5 +58,17 @@ func runSeeds(db *sql.DB) {
 	if _, err := db.ExecContext(ctx, tagsQuery); err != nil {
 		log.Printf("Warning: failed to seed tags: %v", err)
 	}
+	
+	levelDefinitionsQuery :=`
+		INSERT INTO level_definitions (level, title, total_xp_required)
+		VALUES
+			(1, 'Новичок', 0),
+			(2, 'Ученик', 1000)
+		ON CONFLICT (level) DO NOTHING;
+	`
+	
+	if _, err := db.ExecContext(ctx, levelDefinitionsQuery); err != nil {
+		log.Printf("Warning: failed to seed level definitions: %v", err)
+	}
 }
 
