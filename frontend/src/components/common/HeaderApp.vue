@@ -4,10 +4,10 @@ import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import { correctProfileImage } from "@/api/utils/str";
-import BookMarkIcon from "@/assets/images/bookmark-white.png";
-import LogoIcon from "@/assets/images/kyokusulib_logo_2.png";
-import NotificationIcon from "@/assets/images/ringing.png";
-import SearchIcon from "@/assets/images/search-interface-symbol.png";
+import BookMarkIcon from "@/assets/images/header/bookmark-white.png";
+import LogoIcon from "@/assets/images/Kyokusu/kyokusulib_logo_2.png";
+import NotificationIcon from "@/assets/images/header/ringing.png";
+import SearchIcon from "@/assets/images/header/search-interface-symbol.png";
 import CloseIcon from "@/assets/images/special/close.png";
 import LogOutIcon from "@/assets/images/special/log-out.png";
 import MenuIcon from "@/assets/images/special/menu.png";
@@ -80,7 +80,7 @@ const goToLogin = () => {
         </button>
 
         <RouterLink to="/bookmarks" class="hidden sm:flex items-center gap-2 px-4 py-3 rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors">
-          <img :src="BookMarkIcon" alt="Bookmarks" class="h-5 w-5 invert dark:invert-0" />
+          <img :src="BookMarkIcon" alt="Bookmarks" class="h-5 w-5 invert-0 dark:invert" />
           <span class="hidden lg:inline font-medium">Закладки</span>
         </RouterLink>
 
