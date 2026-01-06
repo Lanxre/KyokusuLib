@@ -17,7 +17,6 @@ import PersonIcon from "@/assets/images/special/user.png";
 import ColorPaletteIcon from "@/assets/images/special/color-palette.png";
 import BookIcon from "@/assets/images/special/open-book.png";
 import WritterIcon from "@/assets/images/special/writer.png";
-import MangaIcon from "@/assets/images/special/comic.png";
 import { useAuthStore } from "@/stores/auth";
 import { useRolePermissions } from "@/composables/api/role/useRolePermissions";
 import { KyokusuAppRole } from "@/types/enums/role-enum";
@@ -105,7 +104,7 @@ const goToLogin = () => {
             </button>
 
             <Transition name="fade">
-               <div v-if="isUserDropdownOpen" class="absolute right-0 mt-3 w-56 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl py-2 px-2 overflow-visible flex flex-col z-[60]">
+               <div v-if="isUserDropdownOpen" class="absolute right-0 mt-3 w-56 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl py-2 px-2 overflow-visible flex flex-col z-60">
                  
                  <div class="px-4 py-2 border-b border-zinc-200 dark:border-zinc-700/50 mb-1">
                    <p class="text-sm font-semibold text-zinc-900 dark:text-white truncate">{{ user?.name }}</p>
@@ -137,15 +136,10 @@ const goToLogin = () => {
                    <Transition name="fade">
                      <div 
                        v-if="isContentSubmenuOpen" 
-                       class="absolute top-0 left-full ml-2 w-36 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl py-2 px-2 z-[70]"
+                       class="absolute top-0 left-full ml-2 w-36 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl py-2 px-2 z-70"
                      > 
-                       <RouterLink to="/manga/add" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors w-full" @click="isUserDropdownOpen = false">
-                         <span>Мангу</span>
-                         <img :src="MangaIcon" class="h-4 w-4 dark:brightness-0 dark:invert" />
-                       </RouterLink>
-           
-                       <RouterLink to="/ranobe/add" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors w-full" @click="isUserDropdownOpen = false">
-                         <span>Ранобэ</span>
+                       <RouterLink to="/novela/add" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors w-full" @click="isUserDropdownOpen = false">
+                         <span>Новелла</span>
                          <img :src="BookIcon" class="h-4 w-4 dark:brightness-0 dark:invert" />
                        </RouterLink>
            
@@ -221,12 +215,6 @@ const goToLogin = () => {
 
           <div v-if="hasPermission(KyokusuAppRole.MODERATOR)" class="flex flex-col gap-2">
             <p class="text-xs text-zinc-500 uppercase font-bold px-2 mb-1">Добавить контент</p>
-            
-            <RouterLink to="/manga/add" class="flex justify-center items-center gap-3 px-6 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-900/30 hover:bg-zinc-200 dark:hover:bg-zinc-800 w-full transition-colors text-zinc-700 dark:text-zinc-200" @click="closeMobileMenu">
-                <img :src="MangaIcon" class="h-5 w-5 dark:invert opacity-70" />
-                <span>Мангу</span>
-            </RouterLink>
-
             <RouterLink to="/ranobe/add" class="flex items-center gap-3 px-6 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-900/30 hover:bg-zinc-200 dark:hover:bg-zinc-800 w-full justify-center transition-colors text-zinc-700 dark:text-zinc-200" @click="closeMobileMenu">
                 <img :src="BookIcon" class="h-5 w-5 dark:invert opacity-70" />
                 <span>Ранобэ</span>

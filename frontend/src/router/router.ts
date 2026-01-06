@@ -6,6 +6,7 @@ import NotFoundPage from "@/pages/not-found/NotFoundPage.vue";
 import SettingsPage from "@/pages/settings/SettingsPage.vue";
 import ProfilePage from "@/pages/profile/ProfilePage.vue";
 import AddAuthorPage from "@/pages/forms/AddAuthorPage.vue";
+import AddNovelaPage from "@/pages/forms/AddNovelaPage.vue";
 import { useAuthStore } from "@/stores/auth";
 import { KyokusuAppRole, ROLE_WEIGHTS } from "@/types/enums/role-enum";
 
@@ -57,6 +58,12 @@ const routes = [
 	  path: "/author/add",
 		name: "add-author",
 		component: AddAuthorPage,
+		meta: { requiresAuth: true, minRole: KyokusuAppRole.MODERATOR },
+	},
+	{
+	  path: "/novela/add",
+		name: "add-novela",
+		component: AddNovelaPage,
 		meta: { requiresAuth: true, minRole: KyokusuAppRole.MODERATOR },
 	},
 	{

@@ -30,7 +30,7 @@ onMounted(async () => {
     <div class="min-h-screen bg-zinc-50 dark:bg-radial-[at_center] dark:from-zinc-900 cursor-default dark:to-zinc-950 dark:to-90% text-zinc-900 dark:text-zinc-200 transition-colors duration-300 font-sans">
         
         <!-- Banner -->
-        <div class="h-48 md:h-64 w-full bg-gradient-to-r from-zinc-800 to-zinc-700 relative overflow-hidden group">
+        <div class="h-48 md:h-64 w-full bg-linear-to-r from-zinc-800 to-zinc-700 relative overflow-hidden group">
             <img 
                 v-if="profileData?.banner" 
                 :src="correctProfileImage(profileData.banner)" 
