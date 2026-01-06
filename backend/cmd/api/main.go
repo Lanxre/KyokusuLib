@@ -32,6 +32,7 @@ func main() {
 	userProfileRepo := repository.NewUserProfileRepository(db)
 	
 	authorRepo := repository.NewAuthorRepository(db)
+	novelaRepo := repository.NewNovelaRepository(db)
 
 	authService := service.NewAuthService(userRepo)
 	userService := service.NewUserService(userRepo, userProfileRepo)
@@ -41,6 +42,7 @@ func main() {
 	socialService := service.NewSocialsService(userSocialRepo)
 	
 	authorService := service.NewAuthorService(authorRepo)
+	novelaService := service.NewNovelaService(novelaRepo)
 	
 
 	authService.StartCleanupWorker(ctx)
@@ -53,6 +55,7 @@ func main() {
 	socialNetworkHandler := handlers.NewSocialNetworkHandler(cfg, socialService)
 	authorHandler := handlers.NewAuthorHandler(authorService)
 	userActivityHandler := handlers.NewUserActivityHandler(userActivityService)
+	novelaHandler := handlers.NewNovelaHandler(novelaService)
 
 	rts := []routes.Route{
 		&routes.HealthRoutes{Handler: healthHandler},
@@ -63,6 +66,7 @@ func main() {
 		&routes.UserRoutes{Handler: userHandler},
 		&routes.AuthorRoutes{Handler: authorHandler},
 		&routes.UserActivityRoutes{Handler: userActivityHandler},
+		&routes.NovelaRoutes{Handler: novelaHandler},
 	}
 
 	r := routes.NewRouter(cfg, rts...)

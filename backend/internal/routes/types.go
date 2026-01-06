@@ -26,8 +26,8 @@ type UserRoutes struct {
 	Handler *handlers.UserHandler
 }
 
-type RanobeRoutes struct {
-	Handler *handlers.RanobeHandler
+type NovelaRoutes struct {
+	Handler *handlers.NovelaHandler
 }
 
 type AuthorRoutes struct {

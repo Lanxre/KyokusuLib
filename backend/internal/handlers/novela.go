@@ -9,17 +9,17 @@ import (
 	"github.com/lanxre/kyokusulib/internal/utils/response"
 )
 
-type RanobeHandler struct {
-	RanobeService *service.RanobeService
+type NovelaHandler struct {
+	service *service.NovelaService
 }
 
-func NewRanobeHandler(ranobeService *service.RanobeService) *RanobeHandler {
-	return &RanobeHandler{
-		RanobeService: ranobeService,
+func NewNovelaHandler(ranobeService *service.NovelaService) *NovelaHandler {
+	return &NovelaHandler{
+		service: ranobeService,
 	}
 }
 
-func (h *RanobeHandler) GetRanobe(w http.ResponseWriter, r *http.Request) {
+func (h *NovelaHandler) GetNovela(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr, ok := vars["id"]
 	if !ok {
@@ -27,17 +27,22 @@ func (h *RanobeHandler) GetRanobe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	RanobeID, err := strconv.Atoi(idStr)
+	NovelaID, err := strconv.Atoi(idStr)
 	if err != nil {
 		response.Error(w, http.StatusBadRequest, "Invalid ranobe ID format")
 		return
 	}
 	
-	ranobe, err := h.RanobeService.GetRanobeById(r.Context(), RanobeID)
+	novela, err := h.service.GetNovelaById(r.Context(), NovelaID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	
-	response.JSON(w, http.StatusOK, ranobe)
+	if novela == nil {
+		response.Error(w, http.StatusNotFound, "Novela not found")
+		return
+	}
+	
+	response.JSON(w, http.StatusOK, novela)
 }
