@@ -169,6 +169,7 @@ func (r *UserRepository) Create(u *db.User) error {
 		verificationToken,
 		verificationTokenExpiresAt,
 	).Scan(&u.ID)
+	
 	if err != nil {
 		return err
 	}

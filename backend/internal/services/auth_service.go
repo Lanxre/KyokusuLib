@@ -44,8 +44,9 @@ func (s *AuthService) RegisterUser(dto *dto.RegisterDTO) (*db.User, error) {
 		IsVerified:                 false,
 		VerificationToken:          token,
 		VerificationTokenExpiresAt: &expiresAt,
+		Gender:                     db.HIDDEN_GENERE,
 	}
-
+	
 	if err := s.Repo.Create(user); err != nil {
 		return nil, err
 	}

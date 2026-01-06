@@ -1,6 +1,8 @@
 import { useFetch } from "@vueuse/core";
 import { reactive, ref } from "vue";
+import { useApi } from "@/api/api";
 import { BACKEND_URL } from "@/const";
+import { useUserApi } from "@/api/user/userApi";
 
 export function useRegister() {
 	const isLoading = ref(false);
@@ -63,7 +65,7 @@ export function useRegister() {
 				password: form.password,
 			};
 
-			const { data, response } = await useFetch(`${BACKEND_URL}/auth/register`)
+			const { data, response } = await useApi('/api/auth/register')
 				.post(payload)
 				.json();
 

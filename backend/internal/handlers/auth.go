@@ -212,16 +212,17 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
+	
 	user, err := h.AuthService.RegisterUser(&dto)
 	if err != nil {
+		fmt.Print(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	verificationLink := fmt.Sprintf("%s/auth/verify-email?token=%s", h.BackendURL, user.VerificationToken)
 	emailReq := h.EmailService.NewEmailRequest(user.Email, verificationLink)
-
+	
 	if err := h.EmailService.SendEmail(*emailReq); err != nil {
 		fmt.Printf("Failed to send email to %s: %v\n", user.Email, err)
 		http.Error(w, "User created, but failed to send verification email.", http.StatusInternalServerError)
