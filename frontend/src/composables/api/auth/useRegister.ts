@@ -1,8 +1,5 @@
-import { useFetch } from "@vueuse/core";
 import { reactive, ref } from "vue";
 import { useApi } from "@/api/api";
-import { BACKEND_URL } from "@/const";
-import { useUserApi } from "@/api/user/userApi";
 
 export function useRegister() {
 	const isLoading = ref(false);
