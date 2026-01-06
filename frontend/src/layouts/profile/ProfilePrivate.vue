@@ -61,7 +61,11 @@ const activeTab = ref('overview');
                             alt="Avatar"
                         />
                     </div>
-                    <div class="absolute bottom-2 right-2 w-5 h-5 bg-green-500 border-4 border-white dark:border-zinc-900 rounded-full" title="Онлайн"></div>
+                    <div 
+                        class="absolute bottom-2 right-2 w-5 h-5 border-4 border-white dark:border-zinc-900 rounded-full transition-colors duration-300"
+                        :title="getIsLogin(profileData?.last_login) ? 'Онлайн' : 'Оффлайн'"
+                        :class="getIsLogin(profileData?.last_login) ? 'bg-green-500' : 'bg-red-500'"
+                    ></div>
                 </div>
 
                 <div class="flex-1 pb-2 w-full md:w-auto">
