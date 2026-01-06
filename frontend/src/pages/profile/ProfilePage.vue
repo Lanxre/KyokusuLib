@@ -21,7 +21,7 @@ onMounted(init);
         <main class="grow">
             <ProfileSelfContent v-if="isSelfProfile"/>
             <ProfilePublic v-else-if="!isSelfProfile && isPublicAccount" :profileData="profileData as GetUserDto"/>
-            <ProfilePrivate v-else-if="!isSelfProfile && !isPublicAccount"/>
+            <ProfilePrivate v-else-if="!isSelfProfile && !isPublicAccount"  :profileData="profileData as GetUserDto"/>
         </main>
         <FooterApp/>
     </div>

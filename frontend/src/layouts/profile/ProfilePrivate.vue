@@ -1,20 +1,37 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { correctProfileImage } from '@/api/utils/str';
 import Separator from '@/components/ui/Separator/Separtor.vue';
 import { useProfile } from '@/composables/api/profile/useProfile';
 import EditIcon from "@/assets/images/special/setting.png";
+import { GetUserDto } from '@/types/backend/user';
+import { useUserActivity } from '@/composables/api/profile/useUserActivity';
+import TagSelector from '@/components/features/TagSelector/TagSelector.vue';
+import UserExperiance from '@/components/features/UserExperience/UserExperience.vue';
+// const { 
+//     profileData, 
+//     userRoleColor, 
+//     userGender, 
+//     isPublicAccount, 
+//     isSelfProfile,
+//     accountCreated,
+//     // profileTabs 
+// } = useProfile();
 
-const { 
-    profileData, 
-    userRoleColor, 
-    userGender, 
-    isPublicAccount, 
-    isSelfProfile,
-    accountCreated,
-    profileTabs 
-} = useProfile();
+const props = defineProps<{
+    profileData: GetUserDto;
+}>()
+
+const { profileTabs, userRoleColor, isPublicAccount, isSelfProfile, getGenderText, getLastLogin, getIsLogin } = useProfile();
+const { activities, fetchByUserId, isLoadingActivities } = useUserActivity();
+
+
+onMounted(async () => {
+    if (props.profileData) {
+      await fetchByUserId(props.profileData.id);
+    }
+});
 
 const activeTab = ref('overview');
 </script>
@@ -58,15 +75,16 @@ const activeTab = ref('overview');
                             </h1>
                             <div class="flex flex-row gap-4 justify-start items-center">
                                 <p class="text-left ml-1 text-zinc-500 dark:text-zinc-400 font-medium mt-1">ID: #{{ profileData?.id }}</p>
-                                <div class="flex mt-2 dark:bg-zinc-800 px-2 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold text-sm">Опыт: 0 </div>
+                                <div class="flex flex-row gap-4">
+                                    <TagSelector v-if="profileData != null && profileData.settings.is_show_tag && profileData?.active_tag" v-model="profileData.active_tag" :tags="profileData.tags" /> 
+                                    <UserExperiance 
+                                        v-if="profileData?.user_level" 
+                                        :level="profileData.user_level.level" 
+                                        :currentExp="profileData?.user_level.experience" 
+                                        :expToNextLevel="profileData?.user_level.xp_needed_for_next"
+                                    /> 
+                                </div>
                             </div>
-                        </div>
-
-                        <div v-if="isSelfProfile" class="flex gap-3 w-full md:w-auto">
-                            <RouterLink to="/settings" class="flex items-center gap-2 px-4 py-2 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 rounded-lg text-sm font-medium transition-colors border border-transparent dark:border-zinc-700">
-                                <img :src="EditIcon" class="w-4 h-4 dark:invert opacity-70"/>
-                                <span>Редактировать</span>
-                            </RouterLink>
                         </div>
                     </div>
                 </div>
@@ -99,12 +117,12 @@ const activeTab = ref('overview');
                         <div class="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
                             <div class="flex justify-between text-sm">
                                 <span class="text-zinc-500">Дата регистрации</span>
-                                <span class="text-zinc-700 dark:text-zinc-300 font-medium">{{ accountCreated }}</span>
+                                <span class="text-zinc-700 dark:text-zinc-300 font-medium">{{  }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-zinc-500">Пол</span>
                                 <span class="text-zinc-700 dark:text-zinc-300 font-medium capitalize">
-                                    {{ userGender }}
+                                    {{  }}
                                 </span>
                             </div>
                         </div>

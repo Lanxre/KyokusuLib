@@ -16,7 +16,7 @@ const progress = computed(() => {
 </script>
 
 <template>
-    <div class="flex flex-row items-center gap-3 p-1.5 pr-3 rounded-full border-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm transition-colors duration-300 w-full sm:w-auto min-w-[300px] h-8">
+    <div class="flex flex-row items-center gap-3 p-1.5 pr-3 mt-2 rounded-full border-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm transition-colors duration-300 w-full sm:w-auto min-w-[300px] h-8">
         <div class="flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 rounded-full w-4 h-4 shrink-0 border border-zinc-200 dark:border-zinc-700">
             <span class="text-[10px] font-bold text-zinc-900 dark:text-white">{{ level }}</span>
         </div>
