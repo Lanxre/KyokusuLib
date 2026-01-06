@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"log"
 	"time"
 
@@ -148,7 +147,6 @@ func (s *AuthService) ResetPassword(token, newPassword string) error {
 func (s *AuthService) VerifyUser(token string) error {
 	user, err := s.Repo.GetByVerificationToken(token)
 	if err != nil {
-		fmt.Print(err)
 		return errors.New("invalid token")
 	}
 
