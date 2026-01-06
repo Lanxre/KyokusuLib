@@ -220,7 +220,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	verificationLink := fmt.Sprintf("%s/auth/verify-email?token=%s", h.BackendURL, user.VerificationToken)
+	verificationLink := fmt.Sprintf("%s/api/auth/verify-email?token=%s", h.BackendURL, user.VerificationToken)
 	emailReq := h.EmailService.NewEmailRequest(user.Email, verificationLink)
 	
 	if err := h.EmailService.SendEmail(*emailReq); err != nil {

@@ -48,6 +48,7 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 		about                        sql.NullString
 		birthday                     sql.NullTime
 		gender                       sql.NullString
+		isShowTag                    sql.NullBool
 	)
 
 	query := `
@@ -87,7 +88,7 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 		&birthday,
 		&gender,
 		&u.Tag,
-		&u.IsShowTag,
+		&isShowTag,
 	)
 
 	if err != nil {
@@ -129,6 +130,9 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 	}
 	if banner.Valid {
 		u.Banner = banner.String
+	}
+	if isShowTag.Valid {
+		u.IsShowTag = isShowTag.Bool
 	}
     
 	return u, nil
