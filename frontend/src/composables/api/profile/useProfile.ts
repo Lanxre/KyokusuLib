@@ -63,7 +63,7 @@ export function useProfile() {
     });
 
     const lastLogin = computed(() => {
-      if (!profileData.value || !profileData.value.is_public) {
+      if (!profileData.value || (!profileData.value.is_public && !isSelfProfile.value)) {
         return 'Неизвестно';
       }
     
