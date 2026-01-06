@@ -18,8 +18,9 @@ const { isShowTag } = useInterfaceSettings();
 const activeTab = ref('overview');
 
 onMounted(async () => {
-    await fetchActivities();
+  await fetchActivities();
 });
+
 
 </script>
 
@@ -82,7 +83,7 @@ onMounted(async () => {
                                         v-if="profileData?.user_level" 
                                         :level="profileData.user_level.level" 
                                         :currentExp="profileData?.user_level.experience" 
-                                        :expToNextLevel="profileData?.user_level.xp_needed_for_next"
+                                        :expToNextLevel="profileData!.user_level.xp_needed_for_next"
                                     />
                                 </div>
                             </div>

@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/lanxre/kyokusulib/internal/models/db"
+	"github.com/lanxre/kyokusulib/internal/models/dto"
 )
 
 type Claims struct {
@@ -14,7 +14,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(user *db.User, jwtSecret string) (string, error) {
+func GenerateJWT(user *dto.GetUserDTO, jwtSecret string) (string, error) {
 	expirationTime := time.Now().Add(30 * 24 * time.Hour)
 	
 	claims := &Claims{

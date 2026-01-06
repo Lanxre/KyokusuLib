@@ -38,7 +38,7 @@ func StartHTTPServer(lc fx.Lifecycle, r *mux.Router, cfg *config.Config) {
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With"},
 		AllowCredentials: true,
-		Debug:            true,
+		Debug:            false,
 	})
 
 	handler := c.Handler(r)

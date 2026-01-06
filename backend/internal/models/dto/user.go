@@ -14,6 +14,7 @@ type UserDTO struct {
 
 type GetUserDTO struct {
 	ID           			 		int       	`json:"id"`
+	Email 							string		`json:"-"`
 	Name         			 		string    	`json:"name"`
 	Picture      			 		string    	`json:"picture"`
 	Banner      			 		string    	`json:"banner"`

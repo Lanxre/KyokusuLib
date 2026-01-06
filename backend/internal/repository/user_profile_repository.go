@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-
 	"github.com/lanxre/kyokusulib/internal/models/db"
 )
 
@@ -55,6 +54,6 @@ func (r *UserProfileRepository) GetUserLevel(ctx context.Context, userID int) (*
         needed := max(xpForNextLevel.Int64 - experience, 0)
         u.XPForNext = needed
     }
-	
+    
 	return u, nil
 }

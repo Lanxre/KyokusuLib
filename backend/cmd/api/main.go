@@ -10,6 +10,7 @@ import (
 	service "github.com/lanxre/kyokusulib/internal/services"
 	"github.com/lanxre/kyokusulib/internal/storage"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 )
 
 func main() {
@@ -75,5 +76,6 @@ func main() {
 			app.StartBackgroundWorkers,
 			app.StartHTTPServer,
 		),
+		fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
 	).Run()
 }

@@ -282,7 +282,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	h.setCookieAndJson(w, user)
 }
 
-func (h *AuthHandler) setCookieAndRedirect(w http.ResponseWriter, r *http.Request, user *db.User) {
+func (h *AuthHandler) setCookieAndRedirect(w http.ResponseWriter, r *http.Request, user *dto.GetUserDTO) {
 	tokenString, err := service.GenerateJWT(user, h.JWTSecret)
 	if err != nil {
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
@@ -302,7 +302,7 @@ func (h *AuthHandler) setCookieAndRedirect(w http.ResponseWriter, r *http.Reques
 	http.Redirect(w, r, h.FrontendURL, http.StatusTemporaryRedirect)
 }
 
-func (h *AuthHandler) setCookieAndJson(w http.ResponseWriter, user *db.User) {
+func (h *AuthHandler) setCookieAndJson(w http.ResponseWriter, user *dto.GetUserDTO) {
 	tokenString, err := service.GenerateJWT(user, h.JWTSecret)
 	if err != nil {
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)

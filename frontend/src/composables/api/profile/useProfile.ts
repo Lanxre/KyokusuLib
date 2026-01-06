@@ -161,21 +161,16 @@ export function useProfile() {
     const userGender = computed(() => getGenderText(profileData.value?.gender));
 
     const loadProfileData = async (id: number) => {
-        if (isSelfProfile.value) {
-            fetchedUser.value = null; 
-            return;
-        }
-
         isLoading.value = true;
         try {
             const data = await userApi.getUser(id);
-
-             if (!data) {
+    
+            if (!data) {
                 router.replace({ name: "notFound" });
                 return;
             }
-
-            fetchedUser.value = data || null;
+    
+            fetchedUser.value = data;
         } catch (error) {
             console.error(error);
             fetchedUser.value = null;
@@ -184,10 +179,13 @@ export function useProfile() {
         }
     };
 
-    const init = () => {
+    const init = async () => {
         const id = Number(route.params.id);
-        if (!isNaN(id) && authStore.user?.id !== id) {
-          loadProfileData(id);
+        if (!isNaN(id)) {
+            const needsFullLoad = isSelfProfile.value && !authStore.user?.user_level;
+            if (!isSelfProfile.value || needsFullLoad) {
+                await loadProfileData(id);
+            }
         }
     };
 

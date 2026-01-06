@@ -47,7 +47,7 @@ export function useLogin() {
 
 			if (data.value) {
 				authStore.user = data.value;
-				router.push("/profile");
+				router.push(`/profile/${data.value.id}`);
 			}
 
 			notify({

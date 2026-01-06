@@ -16,10 +16,11 @@ import (
 
 type AuthService struct {
 	Repo *repository.UserRepository
+	UserProfileRepo *repository.UserProfileRepository
 }
 
-func NewAuthService(repo *repository.UserRepository) *AuthService {
-	return &AuthService{Repo: repo}
+func NewAuthService(repo *repository.UserRepository, userProfileRepo *repository.UserProfileRepository) *AuthService {
+	return &AuthService{Repo: repo, UserProfileRepo: userProfileRepo}
 }
 
 func (s *AuthService) RegisterUser(dto *dto.RegisterDTO) (*db.User, error) {
@@ -53,7 +54,7 @@ func (s *AuthService) RegisterUser(dto *dto.RegisterDTO) (*db.User, error) {
 	return user, nil
 }
 
-func (s *AuthService) LoginWithPassword(dto *dto.LoginDTO) (*db.User, error) {
+func (s *AuthService) LoginWithPassword(dto *dto.LoginDTO) (*dto.GetUserDTO, error) {
 	user, err := s.Repo.GetByEmail(dto.Email)
 	if err != nil || user == nil {
 		return nil, errors.New("invalid email or password")
@@ -66,13 +67,55 @@ func (s *AuthService) LoginWithPassword(dto *dto.LoginDTO) (*db.User, error) {
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(dto.Password)); err != nil {
 		return nil, errors.New("invalid email or password")
 	}
-
+	
+	userTags, err := s.GetUserTags(user.ID)
+	if err != nil {
+		return nil, err
+	}
+	
+	userLevel, err := s.UserProfileRepo.GetUserLevel(context.Background(), user.ID)
+	if err != nil {
+		return nil, err
+	}
+	
+	userDTO := s.CreateUserDTO(user, userTags, userLevel)
+		
 	_ = s.Repo.UpdateStatus(user.ID, "online")
 	user.Status = "online"
-	return user, nil
+	
+	return userDTO, nil
 }
 
-func (s *AuthService) LoginUser(gUser *dto.UserDTO) (*db.User, error) {
+func (s AuthService) CreateUserDTO(user *db.User, userTags []dto.UserTagDTO,userLevel *db.UserLevel) *dto.GetUserDTO {
+	return  &dto.GetUserDTO{
+		ID:       user.ID,
+		Email:    user.Email,
+		Name:     user.Name,
+		Picture:  user.Picture,
+		Role:     user.Role,
+		Status:   user.Status,
+		About:    user.About,
+		Birthday: user.Birthday,
+		Gender:   string(user.Gender),
+		IsPublic: user.IsPublic,
+		LastLogin: user.LastLogin,
+		CreateAt: user.CreateAt,
+		Banner:   user.Banner,
+		ActiveTag:      user.Tag,
+		AllTags:        userTags,
+		Settings:       dto.PublicUserSettingsDTO{
+						IsShowTag: user.IsShowTag,
+		},
+		UserLevel:      dto.UserLevelDTO{
+			Level:      userLevel.Level,
+			Experience: userLevel.Experience,
+			LevelTitle: userLevel.LevelTitle,
+			XPForNext:  userLevel.XPForNext,
+		},
+	}
+}
+
+func (s *AuthService) LoginUser(gUser *dto.UserDTO) (*dto.GetUserDTO, error) {
 	user, _ := s.Repo.GetByEmail(gUser.Email)
 	if user == nil {
 		user = &db.User{
@@ -86,7 +129,7 @@ func (s *AuthService) LoginUser(gUser *dto.UserDTO) (*db.User, error) {
 		if err := s.Repo.Create(user); err != nil {
 			return nil, err
 		}
-		return user, nil
+		return s.CreateUserDTO(user, nil, nil), nil
 	}
 
 	if !user.IsVerified {
@@ -97,10 +140,22 @@ func (s *AuthService) LoginUser(gUser *dto.UserDTO) (*db.User, error) {
 	if user.Picture == "" && gUser.Avatar != "" {
 		s.Repo.UpdateAvatar(user.ID, gUser.Avatar)
 	}
-
+	
+	userTags, err := s.GetUserTags(user.ID)
+	if err != nil {
+		return nil, err
+	}
+	
+	userLevel, err := s.UserProfileRepo.GetUserLevel(context.Background(), user.ID)
+	if err != nil {
+		return nil, err
+	}
 	_ = s.Repo.UpdateStatus(user.ID, "online")
 	user.Status = "online"
-	return user, nil
+	
+	userDTO := s.CreateUserDTO(user, userTags, userLevel)
+
+	return userDTO, nil
 }
 
 func (s *AuthService) RequestPasswordReset(email string) (string, error) {
@@ -171,6 +226,24 @@ func (s *AuthService) UpdateStatus(ctx context.Context, userID int, status bool)
 
 	return err
 }
+
+func (s *AuthService) GetUserTags(userId int) ([]dto.UserTagDTO, error) {
+	tags, err := s.Repo.GetUserTags(context.Background(), userId)
+	if err != nil {
+		return nil, err
+	}
+	
+	userTags := make([]dto.UserTagDTO, len(tags))
+	for i, tag := range tags {
+		userTags[i] = dto.UserTagDTO{
+			ID:    tag.TagID,
+			Tag:   tag.Tag,
+		}
+	}
+	
+	return userTags, nil
+}
+
 
 func (s *AuthService) hashPassword(pwd string) (string, error) {
 	b, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
