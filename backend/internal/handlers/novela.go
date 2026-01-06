@@ -1,21 +1,28 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
+	"github.com/lanxre/kyokusulib/internal/models/db"
+	"github.com/lanxre/kyokusulib/internal/models/dto"
 	service "github.com/lanxre/kyokusulib/internal/services"
 	"github.com/lanxre/kyokusulib/internal/utils/response"
 )
 
 type NovelaHandler struct {
 	service *service.NovelaService
+	Validator *validator.Validate
 }
 
-func NewNovelaHandler(ranobeService *service.NovelaService) *NovelaHandler {
+func NewNovelaHandler(ranobeService *service.NovelaService, validator *validator.Validate) *NovelaHandler {
 	return &NovelaHandler{
 		service: ranobeService,
+		Validator: validator,
 	}
 }
 
@@ -45,4 +52,71 @@ func (h *NovelaHandler) GetNovela(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	response.JSON(w, http.StatusOK, novela)
+}
+
+func (h *NovelaHandler) Create(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		response.Error(w, http.StatusBadRequest, "File too big or invalid format")
+		return
+	}
+
+	input := dto.CreateNovelaDTO{
+		Title:             r.FormValue("title"),
+		Description:       r.FormValue("description"),
+		Type:              r.FormValue("type"),
+		AgeRating:         r.FormValue("age_rating"),
+		ReleaseYear:       r.FormValue("release_year"),
+		Status:            r.FormValue("status"),
+		TranslationStatus: r.FormValue("translation_status"),
+	}
+	
+	_ = json.Unmarshal([]byte(r.FormValue("genres")), &input.Genres)
+	_ = json.Unmarshal([]byte(r.FormValue("categories")), &input.Categories)
+	
+	var altTitles []string
+	_ = json.Unmarshal([]byte(r.FormValue("alternative_titles")), &altTitles)
+
+	if err := h.Validator.Struct(input); err != nil {
+		response.Error(w, http.StatusBadRequest, "Validation error: "+err.Error())
+		return
+	}
+
+	var posterURL string
+	file, header, err := r.FormFile("poster")
+	if err == nil {
+		defer file.Close()
+		
+		url, err := h.service.UploadPoster(r.Context(), file, header)
+		if err != nil {
+			response.Error(w, http.StatusInternalServerError, "Failed to upload poster")
+			return
+		}
+		posterURL = url
+	}
+
+	releaseDate, _ := time.Parse("2006", input.ReleaseYear)
+
+	novela := &db.Novela{
+		Title:             input.Title,
+		AlternativeTitles: altTitles,
+		Description:       input.Description,
+		Type:              input.Type,
+		AgeRating:         input.AgeRating,
+		ReleaseDate:       releaseDate,
+		Status:            input.Status,
+		TranslationStatus: input.TranslationStatus,
+		PosterURL:         posterURL,
+		Genres:            input.Genres,
+		Categories:        input.Categories,
+	}
+
+	if err := h.service.Create(r.Context(), novela); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.JSON(w, http.StatusCreated, map[string]interface{}{
+		"id":      novela.ID,
+		"message": "Novela created successfully",
+	})
 }

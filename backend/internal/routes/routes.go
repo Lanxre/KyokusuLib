@@ -5,12 +5,8 @@ import (
 	"github.com/lanxre/kyokusulib/internal/config"
 )
 
-func NewRouter(cfg *config.Config, routeGroups ...Route) *mux.Router {
-	r := mux.NewRouter()
-
-	for _, group := range routeGroups {
-		group.Register(cfg, r)
-	}
-
-	return r
+func RegisterRoutes(r *mux.Router, cfg *config.Config, routes ...Route) {
+    for _, route := range routes {
+        route.Register(cfg, r)
+    }
 }

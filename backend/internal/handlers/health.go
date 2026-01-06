@@ -14,6 +14,10 @@ type HealthResponse struct {
 	Uptime    string `json:"uptime"`
 }
 
+func NewHealthHandler() *HealthHandler {
+	return &HealthHandler{}
+}
+
 var startTime = time.Now()
 
 func (h *HealthHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {

@@ -3,47 +3,65 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/lanxre/kyokusulib/internal/config" 
 	"github.com/pressly/goose/v3"
+	"go.uber.org/fx"
 )
 
 const (
 	DefaultTimeout = 5 * time.Second
 )
 
-func NewPostgresDB(databaseURL string) *sql.DB {
-	db, err := sql.Open("pgx", databaseURL)
+func NewPostgresDB(lc fx.Lifecycle, cfg *config.Config) (*sql.DB, error) {
+	db, err := sql.Open("pgx", cfg.DatabaseURL)
 	if err != nil {
-		log.Fatal("Failed to open db connection:", err)
+		return nil, fmt.Errorf("failed to open db connection: %w", err)
 	}
 
-	if err := db.Ping(); err != nil {
-		log.Fatal("Failed to ping db:", err)
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
+	defer cancel()
+
+	if err := db.PingContext(ctx); err != nil {
+		return nil, fmt.Errorf("failed to ping db: %w", err)
 	}
 
-	runMigrations(db)
-	
-	runSeeds(db)
-	
-	return db
+	if err := runMigrations(db); err != nil {
+		return nil, fmt.Errorf("migration failed: %w", err)
+	}
+
+	if err := runSeeds(db); err != nil {
+		return nil, fmt.Errorf("seeding failed: %w", err)
+	}
+
+	lc.Append(fx.Hook{
+		OnStop: func(ctx context.Context) error {
+			log.Println("Closing database connection...")
+			return db.Close()
+		},
+	})
+
+	return db, nil
 }
 
-func runMigrations(db *sql.DB) {
+func runMigrations(db *sql.DB) error {
 	if err := goose.SetDialect("postgres"); err != nil {
-		log.Fatal("Failed to set goose dialect:", err)
+		return fmt.Errorf("failed to set goose dialect: %w", err)
 	}
 
 	if err := goose.Up(db, "migrations"); err != nil {
-		log.Fatal("Could not run migrations:", err)
+		return fmt.Errorf("could not run migrations: %w", err)
 	}
 
 	log.Println("Database migrations check completed")
+	return nil
 }
 
-func runSeeds(db *sql.DB) {
+func runSeeds(db *sql.DB) error {
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
 	defer cancel()
 
@@ -58,17 +76,18 @@ func runSeeds(db *sql.DB) {
 	if _, err := db.ExecContext(ctx, tagsQuery); err != nil {
 		log.Printf("Warning: failed to seed tags: %v", err)
 	}
-	
-	levelDefinitionsQuery :=`
+
+	levelDefinitionsQuery := `
 		INSERT INTO level_definitions (level, title, total_xp_required)
 		VALUES
 			(1, 'Новичок', 0),
 			(2, 'Ученик', 1000)
 		ON CONFLICT (level) DO NOTHING;
 	`
-	
+
 	if _, err := db.ExecContext(ctx, levelDefinitionsQuery); err != nil {
 		log.Printf("Warning: failed to seed level definitions: %v", err)
 	}
+	
+	return nil
 }
-

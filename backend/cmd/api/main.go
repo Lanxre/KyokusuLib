@@ -1,97 +1,79 @@
 package main
 
 import (
-	"context"
-	"log"
-	"net/http"
-
+	"github.com/lanxre/kyokusulib/internal/app"
 	"github.com/lanxre/kyokusulib/internal/config"
 	"github.com/lanxre/kyokusulib/internal/handlers"
+	"github.com/lanxre/kyokusulib/internal/lib/logger"
 	"github.com/lanxre/kyokusulib/internal/repository"
 	"github.com/lanxre/kyokusulib/internal/routes"
 	service "github.com/lanxre/kyokusulib/internal/services"
 	"github.com/lanxre/kyokusulib/internal/storage"
-	"github.com/lanxre/kyokusulib/internal/utils/static"
-	"github.com/rs/cors"
+	"go.uber.org/fx"
 )
 
 func main() {
+	fx.New(
+		fx.Provide(
+			config.Load,
+			logger.New,			
+			storage.NewPostgresDB,
+			app.NewValidator,
+			
 
-	cfg := config.Load()
+			repository.NewUserRepository,
+			repository.NewUserProfileSettingRepository,
+			repository.NewUserSocialsRepository,
+			repository.NewUserActivityRepository,
+			repository.NewUserProfileRepository,
+			repository.NewAuthorRepository,
+			repository.NewNovelaRepository,
 
-	db := storage.NewPostgresDB(cfg.DatabaseURL)
-	defer db.Close()
+			service.NewAuthService,
+			service.NewUserService,
+			service.NewUserActivityService,
+			service.NewProfileSettingService,
+			service.NewSocialsService,
+			service.NewAuthorService,
+			service.NewNovelaService,
+			app.NewEmailService,
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+			handlers.NewAuthHandler,
+			handlers.NewHealthHandler,
+			handlers.NewUserHandler,
+			handlers.NewEmailHandler,
+			handlers.NewProfileSettingHandler,
+			handlers.NewSocialNetworkHandler,
+			handlers.NewAuthorHandler,
+			handlers.NewUserActivityHandler,
+			handlers.NewNovelaHandler,
 
-	userRepo := repository.NewUserRepository(db)
-	userProfileSettingsRepo := repository.NewUserProfileSettingRepository(db)
-	userSocialRepo := repository.NewUserSocialsRepository(db)
-	userActivitiesRepo := repository.NewUserActivityRepository(db)
-	userProfileRepo := repository.NewUserProfileRepository(db)
-	
-	authorRepo := repository.NewAuthorRepository(db)
-	novelaRepo := repository.NewNovelaRepository(db)
+			app.AsRoute(func(h *handlers.HealthHandler) *routes.HealthRoutes { return &routes.HealthRoutes{Handler: h} }),
+			app.AsRoute(func(h *handlers.AuthHandler) *routes.AuthRoutes { return &routes.AuthRoutes{Handler: h} }),
+			app.AsRoute(func(h *handlers.EmailHandler) *routes.EmailRoutes { return &routes.EmailRoutes{Handler: h} }),
+			app.AsRoute(func(h *handlers.ProfileSettingHandler) *routes.ProfileSettingRoutes {
+				return &routes.ProfileSettingRoutes{Handler: h}
+			}),
+			app.AsRoute(func(h *handlers.SocialNetworkHandler) *routes.SocialNetworkRoutes {
+				return &routes.SocialNetworkRoutes{Handler: h}
+			}),
+			app.AsRoute(func(h *handlers.UserHandler) *routes.UserRoutes { return &routes.UserRoutes{Handler: h} }),
+			app.AsRoute(func(h *handlers.AuthorHandler) *routes.AuthorRoutes { return &routes.AuthorRoutes{Handler: h} }),
+			app.AsRoute(func(h *handlers.UserActivityHandler) *routes.UserActivityRoutes {
+				return &routes.UserActivityRoutes{Handler: h}
+			}),
+			app.AsRoute(func(h *handlers.NovelaHandler) *routes.NovelaRoutes { return &routes.NovelaRoutes{Handler: h} }),
 
-	authService := service.NewAuthService(userRepo)
-	userService := service.NewUserService(userRepo, userProfileRepo)
-	userActivityService := service.NewUserActivityService(userActivitiesRepo)
-	emailService := service.NewEmailService(cfg.KyokusuEmailName, cfg.KyokusuEmailPass)
-	profileSettingService := service.NewProfileSettingService(userRepo, userProfileSettingsRepo)
-	socialService := service.NewSocialsService(userSocialRepo)
-	
-	authorService := service.NewAuthorService(authorRepo)
-	novelaService := service.NewNovelaService(novelaRepo)
-	
+			fx.Annotate(
+				app.NewMuxRouter,
+				fx.ParamTags("", `group:"routes"`),
+			),
+		),
 
-	authService.StartCleanupWorker(ctx)
-
-	healthHandler := &handlers.HealthHandler{}
-	authHandler := handlers.NewAuthHandler(cfg, authService, userService, emailService, socialService)
-	userHandler := handlers.NewUserHandler(userService)
-	emailHandler := handlers.NewEmailHandler(cfg, emailService)
-	profileSettingHandler := handlers.NewProfileSettingHandler(profileSettingService)
-	socialNetworkHandler := handlers.NewSocialNetworkHandler(cfg, socialService)
-	authorHandler := handlers.NewAuthorHandler(authorService)
-	userActivityHandler := handlers.NewUserActivityHandler(userActivityService)
-	novelaHandler := handlers.NewNovelaHandler(novelaService)
-
-	rts := []routes.Route{
-		&routes.HealthRoutes{Handler: healthHandler},
-		&routes.AuthRoutes{Handler: authHandler},
-		&routes.EmailRoutes{Handler: emailHandler},
-		&routes.ProfileSettingRoutes{Handler: profileSettingHandler},
-		&routes.SocialNetworkRoutes{Handler: socialNetworkHandler},
-		&routes.UserRoutes{Handler: userHandler},
-		&routes.AuthorRoutes{Handler: authorHandler},
-		&routes.UserActivityRoutes{Handler: userActivityHandler},
-		&routes.NovelaRoutes{Handler: novelaHandler},
-	}
-
-	r := routes.NewRouter(cfg, rts...)
-
-	static.CreateStaticDirs(r)
-
-	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With"},
-		AllowCredentials: true,
-		Debug:            true,
-	})
-
-	handler := c.Handler(r)
-
-	srv := &http.Server{
-		Handler:      handler,
-		Addr:         cfg.Address,
-		WriteTimeout: cfg.WriteTimeout,
-		ReadTimeout:  cfg.ReadTimeout,
-	}
-
-	log.Printf("Server starting on %s ...", cfg.Address)
-	if err := srv.ListenAndServe(); err != nil {
-		log.Fatal(err)
-	}
+		fx.Invoke(
+			app.RegisterStaticFiles,
+			app.StartBackgroundWorkers,
+			app.StartHTTPServer,
+		),
+	).Run()
 }
