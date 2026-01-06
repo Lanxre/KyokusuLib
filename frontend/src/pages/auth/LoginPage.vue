@@ -218,7 +218,7 @@ onMounted(() => {
 
                                 <button 
                                     type="button"
-                                    @click="$emit('update:showPassword', !showPassword)"
+                                    @click="showPassword = !showPassword"
                                     class="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-400 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-white cursor-pointer transition-colors focus:outline-none"
                                 >
                                     <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
