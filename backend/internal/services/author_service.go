@@ -2,19 +2,13 @@ package service
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"mime/multipart"
-	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/disintegration/imaging"
-	"github.com/google/uuid"
 	"github.com/lanxre/kyokusulib/internal/models/db"
 	"github.com/lanxre/kyokusulib/internal/repository"
 	"github.com/lanxre/kyokusulib/internal/utils/files"
-	"github.com/lanxre/kyokusulib/internal/utils/static"
 )
 
 type AuthorService struct {
