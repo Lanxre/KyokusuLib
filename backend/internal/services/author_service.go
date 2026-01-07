@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/lanxre/kyokusulib/internal/models/db"
 	"github.com/lanxre/kyokusulib/internal/repository"
+	"github.com/lanxre/kyokusulib/internal/utils/files"
 	"github.com/lanxre/kyokusulib/internal/utils/static"
 )
 
@@ -29,27 +30,11 @@ func (s *AuthorService) CreateAuthor(ctx context.Context, author *db.Author) err
 }
 
 func (s *AuthorService) UploadAuthorImage(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
-	ext := strings.ToLower(filepath.Ext(header.Filename))
-	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
-		return "", errors.New("unsupported file format")
-	}
-
-	srcImage, err := imaging.Decode(file)
-	if err != nil {
-		return "", err
-	}
-
-	dstImage := imaging.Fill(srcImage, 400, 400, imaging.Center, imaging.Lanczos)
-
-	newFilename := fmt.Sprintf("%s.jpg", uuid.New().String())
-	savePath := filepath.Join(static.UPLOAD_AUTHOR_DIR, newFilename)
-
-	err = imaging.Save(dstImage, savePath, imaging.JPEGQuality(80))
-	if err != nil {
-		return "", err
-	}
-
-	avatarURL := fmt.Sprintf("/uploads/authors/%s", newFilename)
+	avatarURL, err := files.UploadImage(ctx, file, header, "authors", 400, 400)
+    if err != nil {
+        return "", err
+    }
+    
 	return avatarURL, nil
 }
 

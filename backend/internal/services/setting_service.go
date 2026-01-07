@@ -4,19 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/disintegration/imaging"
-	"github.com/google/uuid"
 	"github.com/lanxre/kyokusulib/internal/models/db"
 	"github.com/lanxre/kyokusulib/internal/models/dto"
 	"github.com/lanxre/kyokusulib/internal/repository"
-	"github.com/lanxre/kyokusulib/internal/utils/static"
+	"github.com/lanxre/kyokusulib/internal/utils/files"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -75,31 +72,15 @@ func (s *ProfileSettingService) DeleteOldBanner(ctx context.Context, userID int)
 }
 
 func (s *ProfileSettingService) UploadAndSetAvatar(ctx context.Context, userID int, file multipart.File, header *multipart.FileHeader) (string, error) {
-	ext := strings.ToLower(filepath.Ext(header.Filename))
-	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
-		return "", errors.New("unsupported file format")
-	}
-
-	srcImage, err := imaging.Decode(file)
-	if err != nil {
-		return "", err
-	}
-
-	dstImage := imaging.Fill(srcImage, 400, 400, imaging.Center, imaging.Lanczos)
-
-	newFilename := fmt.Sprintf("%s.jpg", uuid.New().String())
-	savePath := filepath.Join(static.UPLOAD_AVATAR_DIR, newFilename)
-
-	err = imaging.Save(dstImage, savePath, imaging.JPEGQuality(80))
-	if err != nil {
-		return "", err
-	}
-
-	avatarURL := fmt.Sprintf("/uploads/avatars/%s", newFilename)
+	avatarURL, err := files.UploadImage(ctx, file, header, "avatars", 400, 400)
+    if err != nil {
+        return "", err
+    }
+    
 
 	err = s.Repo.UpdateAvatar(userID, avatarURL)
 	if err != nil {
-		os.Remove(savePath)
+		os.Remove("." + avatarURL)
 		return "", err
 	}
 
@@ -107,31 +88,14 @@ func (s *ProfileSettingService) UploadAndSetAvatar(ctx context.Context, userID i
 }
 
 func (s *ProfileSettingService) UploadAndSetBanner(ctx context.Context, userID int, file multipart.File, header *multipart.FileHeader) (string, error) {
-	ext := strings.ToLower(filepath.Ext(header.Filename))
-	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
-		return "", errors.New("unsupported file format")
-	}
-
-	srcImage, err := imaging.Decode(file)
+	bannerURL, err := files.UploadImage(ctx, file, header, "banners", 1200, 320)
 	if err != nil {
 		return "", err
 	}
-
-	dstImage := imaging.Fill(srcImage, 1200, 320, imaging.Center, imaging.Lanczos)
-
-	newFilename := fmt.Sprintf("%s.jpg", uuid.New().String())
-	savePath := filepath.Join(static.UPLOAD_BANNER_DIR, newFilename)
-
-	err = imaging.Save(dstImage, savePath, imaging.JPEGQuality(80))
-	if err != nil {
-		return "", err
-	}
-
-	bannerURL := fmt.Sprintf("/uploads/banners/%s", newFilename)
 
 	err = s.Repo.UpdateBanner(userID, bannerURL)
 	if err != nil {
-		os.Remove(savePath)
+		os.Remove("." + bannerURL)
 		return "", err
 	}
 
