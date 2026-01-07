@@ -15,31 +15,43 @@ import (
 )
 
 type AuthService struct {
-	Repo *repository.UserRepository
+	Repo            *repository.UserRepository
 	UserProfileRepo *repository.UserProfileRepository
 }
 
 func NewAuthService(repo *repository.UserRepository, userProfileRepo *repository.UserProfileRepository) *AuthService {
-	return &AuthService{Repo: repo, UserProfileRepo: userProfileRepo}
+	return &AuthService{
+		Repo:            repo,
+		UserProfileRepo: userProfileRepo,
+	}
 }
 
-func (s *AuthService) RegisterUser(dto *dto.RegisterDTO) (*db.User, error) {
-	if existing, _ := s.Repo.GetByEmail(dto.Email); existing != nil {
+func (s *AuthService) RegisterUser(ctx context.Context, input *dto.RegisterDTO) (*db.User, error) {
+	// Проверка на существование
+	existing, err := s.Repo.GetByEmail(input.Email)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
 		return nil, errors.New("user already exists")
 	}
 
-	hashed, err := s.hashPassword(dto.Password)
+	hashedPwd, err := s.hashPassword(input.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	token, _ := s.generateToken()
+	token, err := s.generateToken()
+	if err != nil {
+		return nil, err
+	}
+	
 	expiresAt := time.Now().Add(24 * time.Hour)
 
 	user := &db.User{
-		Email:                      dto.Email,
-		Name:                       dto.Username,
-		PasswordHash:               hashed,
+		Email:                      input.Email,
+		Name:                       input.Username,
+		PasswordHash:               hashedPwd,
 		Role:                       "user",
 		Status:                     "online",
 		IsVerified:                 false,
@@ -47,76 +59,45 @@ func (s *AuthService) RegisterUser(dto *dto.RegisterDTO) (*db.User, error) {
 		VerificationTokenExpiresAt: &expiresAt,
 		Gender:                     db.HIDDEN_GENERE,
 	}
-	
+
 	if err := s.Repo.Create(user); err != nil {
 		return nil, err
 	}
+
 	return user, nil
 }
 
-func (s *AuthService) LoginWithPassword(dto *dto.LoginDTO) (*dto.GetUserDTO, error) {
-	user, err := s.Repo.GetByEmail(dto.Email)
-	if err != nil || user == nil {
+func (s *AuthService) LoginWithPassword(ctx context.Context, input *dto.LoginDTO) (*dto.GetUserDTO, error) {
+	user, err := s.Repo.GetByEmail(input.Email)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
 		return nil, errors.New("invalid email or password")
 	}
-	
+
 	if !user.IsVerified {
 		return nil, errors.New("email not verified")
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(dto.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Password)); err != nil {
 		return nil, errors.New("invalid email or password")
 	}
-	
-	userTags, err := s.GetUserTags(user.ID)
-	if err != nil {
-		return nil, err
+
+	if err := s.Repo.UpdateStatus(user.ID, "online"); err != nil {
+		log.Printf("failed to update status: %v", err)
 	}
-	
-	userLevel, err := s.UserProfileRepo.GetUserLevel(context.Background(), user.ID)
-	if err != nil {
-		return nil, err
-	}
-	
-	userDTO := s.CreateUserDTO(user, userTags, userLevel)
-		
-	_ = s.Repo.UpdateStatus(user.ID, "online")
 	user.Status = "online"
-	
-	return userDTO, nil
+
+	return s.enrichUserDTO(ctx, user)
 }
 
-func (s AuthService) CreateUserDTO(user *db.User, userTags []dto.UserTagDTO,userLevel *db.UserLevel) *dto.GetUserDTO {
-	return  &dto.GetUserDTO{
-		ID:       user.ID,
-		Email:    user.Email,
-		Name:     user.Name,
-		Picture:  user.Picture,
-		Role:     user.Role,
-		Status:   user.Status,
-		About:    user.About,
-		Birthday: user.Birthday,
-		Gender:   string(user.Gender),
-		IsPublic: user.IsPublic,
-		LastLogin: user.LastLogin,
-		CreateAt: user.CreateAt,
-		Banner:   user.Banner,
-		ActiveTag:      user.Tag,
-		AllTags:        userTags,
-		Settings:       dto.PublicUserSettingsDTO{
-						IsShowTag: user.IsShowTag,
-		},
-		UserLevel:      dto.UserLevelDTO{
-			Level:      userLevel.Level,
-			Experience: userLevel.Experience,
-			LevelTitle: userLevel.LevelTitle,
-			XPForNext:  userLevel.XPForNext,
-		},
+func (s *AuthService) LoginUser(ctx context.Context, gUser *dto.UserDTO) (*dto.GetUserDTO, error) {
+	user, err := s.Repo.GetByEmail(gUser.Email)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func (s *AuthService) LoginUser(gUser *dto.UserDTO) (*dto.GetUserDTO, error) {
-	user, _ := s.Repo.GetByEmail(gUser.Email)
 	if user == nil {
 		user = &db.User{
 			Email:      gUser.Email,
@@ -129,42 +110,46 @@ func (s *AuthService) LoginUser(gUser *dto.UserDTO) (*dto.GetUserDTO, error) {
 		if err := s.Repo.Create(user); err != nil {
 			return nil, err
 		}
-		return s.CreateUserDTO(user, nil, nil), nil
+
+		return s.toUserDTO(user, nil, nil), nil
 	}
 
 	if !user.IsVerified {
-		_ = s.Repo.MarkUserVerified(user.ID)
+		if err := s.Repo.MarkUserVerified(user.ID); err != nil {
+			log.Printf("failed to verify user: %v", err)
+		}
 		user.IsVerified = true
 	}
 
 	if user.Picture == "" && gUser.Avatar != "" {
-		s.Repo.UpdateAvatar(user.ID, gUser.Avatar)
+		if err := s.Repo.UpdateAvatar(user.ID, gUser.Avatar); err != nil {
+			log.Printf("failed to update avatar: %v", err)
+		}
+		user.Picture = gUser.Avatar
 	}
-	
-	userTags, err := s.GetUserTags(user.ID)
-	if err != nil {
-		return nil, err
-	}
-	
-	userLevel, err := s.UserProfileRepo.GetUserLevel(context.Background(), user.ID)
-	if err != nil {
-		return nil, err
-	}
-	_ = s.Repo.UpdateStatus(user.ID, "online")
-	user.Status = "online"
-	
-	userDTO := s.CreateUserDTO(user, userTags, userLevel)
 
-	return userDTO, nil
+	if err := s.Repo.UpdateStatus(user.ID, "online"); err != nil {
+		log.Printf("failed to update status: %v", err)
+	}
+	user.Status = "online"
+
+	return s.enrichUserDTO(ctx, user)
 }
 
-func (s *AuthService) RequestPasswordReset(email string) (string, error) {
+func (s *AuthService) RequestPasswordReset(ctx context.Context, email string) (string, error) {
 	user, err := s.Repo.GetByEmail(email)
-	if err != nil || user == nil {
+	if err != nil {
+		return "", err
+	}
+	if user == nil {
 		return "", errors.New("user not found")
 	}
 
-	token, _ := s.generateToken()
+	token, err := s.generateToken()
+	if err != nil {
+		return "", err
+	}
+	
 	expiresAt := time.Now().Add(1 * time.Hour)
 
 	user.ResetToken = token
@@ -177,9 +162,12 @@ func (s *AuthService) RequestPasswordReset(email string) (string, error) {
 	return token, nil
 }
 
-func (s *AuthService) ResetPassword(token, newPassword string) error {
+func (s *AuthService) ResetPassword(ctx context.Context, token, newPassword string) error {
 	user, err := s.Repo.GetByResetToken(token)
-	if err != nil || user == nil {
+	if err != nil {
+		return err
+	}
+	if user == nil {
 		return errors.New("invalid or expired token")
 	}
 
@@ -199,9 +187,12 @@ func (s *AuthService) ResetPassword(token, newPassword string) error {
 	return s.Repo.Update(user)
 }
 
-func (s *AuthService) VerifyUser(token string) error {
+func (s *AuthService) VerifyUser(ctx context.Context, token string) error {
 	user, err := s.Repo.GetByVerificationToken(token)
 	if err != nil {
+		return err
+	}
+	if user == nil {
 		return errors.New("invalid token")
 	}
 
@@ -212,38 +203,70 @@ func (s *AuthService) VerifyUser(token string) error {
 	return s.Repo.MarkUserVerified(user.ID)
 }
 
-func (s *AuthService) UpdateStatus(ctx context.Context, userID int, status bool) error {
-	user, err := s.Repo.GetByID(userID)
-	if err != nil || user == nil {
-		return errors.New("user not found")
+func (s *AuthService) UpdateStatus(ctx context.Context, userID int, isOnline bool) error {
+	status := "offline"
+	if isOnline {
+		status = "online"
 	}
 	
-	if status {
-		err = s.Repo.UpdateStatus(userID, "online")
-	} else {
-		err = s.Repo.UpdateStatus(userID, "offline")
-	}
-
-	return err
+	return s.Repo.UpdateStatus(userID, status)
 }
 
-func (s *AuthService) GetUserTags(userId int) ([]dto.UserTagDTO, error) {
-	tags, err := s.Repo.GetUserTags(context.Background(), userId)
+func (s *AuthService) enrichUserDTO(ctx context.Context, user *db.User) (*dto.GetUserDTO, error) {
+	tagsDB, err := s.Repo.GetUserTags(ctx, user.ID)
 	if err != nil {
 		return nil, err
 	}
 	
-	userTags := make([]dto.UserTagDTO, len(tags))
-	for i, tag := range tags {
+	userTags := make([]dto.UserTagDTO, len(tagsDB))
+	for i, t := range tagsDB {
 		userTags[i] = dto.UserTagDTO{
-			ID:    tag.TagID,
-			Tag:   tag.Tag,
+			ID:  t.TagID,
+			Tag: t.Tag,
 		}
 	}
-	
-	return userTags, nil
+
+	userLevel, err := s.UserProfileRepo.GetUserLevel(ctx, user.ID)
+	if err != nil {
+		log.Printf("failed to get user level: %v", err)
+	}
+
+	return s.toUserDTO(user, userTags, userLevel), nil
 }
 
+func (s AuthService) toUserDTO(user *db.User, tags []dto.UserTagDTO, level *db.UserLevel) *dto.GetUserDTO {
+	res := &dto.GetUserDTO{
+		ID:        user.ID,
+		Email:     user.Email,
+		Name:      user.Name,
+		Picture:   user.Picture,
+		Role:      user.Role,
+		Status:    user.Status,
+		About:     user.About,
+		Birthday:  user.Birthday,
+		Gender:    string(user.Gender),
+		IsPublic:  user.IsPublic,
+		LastLogin: user.LastLogin,
+		CreateAt:  user.CreateAt,
+		Banner:    user.Banner,
+		ActiveTag: user.Tag,
+		AllTags:   tags,
+		Settings: dto.PublicUserSettingsDTO{
+			IsShowTag: user.IsShowTag,
+		},
+	}
+
+	if level != nil {
+		res.UserLevel = dto.UserLevelDTO{
+			Level:      level.Level,
+			Experience: level.Experience,
+			LevelTitle: level.LevelTitle,
+			XPForNext:  level.XPForNext,
+		}
+	}
+
+	return res
+}
 
 func (s *AuthService) hashPassword(pwd string) (string, error) {
 	b, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
@@ -252,13 +275,16 @@ func (s *AuthService) hashPassword(pwd string) (string, error) {
 
 func (s *AuthService) generateToken() (string, error) {
 	b := make([]byte, 32)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
 	return hex.EncodeToString(b), nil
 }
 
 func (s *AuthService) StartCleanupWorker(ctx context.Context) {
+	ticker := time.NewTicker(24 * time.Hour)
+	
 	go func() {
-		ticker := time.NewTicker(24 * time.Hour)
 		defer ticker.Stop()
 		for {
 			select {

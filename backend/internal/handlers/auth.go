@@ -187,7 +187,7 @@ func (h *AuthHandler) completeOAuth(w http.ResponseWriter, r *http.Request, user
 		return
 	}
 
-	userDb, err := h.AuthService.LoginUser(userDTO)
+	userDb, err := h.AuthService.LoginUser(r.Context(), userDTO)
 	if err != nil {
 		http.Error(w, "Login error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -213,7 +213,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	user, err := h.AuthService.RegisterUser(&dto)
+	user, err := h.AuthService.RegisterUser(r.Context(), &dto)
 	if err != nil {
 		fmt.Print(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -243,7 +243,7 @@ func (h *AuthHandler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.AuthService.VerifyUser(token)
+	err := h.AuthService.VerifyUser(r.Context(), token)
 	if err != nil {
 		http.Error(w, "Verification failed: "+err.Error(), http.StatusBadRequest)
 		return
@@ -269,7 +269,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.AuthService.LoginWithPassword(&dto)
+	user, err := h.AuthService.LoginWithPassword(r.Context(), &dto)
 	if err != nil {
 		if err.Error() == "email not verified" {
 			http.Error(w, "Email not verified. Please check your inbox.", http.StatusForbidden)
@@ -388,7 +388,7 @@ func (h *AuthHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resetToken, err := h.AuthService.RequestPasswordReset(req.Email)
+	resetToken, err := h.AuthService.RequestPasswordReset(r.Context(), req.Email)
 	if err != nil {
 		http.Error(w, "Error processing request: "+err.Error(), http.StatusBadRequest)
 		return
@@ -426,7 +426,7 @@ func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.AuthService.ResetPassword(req.Token, req.Password)
+	err := h.AuthService.ResetPassword(r.Context(), req.Token, req.Password)
 	if err != nil {
 		http.Error(w, "Password reset failed: "+err.Error(), http.StatusBadRequest)
 		return
