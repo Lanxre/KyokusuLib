@@ -5,22 +5,28 @@ import Separator from '@/components/ui/Separator/Separtor.vue';
 import EditIcon from "@/assets/images/special/setting.png";
 import { useProfile } from '@/composables/api/profile/useProfile';
 import { useUserActivity } from '@/composables/api/profile/useUserActivity';
-import { useActivityStore } from '@/stores/activity';
 import TabActivity from '@/layouts/profile/activity/TabActivity.vue';
 import TagSelector from '@/components/features/TagSelector/TagSelector.vue';
 import UserExperiance from '@/components/features/UserExperience/UserExperience.vue';
 import { useInterfaceSettings } from '@/composables/api/settings/useInterfaceSettings';
 
-const { profileData, accountCreated, profileTabs, userRoleColor, userGender, lastLogin } = useProfile();
+const { 
+    profileData, 
+    accountCreated, 
+    profileTabs, 
+    userRoleColor, 
+    userGender, 
+    lastLogin, 
+    isLogin 
+} = useProfile();
+
 const { activities, fetchActivities, isLoadingActivities } = useUserActivity();
-const { isUserActive } = useActivityStore();
 const { isShowTag } = useInterfaceSettings();
 const activeTab = ref('overview');
 
 onMounted(async () => {
   await fetchActivities();
 });
-
 
 </script>
 
@@ -59,9 +65,9 @@ onMounted(async () => {
                     </div>
                     <!-- Online Status -->
                     <div 
-                        class="absolute bottom-2 right-2 w-5 h-5 border-4 border-white dark:border-zinc-900 rounded-full"
+                        class="absolute bottom-2 right-2 w-5 h-5 border-4 border-white dark:border-zinc-900 rounded-full transition-colors duration-300"
                         title="Онлайн"
-                        :class="{ 'bg-green-500' : isUserActive, 'bg-red-500' : !isUserActive }"
+                        :class="isLogin ? 'bg-green-500' : 'bg-red-500'"
                     ></div>
                 </div>
 
@@ -76,7 +82,7 @@ onMounted(async () => {
                                 </span>
                             </h1>
                             <div class="flex flex-row gap-4 justify-start items-center">
-                                <p class="text-left ml-1 text-zinc-500 dark:text-zinc-400 font-medium mt-1">ID: #{{ profileData?.id }}</p>
+                                <p class="text-left ml-1 text-zinc-500 dark:text-zinc-400 font-medium mt-2">ID: #{{ profileData?.id }}</p>
                                 <div class="flex flex-row gap-4">
                                     <TagSelector v-if="isShowTag && profileData?.active_tag" v-model="profileData.active_tag" :tags="profileData.tags" />
                                     <UserExperiance 

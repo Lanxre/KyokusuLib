@@ -1,4 +1,3 @@
-import { s } from "node_modules/vite/dist/node/chunks/moduleRunnerTransport";
 import { GenderSetting } from "../enums/gender-enum";
 
 export interface GetUserDto {

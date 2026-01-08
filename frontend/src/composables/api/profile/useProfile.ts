@@ -55,121 +55,75 @@ export function useProfile() {
         }
     };
 
+    const formatLastLogin = (last_login: string | undefined | null) => {
+        if (!last_login) return 'Неизвестно';
+        
+        const date = new Date(last_login);
+        const today = new Date();
+        // Корректировка часового пояса (если нужно, лучше делать это глобально или на сервере)
+        date.setHours(date.getHours() - 3);
+
+        const isToday =
+          date.getFullYear() === today.getFullYear() &&
+          date.getMonth() === today.getMonth() &&
+          date.getDate() === today.getDate();
+    
+        if (isToday) {
+          return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        } else {
+          return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+    };
+    
+    const checkIsLogin = (last_login: string | undefined | null) => {
+      if (!last_login) return false;
+
+      const date = new Date(last_login);
+      const today = new Date();
+      date.setHours(date.getHours() - 3);
+
+      return date.getFullYear() === today.getFullYear() &&
+             date.getMonth() === today.getMonth() &&
+             date.getDate() === today.getDate();
+    }
+
     const accountCreated = computed(() => {
-        if (profileData.value && isSelfProfile.value || profileData.value?.is_public ) {
+        if (isSelfProfile.value && profileData.value) {
             return new Date(profileData.value.create_at).toLocaleDateString('ru-RU');
         }
         return 'Неизвестно';
     });
 
     const lastLogin = computed(() => {
-      if (!profileData.value || (!profileData.value.is_public && !isSelfProfile.value)) {
-        return 'Неизвестно';
-      }
-    
-      const lastLoginUTC = profileData.value.last_login;
-      if (!lastLoginUTC) {
-        return 'Неизвестно';
-      }
-    
-      const date = new Date(lastLoginUTC);
-    
-      const today = new Date();
-      const isToday =
-        date.getFullYear() === today.getFullYear() &&
-        date.getMonth() === today.getMonth() &&
-        date.getDate() === today.getDate();
-    
-      date.setHours(date.getHours() - 3);
-      
-      if (isToday) {
-        return date.toLocaleTimeString('ru-RU', {
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-      } else {
-        return date.toLocaleDateString('ru-RU', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        });
-      }
-    });
-    
-    const getLastLogin = (last_login: string) => {
-        const date = new Date(last_login);
-        const today = new Date();
-        const isToday =
-          date.getFullYear() === today.getFullYear() &&
-          date.getMonth() === today.getMonth() &&
-          date.getDate() === today.getDate();
-    
-        date.setHours(date.getHours() - 3);
-    
-        if (isToday) {
-          return date.toLocaleTimeString('ru-RU', {
-            hour: '2-digit',
-            minute: '2-digit',
-          });
-        } else {
-          return date.toLocaleDateString('ru-RU', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-          });
+        if (!profileData.value || (!profileData.value.is_public && !isSelfProfile.value)) {
+            return 'Неизвестно';
         }
-    };
+        return formatLastLogin(profileData.value.last_login);
+    });
     
     const isLogin = computed(() => {
-      if (!profileData.value || !profileData.value.is_public) {
-        return false;
-      }
-      
-      const lastLoginUTC = profileData.value.last_login;
-      if (!lastLoginUTC) {
-        return false;
-      }
-    
-      const date = new Date(lastLoginUTC);
-    
-      const today = new Date();
-      const isToday =
-        date.getFullYear() === today.getFullYear() &&
-        date.getMonth() === today.getMonth() &&
-        date.getDate() === today.getDate();
-    
-      date.setHours(date.getHours() - 3);
-      
-      return isToday;
+        if (!profileData.value || (!profileData.value.is_public && !isSelfProfile.value)) {
+            return false;
+        }
+        return checkIsLogin(profileData.value.last_login);
     });
-    
-    const getIsLogin = (last_login: string) => {
-      const date = new Date(last_login);
-      const today = new Date();
-      const isToday =
-        date.getFullYear() === today.getFullYear() &&
-        date.getMonth() === today.getMonth() &&
-        date.getDate() === today.getDate();
-    
-      date.setHours(date.getHours() - 3);
-      
-      return isToday;
-    }
 
     const userRoleColor = computed(() => getRoleColor(profileData.value?.role));
-    
     const userGender = computed(() => getGenderText(profileData.value?.gender));
 
     const loadProfileData = async (id: number) => {
+        if (isSelfProfile.value) {
+            fetchedUser.value = null; 
+            return;
+        }
+
         isLoading.value = true;
         try {
             const data = await userApi.getUser(id);
-    
             if (!data) {
                 router.replace({ name: "notFound" });
                 return;
             }
-    
             fetchedUser.value = data;
         } catch (error) {
             console.error(error);
@@ -182,14 +136,12 @@ export function useProfile() {
     const init = async () => {
         const id = Number(route.params.id);
         if (!isNaN(id)) {
-            const needsFullLoad = isSelfProfile.value && !authStore.user?.user_level;
-            if (!isSelfProfile.value || needsFullLoad) {
-                await loadProfileData(id);
-            }
+            await loadProfileData(id);
         }
     };
 
-    watch(() => route.params.id, init);
+    // immediate: true заменяет onMounted(init)
+    watch(() => route.params.id, init, { immediate: true });
 
     return {
         profileData,
@@ -206,9 +158,8 @@ export function useProfile() {
 
         getRoleColor,
         getGenderText,
-        getLastLogin,
-        getIsLogin,
-        loadProfileData,
-        init,
+        getLastLogin: formatLastLogin,
+        getIsLogin: checkIsLogin,
+        loadProfileData
     };
 }

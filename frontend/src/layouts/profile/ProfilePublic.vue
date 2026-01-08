@@ -1,25 +1,35 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { correctProfileImage } from '@/api/utils/str';
 import Separator from '@/components/ui/Separator/Separtor.vue';
 import TabActivity from '@/layouts/profile/activity/TabActivity.vue';
-import TagSelector from '@/components/features/TagSelector/TagSelector.vue';
 import UserExperiance from '@/components/features/UserExperience/UserExperience.vue';
 import { useProfile } from '@/composables/api/profile/useProfile';
 import { useUserActivity } from '@/composables/api/profile/useUserActivity';
-import { GetUserDto } from '@/types/backend/user';
+import type { GetUserDto } from '@/types/backend/user';
 
 const props = defineProps<{
-    profileData: GetUserDto;
-}>()
+    profileData: GetUserDto | null;
+}>();
 
-const { profileTabs, userRoleColor, getGenderText, getLastLogin, getIsLogin } = useProfile();
+const { 
+    profileTabs, 
+    userRoleColor, 
+    getGenderText, 
+    getLastLogin, 
+    getIsLogin 
+} = useProfile();
+
 const { activities, fetchByUserId, isLoadingActivities } = useUserActivity();
 const activeTab = ref('overview');
 
+const lastLoginText = computed(() => getLastLogin(props.profileData?.last_login));
+const isUserOnline = computed(() => getIsLogin(props.profileData?.last_login));
+const genderText = computed(() => getGenderText(props.profileData?.gender));
+
 onMounted(async () => {
     if (props.profileData) {
-      await fetchByUserId(props.profileData.id);
+        await fetchByUserId(props.profileData.id);
     }
 });
 
@@ -35,7 +45,7 @@ onMounted(async () => {
                 v-if="profileData?.banner" 
                 :src="correctProfileImage(profileData.banner)" 
                 alt="Profile Banner"
-                class="absolute inset-0 w-full h-full transition-transform duration-700"
+                class="absolute inset-0 w-full h-full transition-transform"
             />
             <div class="absolute inset-0 bg-black/20"></div>
             <div class="absolute -bottom-10 -right-10 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
@@ -57,8 +67,8 @@ onMounted(async () => {
                     <!-- Online Status -->
                     <div 
                         class="absolute bottom-2 right-2 w-5 h-5 border-4 border-white dark:border-zinc-900 rounded-full transition-colors duration-300"
-                        :title="getIsLogin(profileData?.last_login) ? 'Онлайн' : 'Оффлайн'"
-                        :class="getIsLogin(profileData?.last_login) ? 'bg-green-500' : 'bg-red-500'"
+                        :title="isUserOnline ? 'Онлайн' : 'Оффлайн'"
+                        :class="isUserOnline ? 'bg-green-500' : 'bg-red-500'"
                     ></div>
                 </div>
 
@@ -72,15 +82,18 @@ onMounted(async () => {
                                     {{ profileData?.role || 'User' }}
                                 </span>
                             </h1>
-                            <div class="flex flex-row gap-4 justify-start items-center">
-                                <p class="text-left ml-1 text-zinc-500 dark:text-zinc-400 font-medium mt-1">ID: #{{ profileData?.id }}</p>
-                                <div class="flex flex-row gap-4">
-                                    <TagSelector v-if="profileData.settings.is_show_tag && profileData?.active_tag" v-model="profileData.active_tag" :tags="profileData.tags" />
+                            <div class="flex flex-row gap-4 justify-start items-center text-lg text-zinc-500 dark:text-zinc-400 mt-2">
+                                <p class="text-left ml-1 text-zinc-500 dark:text-zinc-400 font-medium mt-2">ID: #{{ profileData?.id }}</p>
+                                <div class="flex flex-row gap-4 items-center">
+                                    <div v-if="profileData?.active_tag" class="flex items-center text-dark dark:text-white dark:bg-zinc-800 mt-2 px-3 py-0.5 h-8 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold cursor-pointer hover:border-zinc-500 transition-colors select-none text-sm">
+                                        {{ profileData.active_tag }}
+                                    </div>
+
                                     <UserExperiance 
                                         v-if="profileData?.user_level" 
                                         :level="profileData.user_level.level" 
-                                        :currentExp="profileData?.user_level.experience" 
-                                        :expToNextLevel="profileData?.user_level.xp_needed_for_next"
+                                        :currentExp="profileData.user_level.experience" 
+                                        :expToNextLevel="profileData.user_level.xp_needed_for_next"
                                     />
                                 </div>
                             </div>
@@ -94,30 +107,27 @@ onMounted(async () => {
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <!-- Sidebar -->
                 <div class="lg:col-span-4 xl:col-span-3 space-y-6">
-                    
-                    <!-- About Card -->
                     <div class="bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
                         <h3 class="text-lg font-semibold text-zinc-900 dark:text-white mb-4">О себе</h3>
-                        
-                        <p class="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap wrap-break-words leading-relaxed">
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap break-words leading-relaxed">
                             {{ profileData?.about || 'Пользователь предпочел не рассказывать о себе.' }}
                         </p>
                         
                         <div class="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
                             <div class="flex justify-between text-sm">
                                 <span class="text-zinc-500">Последняя активность</span>
-                                <span class="text-zinc-700 dark:text-zinc-300 font-medium">{{ getLastLogin(profileData?.last_login) }}</span>
+                                <span class="text-zinc-700 dark:text-zinc-300 font-medium">{{ lastLoginText }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-zinc-500">Пол</span>
                                 <span class="text-zinc-700 dark:text-zinc-300 font-medium capitalize">
-                                    {{ getGenderText(profileData?.gender) }}
+                                    {{ genderText }}
                                 </span>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Mini Stats -->
+                    
+                    <!-- Mini Stats (можно вынести в отдельный компонент) -->
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl text-center">
                             <div class="text-2xl font-bold text-zinc-900 dark:text-white">0</div>
@@ -132,14 +142,13 @@ onMounted(async () => {
 
                 <!-- Content -->
                 <div class="lg:col-span-8 xl:col-span-9">
-                    
                     <!-- Tabs -->
                     <div class="flex gap-1 border-b border-zinc-200 dark:border-zinc-800 mb-6 overflow-x-auto no-scrollbar">
                         <button 
                             v-for="tab in profileTabs" 
                             :key="tab.id"
                             @click="activeTab = tab.id"
-                            class="px-4 py-3 text-sm font-medium border-b-2 cursor-pointer transition-colors whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-zinc-500 rounded-t-lg"
+                            class="px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-zinc-500 rounded-t-lg"
                             :class="[
                                 activeTab === tab.id 
                                     ? 'border-zinc-900 dark:border-white text-zinc-900 dark:text-white' 
@@ -159,13 +168,9 @@ onMounted(async () => {
                                     :isLoading="isLoadingActivities"
                                 />
                             </div>
-
-                            <div v-else-if="activeTab === 'bookmarks'" key="bookmarks" class="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
-                                <p class="text-zinc-500 dark:text-zinc-400">Список закладок пуст</p>
-                            </div>
-
-                            <div v-else key="comments" class="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
-                                <p class="text-zinc-500 dark:text-zinc-400">Нет комментариев</p>
+                            <!-- Bookmarks / Comments placeholders -->
+                            <div v-else class="p-8 rounded border border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-500 text-center">
+                                Нет данных
                             </div>
                         </transition>
                     </div>
@@ -174,23 +179,3 @@ onMounted(async () => {
         </div>
     </div>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-.no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-</style>
