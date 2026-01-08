@@ -15,7 +15,9 @@ import {
     AGE_RATINGS, 
     NOVELA_STATUSES,
     NOVELA_GENRES,
-    TRANSLATION_STATUSES 
+    TRANSLATION_STATUSES, 
+    NOVELA_CATEGORIES,
+    COUNTRIES_LIST
 } from '@/const'; 
 
 const {
@@ -171,6 +173,15 @@ const {
                             :disabled="isLoading"
                             :error="errors.translationStatus"
                         />
+                        <SearchSelect
+                            id="novela-country"
+                            label="Страна"
+                            v-model="form.country"
+                            :selects="COUNTRIES_LIST"
+                            placeholder="Выберите страну"
+                            :disabled="isLoading"
+                            :error="errors.country"
+                        />
 
                         <!-- Tags & Categories (Full width) -->
                         <div class="md:col-span-2 space-y-6">
@@ -182,6 +193,16 @@ const {
                                 placeholder="Выберите жанры"
                                 :disabled="isLoading"
                                 :error="errors.genres"
+                            />
+
+                            <BaseMultiSelect
+                                id="novela-categories"
+                                label="Категории"
+                                v-model="form.categories"
+                                :options="NOVELA_CATEGORIES"
+                                placeholder="Выберите категории"
+                                :disabled="isLoading"
+                                :error="errors.categories"
                             />
 
                             <BaseRichTextEditor

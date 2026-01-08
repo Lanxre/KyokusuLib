@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/lanxre/kyokusulib/internal/models/db"
+	"github.com/lib/pq"
 )
 
 type NovelaRepository struct {
@@ -17,8 +18,6 @@ type NovelaRepository struct {
 func NewNovelaRepository(db *sql.DB) *NovelaRepository {
 	return &NovelaRepository{DB: db}
 }
-
-// --- Create ---
 
 func (r *NovelaRepository) Create(ctx context.Context, n *db.Novela) error {
 	tx, err := r.DB.BeginTx(ctx, nil)
@@ -30,12 +29,18 @@ func (r *NovelaRepository) Create(ctx context.Context, n *db.Novela) error {
 	query := `
 		INSERT INTO novela (
 			title, alternative_titles, description, type, age_rating, 
-			release_date, status, translation_status, poster_url, views
+			release_date, status, country, translation_status, poster_url, views
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+		WHERE NOT EXISTS (
+			SELECT 1 FROM novela 
+			WHERE title ILIKE $1 
+			   OR $1 ILIKE ANY(alternative_titles)
+			   OR title = ANY($2)
+			   OR alternative_titles && $2
+		)
 		RETURNING id`
 
-	// pgx автоматически конвертирует []string в TEXT[] Postgres
 	err = tx.QueryRowContext(ctx, query,
 		n.Title,
 		n.AlternativeTitles,
@@ -44,23 +49,25 @@ func (r *NovelaRepository) Create(ctx context.Context, n *db.Novela) error {
 		n.AgeRating,
 		n.ReleaseDate,
 		n.Status,
+		n.Country,
 		n.TranslationStatus,
 		n.PosterURL,
-		0, // views default
+		0,
 	).Scan(&n.ID)
 
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("novela with this title already exists")
+		}
 		return fmt.Errorf("failed to insert novela: %w", err)
 	}
 
-	// Привязка жанров
 	if len(n.Genres) > 0 {
 		if err := r.linkTags(ctx, tx, n.ID, n.Genres, "genres", "novela_genres", "genre_id"); err != nil {
 			return err
 		}
 	}
 
-	// Привязка категорий
 	if len(n.Categories) > 0 {
 		if err := r.linkTags(ctx, tx, n.ID, n.Categories, "categories", "novela_categories", "category_id"); err != nil {
 			return err
@@ -70,30 +77,51 @@ func (r *NovelaRepository) Create(ctx context.Context, n *db.Novela) error {
 	return tx.Commit()
 }
 
-// --- Read ---
-
-// GetByID возвращает полную информацию о новелле, включая жанры, категории и авторов.
 func (r *NovelaRepository) GetFullByID(ctx context.Context, id int) (*db.Novela, error) {
 	n := &db.Novela{}
-	var authorsJSON, volumesJSON []byte
+	
+	var (
+		authorsJSON []byte
+		volumesJSON []byte
+	)
 
 	query := `
 		SELECT 
-			n.id, n.title, n.alternative_titles, n.description, n.type, n.age_rating, 
-			n.release_date, n.status, n.translation_status, n.poster_url, n.views,
-			COALESCE((SELECT AVG(rating) FROM novela_ratings WHERE novela_id = n.id), 0) as rating,
+			n.id, 
+			n.title, 
+			COALESCE(n.alternative_titles, '{}')::text[],
+			n.description, 
+			n.type, 
+			n.age_rating, 
+			n.release_date, 
+			n.status,
+			n.country, 
+			n.translation_status, 
+			n.poster_url, 
+			n.views,
+			COALESCE((SELECT AVG(rating) FROM novela_ratings WHERE novela_id = n.id), 0),
 			
-			-- Жанры и Категории
-			COALESCE((SELECT array_agg(g.name) FROM novela_genres ng JOIN genres g ON ng.genre_id = g.id WHERE ng.novela_id = n.id), '{}') as genres,
-			COALESCE((SELECT array_agg(c.name) FROM novela_categories nc JOIN categories c ON nc.category_id = c.id WHERE nc.novela_id = n.id), '{}') as categories,
+			COALESCE((
+				SELECT array_agg(g.name) 
+				FROM novela_genres ng 
+				JOIN genres g ON ng.genre_id = g.id 
+				WHERE ng.novela_id = n.id
+			), '{}')::text[],
 
-			-- Авторы
+			COALESCE((
+				SELECT array_agg(c.name) 
+				FROM novela_categories nc 
+				JOIN categories c ON nc.category_id = c.id 
+				WHERE nc.novela_id = n.id
+			), '{}')::text[],
+
 			COALESCE((
 				SELECT json_agg(json_build_object('id', a.id, 'name', a.name, 'role', na.role))
-				FROM novela_authors na JOIN authors a ON na.author_id = a.id WHERE na.novela_id = n.id
-			), '[]') as authors,
+				FROM novela_authors na 
+				JOIN authors a ON na.author_id = a.id 
+				WHERE na.novela_id = n.id
+			), '[]'),
 
-			-- Дерево: Тома -> Главы -> Картинки
 			COALESCE((
 				SELECT json_agg(
 					json_build_object(
@@ -106,10 +134,9 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id int) (*db.Novela,
 									'id', ch.id,
 									'title', ch.title,
 									'number', ch.chapter_number,
-									-- Вложенный запрос для картинок
 									'images', COALESCE((
 										SELECT json_agg(
-											json_build_object('id', img.id, 'image_url', img.image_url, 'caption', img.caption) 
+											json_build_object('id', img.id, 'image_url', img.image_url, 'caption', img.caption)
 											ORDER BY img.id
 										) FROM novela_chapter_images img WHERE img.chapter_id = ch.id
 									), '[]'::json)
@@ -118,15 +145,29 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id int) (*db.Novela,
 						), '[]'::json)
 					) ORDER BY v.volume_number
 				) FROM novela_volumes v WHERE v.novela_id = n.id
-			), '[]') as volumes
+			), '[]')
 
 		FROM novela n
 		WHERE n.id = $1`
 
 	err := r.DB.QueryRowContext(ctx, query, id).Scan(
-		&n.ID, &n.Title, &n.AlternativeTitles, &n.Description, &n.Type, &n.AgeRating,
-		&n.ReleaseDate, &n.Status, &n.TranslationStatus, &n.PosterURL, &n.Views,
-		&n.Rating, &n.Genres, &n.Categories, &authorsJSON, &volumesJSON,
+		&n.ID,
+		&n.Title,
+		pq.Array(&n.AlternativeTitles),
+		&n.Description,
+		&n.Type,
+		&n.AgeRating,
+		&n.ReleaseDate,
+		&n.Status,
+		&n.Country,
+		&n.TranslationStatus,
+		&n.PosterURL,
+		&n.Views,
+		&n.Rating,
+		pq.Array(&n.Genres),
+		pq.Array(&n.Categories),
+		&authorsJSON,
+		&volumesJSON,
 	)
 
 	if err != nil {
@@ -137,18 +178,19 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id int) (*db.Novela,
 	}
 
 	if len(authorsJSON) > 0 {
-		_ = json.Unmarshal(authorsJSON, &n.Authors)
+		if err := json.Unmarshal(authorsJSON, &n.Authors); err != nil {
+			return nil, err
+		}
 	}
 	if len(volumesJSON) > 0 {
-		_ = json.Unmarshal(volumesJSON, &n.Volumes)
+		if err := json.Unmarshal(volumesJSON, &n.Volumes); err != nil {
+			return nil, err
+		}
 	}
 
 	return n, nil
 }
 
-// --- Update ---
-
-// Update обновляет основные поля новеллы.
 func (r *NovelaRepository) Update(ctx context.Context, n *db.Novela) error {
 	query := `
 		UPDATE novela 
@@ -171,18 +213,12 @@ func (r *NovelaRepository) Update(ctx context.Context, n *db.Novela) error {
 	return err
 }
 
-// --- Delete ---
-
 func (r *NovelaRepository) Delete(ctx context.Context, id int) error {
 	query := `DELETE FROM novela WHERE id = $1`
 	_, err := r.DB.ExecContext(ctx, query, id)
 	return err
 }
 
-// --- Linking (Authors) ---
-
-// LinkAuthor связывает новеллу и автора с указанием роли.
-// Если автора с таким именем нет — создает его.
 func (r *NovelaRepository) LinkAuthor(ctx context.Context, novelaID int, authorName string, role string) error {
 	tx, err := r.DB.BeginTx(ctx, nil)
 	if err != nil {
@@ -190,9 +226,7 @@ func (r *NovelaRepository) LinkAuthor(ctx context.Context, novelaID int, authorN
 	}
 	defer tx.Rollback()
 
-	// 1. Находим или создаем автора
 	var authorID int
-	// ON CONFLICT (name) требует UNIQUE индекса на поле name в таблице authors
 	err = tx.QueryRowContext(ctx, `
 		INSERT INTO authors (name) VALUES ($1) 
 		ON CONFLICT (name) DO UPDATE SET name=EXCLUDED.name 
@@ -201,9 +235,6 @@ func (r *NovelaRepository) LinkAuthor(ctx context.Context, novelaID int, authorN
 	if err != nil {
 		return fmt.Errorf("failed to upsert author: %w", err)
 	}
-
-	// 2. Создаем связь с ролью
-	// Используем ON CONFLICT, чтобы обновить роль, если связь уже есть
 	query := `
 		INSERT INTO novela_authors (novela_id, author_id, role) 
 		VALUES ($1, $2, $3)
@@ -217,17 +248,9 @@ func (r *NovelaRepository) LinkAuthor(ctx context.Context, novelaID int, authorN
 
 	return tx.Commit()
 }
-
-// --- Helpers ---
-
-// linkTags - универсальная функция для привязки Жанров и Категорий.
-// tableName: "genres" или "categories"
-// linkTable: "novela_genres" или "novela_categories"
-// fkCol: "genre_id" или "category_id"
 func (r *NovelaRepository) linkTags(ctx context.Context, tx *sql.Tx, novelaID int, tags []string, tableName, linkTable, fkCol string) error {
 	for _, name := range tags {
 		var tagID int
-		// 1. Upsert тега (жанра/категории)
 		upsertQuery := fmt.Sprintf(`
 			INSERT INTO %s (name) VALUES ($1) 
 			ON CONFLICT (name) DO UPDATE SET name=EXCLUDED.name 
@@ -238,7 +261,6 @@ func (r *NovelaRepository) linkTags(ctx context.Context, tx *sql.Tx, novelaID in
 			return err
 		}
 
-		// 2. Создание связи
 		linkQuery := fmt.Sprintf(`
 			INSERT INTO %s (novela_id, %s) VALUES ($1, $2) 
 			ON CONFLICT DO NOTHING`, linkTable, fkCol)
@@ -272,7 +294,6 @@ func (r *NovelaRepository) CreateChapter(ctx context.Context, volumeID int, ch *
 	}
 	defer tx.Rollback()
 
-	// 1. Вставляем саму главу
 	query := `
 		INSERT INTO novela_chapters (novela_volume_id, title, chapter_number, content) 
 		VALUES ($1, $2, $3, $4) 
@@ -283,11 +304,9 @@ func (r *NovelaRepository) CreateChapter(ctx context.Context, volumeID int, ch *
 		return fmt.Errorf("failed to create chapter: %w", err)
 	}
 
-	// 2. Если есть картинки, вставляем их
 	if len(ch.Images) > 0 {
 		imgQuery := `INSERT INTO novela_chapter_images (chapter_id, image_url, caption) VALUES ($1, $2, $3)`
 		
-		// Подготавливаем statement для оптимизации множественной вставки
 		stmt, err := tx.PrepareContext(ctx, imgQuery)
 		if err != nil {
 			return err
@@ -335,4 +354,25 @@ func (r *NovelaRepository) GetChapterByID(ctx context.Context, chapterID int) (*
 	}
 
 	return ch, nil
+}
+
+func (r *NovelaRepository) FindByTitle(ctx context.Context, title string) (*db.Novela, error) {
+	novela := &db.Novela{}
+	
+	query := `
+		SELECT id, title, alternative_titles
+		FROM novela
+		WHERE title ILIKE $1 OR $1 ILIKE ANY(alternative_titles)
+		LIMIT 1`
+
+	err := r.DB.QueryRowContext(ctx, query, title).Scan(&novela.ID, &novela.Title, pq.Array(&novela.AlternativeTitles))
+	
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err 
+	}
+
+	return novela, nil
 }

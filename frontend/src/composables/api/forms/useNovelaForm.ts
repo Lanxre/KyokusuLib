@@ -2,7 +2,7 @@ import { reactive, ref } from "vue";
 import { useApi } from "@/api/api";
 import { useNotificationStore } from "@/stores/notification";
 
-export interface RanobeFormState {
+export interface NovelaFormState {
     title: string;
     alternativeTitles: string;
     description: string;
@@ -11,6 +11,7 @@ export interface RanobeFormState {
     releaseYear: string;
     status: string;
     translationStatus: string;
+    country: string;
     categories: string[];
     genres: string[];
 }
@@ -22,7 +23,7 @@ export function useNovelaForm() {
     const isSuccess = ref(false);
     const errors = ref<Record<string, string>>({});
     
-    const form = reactive<RanobeFormState>({
+    const form = reactive<NovelaFormState>({
         title: "",
         alternativeTitles: "",
         description: "",
@@ -31,6 +32,7 @@ export function useNovelaForm() {
         releaseYear: "",
         status: "",
         translationStatus: "",
+        country: "",
         categories: [],
         genres: []
     });
@@ -51,6 +53,10 @@ export function useNovelaForm() {
         if (!form.type) {
             errors.value.type = "Выберите тип.";
             isValid = false;
+        }
+
+        if (!form.country) {
+            form.country = "Неизвестно";
         }
 
         if (!form.ageRating) {
@@ -105,22 +111,23 @@ export function useNovelaForm() {
         try {
             const formData = new FormData();
             formData.append("title", form.title);
-            formData.append("alternative_titles", form.alternativeTitles);
-            formData.append("description", form.description);
+            formData.append("description", form.description.replace(/<\/?(div|br)\s*\/?>/g, "").trim());
             formData.append("type", form.type);
             formData.append("age_rating", form.ageRating);
             formData.append("release_year", form.releaseYear);
             formData.append("status", form.status);
             formData.append("translation_status", form.translationStatus);
-            
+            formData.append("country", form.country);
+
+            formData.append("alternative_titles", JSON.stringify(form.alternativeTitles.split("/").map(t => t.trim())));
             formData.append("categories", JSON.stringify(form.categories));
             formData.append("genres", JSON.stringify(form.genres));
             
             if (selectedFile.value) {
-                formData.append("cover", selectedFile.value);
+                formData.append("poster", selectedFile.value);
             }
             
-            const { data, error } = await useApi("/api/ranobe", { credentials: "include" })
+            const { data, error } = await useApi("/api/novela", { credentials: "include" })
                 .post(formData)
                 .json();
 
@@ -130,7 +137,7 @@ export function useNovelaForm() {
             }
 
             isSuccess.value = true;
-            notify({ title: "Успешно", content: "Ранобэ добавлено", type: "success" });
+            notify({ title: "Успешно", content: "Новела добавлена", type: "success" });
 
             Object.assign(form, {
                 title: "", alternativeTitles: "", description: "", type: "",
@@ -140,7 +147,7 @@ export function useNovelaForm() {
             removeImage();
 
         } catch (e: any) {
-            const msg = e.message || "Ошибка при создании";
+            const msg = e.error || "Ошибка при создании";
             errors.value.global = msg;
             notify({ title: "Ошибка", content: msg, type: "error" });
         } finally {

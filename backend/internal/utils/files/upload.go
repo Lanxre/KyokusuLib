@@ -11,6 +11,7 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/google/uuid"
+	_ "golang.org/x/image/webp" 
 )
 
 func UploadImage(ctx context.Context, file multipart.File, header *multipart.FileHeader, folder string, width, height int) (string, error) {

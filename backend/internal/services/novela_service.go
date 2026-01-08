@@ -6,6 +6,8 @@ import (
 
 	"github.com/lanxre/kyokusulib/internal/models/db"
 	"github.com/lanxre/kyokusulib/internal/repository"
+	"github.com/lanxre/kyokusulib/internal/utils/files"
+	"github.com/lanxre/kyokusulib/internal/utils/static"
 )
 
 type NovelaService struct {
@@ -24,8 +26,7 @@ func (s *NovelaService) GetNovelaById(ctx context.Context, id int) (*db.Novela, 
 }
 
 func (s *NovelaService) UploadPoster(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
-	return "", nil
-    // return s.FileStorage.SaveImage(file, header, "posters", 600, 900)
+	return files.UploadImage(ctx, file, header, static.UPLOAD_NOVELA_DIR+"/posters", 600, 900)
 }
 
 func (s *NovelaService) Create(ctx context.Context, novela *db.Novela) error {

@@ -54,7 +54,7 @@ func (h *NovelaHandler) GetNovela(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusOK, novela)
 }
 
-func (h *NovelaHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *NovelaHandler) CreateNovela(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		response.Error(w, http.StatusBadRequest, "File too big or invalid format")
 		return
@@ -67,6 +67,7 @@ func (h *NovelaHandler) Create(w http.ResponseWriter, r *http.Request) {
 		AgeRating:         r.FormValue("age_rating"),
 		ReleaseYear:       r.FormValue("release_year"),
 		Status:            r.FormValue("status"),
+		Country: 		   r.FormValue("country"),	
 		TranslationStatus: r.FormValue("translation_status"),
 	}
 	
@@ -88,7 +89,7 @@ func (h *NovelaHandler) Create(w http.ResponseWriter, r *http.Request) {
 		
 		url, err := h.service.UploadPoster(r.Context(), file, header)
 		if err != nil {
-			response.Error(w, http.StatusInternalServerError, "Failed to upload poster")
+			response.Error(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		posterURL = url
@@ -104,6 +105,7 @@ func (h *NovelaHandler) Create(w http.ResponseWriter, r *http.Request) {
 		AgeRating:         input.AgeRating,
 		ReleaseDate:       releaseDate,
 		Status:            input.Status,
+		Country:           input.Country,
 		TranslationStatus: input.TranslationStatus,
 		PosterURL:         posterURL,
 		Genres:            input.Genres,
@@ -115,7 +117,7 @@ func (h *NovelaHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusCreated, map[string]interface{}{
+	response.JSON(w, http.StatusCreated, map[string]any{
 		"id":      novela.ID,
 		"message": "Novela created successfully",
 	})

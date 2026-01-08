@@ -15,6 +15,7 @@ type Novela struct {
 	Status            string    `json:"status"`
 	TranslationStatus string    `json:"translation_status"`
 	PosterURL         string    `json:"poster_url"`
+	Country           string    `json:"country"`
 	Views             int       `json:"views"`
 	Rating            float64   `json:"rating"`
 
