@@ -33,7 +33,7 @@ useModalLogic(toRef(props, 'modelValue'), close);
                 <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
                     <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
                         <div 
-                            class="relative transform overflow-hidden rounded-xl bg-white dark:bg-[#18181b] text-left shadow-xl transition-all sm:my-8 w-full border border-zinc-200 dark:border-zinc-800"
+                            class="relative transform overflow-hidden rounded-xl bg-white dark:bg-[#18181b] text-left shadow-xl transition-all sm:my-8 border border-zinc-200 dark:border-zinc-800"
                             :class="width"
                             @click.stop
                         >
@@ -43,7 +43,7 @@ useModalLogic(toRef(props, 'modelValue'), close);
                                 </h3>
                                 <button 
                                     @click="close"
-                                    class="text-zinc-400 hover:text-zinc-500 dark:hover:text-zinc-300 transition-colors focus:outline-none"
+                                    class="text-zinc-400 hover:text-zinc-500 cursor-pointer dark:hover:text-zinc-300 transition-colors focus:outline-none"
                                 >
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

@@ -3,12 +3,15 @@ import { onMounted, ref } from 'vue';
 import { correctProfileImage } from '@/api/utils/str';
 import Separator from '@/components/ui/Separator/Separtor.vue';
 import EditIcon from "@/assets/images/special/setting.png";
+import InfoIcon from "@/assets/images/special/info.png";
 import { useProfile } from '@/composables/api/profile/useProfile';
 import { useUserActivity } from '@/composables/api/profile/useUserActivity';
 import TabActivity from '@/layouts/profile/activity/TabActivity.vue';
 import TagSelector from '@/components/features/TagSelector/TagSelector.vue';
 import UserExperiance from '@/components/features/UserExperience/UserExperience.vue';
 import { useInterfaceSettings } from '@/composables/api/settings/useInterfaceSettings';
+import ModalWindow from '@/components/features/Modal/ModalWindow.vue';
+import ExperienceInfo from './experience/ExperienceInfo.vue';
 
 const { 
     profileData, 
@@ -23,6 +26,8 @@ const {
 const { activities, fetchActivities, isLoadingActivities } = useUserActivity();
 const { isShowTag } = useInterfaceSettings();
 const activeTab = ref('overview');
+
+const isModalOpen = ref(false);
 
 onMounted(async () => {
   await fetchActivities();
@@ -91,6 +96,14 @@ onMounted(async () => {
                                         :currentExp="profileData?.user_level.experience" 
                                         :expToNextLevel="profileData!.user_level.xp_needed_for_next"
                                     />
+                                    <ModalWindow v-model="isModalOpen" title="Информация о уровнях на сайте" width="w-1/2">
+                                        <ExperienceInfo/>
+                                    </ModalWindow>
+                                    <div class="flex justify-center items-center mt-2 h-8 w-8 cursor-pointer rounded-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                                        @click="isModalOpen = true"
+                                    >
+                                        <img :src="InfoIcon" alt="lvl" class="h-6 w-6 dark:invert opacity-60"/>
+                                    </div>
                                 </div>
                             </div>
                         </div>
