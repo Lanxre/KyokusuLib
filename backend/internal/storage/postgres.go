@@ -88,6 +88,54 @@ func runSeeds(db *sql.DB) error {
 	if _, err := db.ExecContext(ctx, levelDefinitionsQuery); err != nil {
 		log.Printf("Warning: failed to seed level definitions: %v", err)
 	}
+
+	genresQuery := `
+		INSERT INTO genres (name)
+		VALUES 
+			('Фэнтези'),
+			('Романтика'),
+			('Драма'),
+			('Приключения'),
+			('Детектив'),
+			('Фантастика'),
+			('Боевик'),
+			('Триллер'),
+			('Ужасы'),
+			('Комедия'),
+			('Мистика'),
+			('Психология')
+		ON CONFLICT (name) DO NOTHING;
+	`
+	if _, err := db.ExecContext(ctx, genresQuery); err != nil {
+		log.Printf("Warning: failed to seed genres: %v", err)
+	}
+
+	categoriesQuery := `
+		INSERT INTO categories (name)
+		VALUES 
+			('Алхимия'),
+			('Ангелы'),
+			('Демоны'),
+			('Драконы'),
+			('Зомби'),
+			('Вампиры'),
+			('Геймеры'),
+			('Герои'),
+			('Гильдии'),
+			('ГГ имба'),
+			('ГГ женщина'),
+			('ГГ мужчина'),
+			('Выживание'),
+			('Дружба'),
+			('Империя'),
+			('Королевство'),
+			('Магия')
+		ON CONFLICT (name) DO NOTHING;
+	`
+
+	if _, err := db.ExecContext(ctx, categoriesQuery); err != nil {
+		log.Printf("Warning: failed to seed categories: %v", err)
+	}
 	
 	return nil
 }
