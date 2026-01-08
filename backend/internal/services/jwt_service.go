@@ -15,7 +15,7 @@ type Claims struct {
 }
 
 func GenerateJWT(user *dto.GetUserDTO, jwtSecret string) (string, error) {
-	expirationTime := time.Now().Add(30 * 24 * time.Hour)
+	expirationTime := time.Now().AddDate(0, 1, 0)
 	
 	claims := &Claims{
 		UserID: user.ID,
