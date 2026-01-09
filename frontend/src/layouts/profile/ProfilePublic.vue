@@ -3,6 +3,7 @@ import { onMounted, ref, computed } from 'vue';
 import { correctProfileImage } from '@/api/utils/str';
 import Separator from '@/components/ui/Separator/Separtor.vue';
 import TabActivity from '@/layouts/profile/activity/TabActivity.vue';
+import InfoIcon from "@/assets/images/special/info.png";
 import UserExperiance from '@/components/features/UserExperience/UserExperience.vue';
 import { useProfile } from '@/composables/api/profile/useProfile';
 import { useUserActivity } from '@/composables/api/profile/useUserActivity';
@@ -22,6 +23,7 @@ const {
 
 const { activities, fetchByUserId, isLoadingActivities } = useUserActivity();
 const activeTab = ref('overview');
+const isModalOpen = ref(false);
 
 const lastLoginText = computed(() => getLastLogin(props.profileData?.last_login));
 const isUserOnline = computed(() => getIsLogin(props.profileData?.last_login));
@@ -82,9 +84,9 @@ onMounted(async () => {
                                     {{ profileData?.role || 'User' }}
                                 </span>
                             </h1>
-                            <div class="flex flex-row gap-4 justify-start items-center text-lg text-zinc-500 dark:text-zinc-400 mt-2">
+                            <div class="flex flex-row gap-4 justify-start items-center text-zinc-500 dark:text-zinc-400 mt-2">
                                 <p class="text-left ml-1 text-zinc-500 dark:text-zinc-400 font-medium mt-2">ID: #{{ profileData?.id }}</p>
-                                <div class="flex flex-row gap-4 items-center">
+                                <div class="flex flex-row gap-2 items-center">
                                     <div v-if="profileData?.active_tag" class="flex items-center text-dark dark:text-white dark:bg-zinc-800 mt-2 px-3 py-0.5 h-8 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold cursor-pointer hover:border-zinc-500 transition-colors select-none text-sm">
                                         {{ profileData.active_tag }}
                                     </div>
@@ -95,6 +97,14 @@ onMounted(async () => {
                                         :currentExp="profileData.user_level.experience" 
                                         :expToNextLevel="profileData.user_level.xp_needed_for_next"
                                     />
+                                    <ModalWindow v-model="isModalOpen" title="Информация о уровнях на сайте" width="w-1/2">
+                                        <ExperienceInfo/>
+                                    </ModalWindow>
+                                    <div class="flex justify-center items-center mt-2 h-8 w-8 cursor-pointer rounded-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                                        @click="isModalOpen = true"
+                                    >
+                                        <img :src="InfoIcon" alt="lvl" class="h-6 w-6 dark:invert opacity-60"/>
+                                    </div>
                                 </div>
                             </div>
                         </div>

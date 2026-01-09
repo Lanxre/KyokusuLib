@@ -77,7 +77,7 @@ onMounted(async () => {
                 </div>
 
                 <!-- Main Info -->
-                <div class="flex-1 pb-1 h-20  w-full md:w-auto">
+                <div class="flex-1 pb-1 h-20 w-full md:w-auto">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <h1 class="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
@@ -86,7 +86,7 @@ onMounted(async () => {
                                     {{ profileData?.role || 'User' }}
                                 </span>
                             </h1>
-                            <div class="flex flex-row gap-4 justify-start items-center">
+                            <div class="flex flex-row gap-4 justify-start items-center mt-2">
                                 <p class="text-left ml-1 text-zinc-500 dark:text-zinc-400 font-medium mt-2">ID: #{{ profileData?.id }}</p>
                                 <div class="flex flex-row gap-4">
                                     <TagSelector v-if="isShowTag && profileData?.active_tag" v-model="profileData.active_tag" :tags="profileData.tags" />
