@@ -60,7 +60,7 @@ export function useProfile() {
         
         const date = new Date(last_login);
         const today = new Date();
-        // Корректировка часового пояса (если нужно, лучше делать это глобально или на сервере)
+        
         date.setHours(date.getHours() - 3);
 
         const isToday =
@@ -140,7 +140,6 @@ export function useProfile() {
         }
     };
 
-    // immediate: true заменяет onMounted(init)
     watch(() => route.params.id, init, { immediate: true });
 
     return {
