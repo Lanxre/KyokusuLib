@@ -1,23 +1,18 @@
 {
-	"extends": "@vue/tsconfig/tsconfig.dom.json",
-	"compilerOptions": {
-		"jsx": "preserve",
-		"baseUrl": ".",
-		"moduleResolution": "bundler",
-		"paths": {
-			"@/*": ["./src/*"]
+	// https://nuxt.com/docs/guide/concepts/typescript
+	"files": [],
+	"references": [
+		{
+			"path": "./.nuxt/tsconfig.app.json"
 		},
-		"resolveJsonModule": true,
-		"allowImportingTsExtensions": true,
-		"strict": true,
-		"noFallthroughCasesInSwitch": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"noEmit": true,
-		"allowSyntheticDefaultImports": true,
-		"isolatedModules": true,
-		"verbatimModuleSyntax": false,
-		"skipLibCheck": true
-	},
-	"include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
+		{
+			"path": "./.nuxt/tsconfig.server.json"
+		},
+		{
+			"path": "./.nuxt/tsconfig.shared.json"
+		},
+		{
+			"path": "./.nuxt/tsconfig.node.json"
+		}
+	]
 }

@@ -1,0 +1,167 @@
+<script setup lang="ts">
+import { useNovela } from "@/composables/api/novela/useNovela";
+import { correctProfileImage } from "@/utils/str";
+
+import NovelaStats from "./NovelaStats.vue";
+import NovelaRating from "./NovelaRating.vue";
+import ChapterList from "./ChapterList.vue";
+
+const route = useRoute();
+const { novela, fetchNovela } = useNovela();
+const activeTab = ref<"about" | "chapters">("about");
+
+const novelaId = computed(() => route.params.id as string);
+
+await useAsyncData(`novela-${novelaId.value}`, () => fetchNovela(novelaId.value));
+
+const totalChapters = computed(() => {
+    if (!novela.value) return 0;
+    return novela.value.volumes.reduce((acc, v) => acc + (v.chapters?.length || 0), 0);
+});
+
+const novelaInfo = computed(() => [
+    { label: "Статус", value: novela.value?.status },
+    { label: "Перевод", value: novela.value?.translation_status },
+    { label: "Автор", value: novela.value?.authors?.[0]?.name, isLink: true },
+]);
+</script>
+
+<template>
+    <div class="min-h-screen bg-zinc-50 dark:bg-[#0f0f0f] text-zinc-900 dark:text-zinc-200 flex flex-col font-sans transition-colors duration-300">
+        
+        <main class="flex-grow" v-if="novela">
+            <div class="relative h-[300px] md:h-[450px] w-full overflow-hidden">
+                <div class="absolute inset-0 bg-black/40 z-10 backdrop-blur-sm"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-zinc-50 dark:from-[#0f0f0f] via-transparent to-transparent z-20"></div>
+                <img :src="correctProfileImage(novela.poster_url || '')" class="w-full h-full object-cover blur-md scale-110" alt="Backdrop" />
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-64 md:-mt-106 relative z-30 pb-12">
+                <div class="flex flex-col md:flex-row gap-8">
+                    
+                    <div class="w-full md:w-[300px] flex-shrink-0 flex flex-col gap-6">
+                        <div class="relative rounded-2xl overflow-hidden shadow-2xl aspect-[2/3] border border-white/10 group">
+                            <img :src="correctProfileImage(novela.poster_url || '')" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" :alt="novela.title" />
+                            <div class="absolute top-3 left-3 bg-zinc-900/80 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold text-white">
+                                {{ novela.age_rating }}
+                            </div>
+                            <div class="absolute top-3 right-3 bg-zinc-900/80 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold text-white">
+                                {{ novela.type }}
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-3">
+                            <button class="w-full py-1.5 cursor-pointer rounded-xl font-bold shadow-lg transition-all active:scale-95 bg-white text-zinc-900 hover:bg-yellow-500">
+                                Читать
+                            </button>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button class="py-2.5 cursor-pointer rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 text-sm font-semibold">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+                                    Закладки
+                                </button>
+                                <button class="py-2.5 cursor-pointer rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 text-sm font-semibold">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                                    Лайк
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="hidden md:flex flex-col gap-4 bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl backdrop-blur-sm">
+                            <div v-for="info in novelaInfo" :key="info.label" class="flex justify-between items-center text-sm">
+                                <span class="text-zinc-500">{{ info.label }}</span>
+                                <span :class="['font-semibold', info.isLink ? 'text-blue-500 hover:underline cursor-pointer' : 'text-zinc-800 dark:text-zinc-200']">
+                                    {{ info.value || '—' }}
+                                </span>
+                            </div>
+                            <div class="h-px bg-zinc-200 dark:bg-zinc-800 my-1"></div>
+                            <div class="flex flex-wrap gap-2">
+                                <span v-for="genre in novela.genres" :key="genre" class="px-3 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[11px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer transition-colors">
+                                    {{ genre }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 min-w-0 md:pt-12">
+                        <div class="mb-48">
+                            <div class="flex flex-col gap-3 mb-12">
+                                <h1 class="text-4xl md:text-4xl shadow-text font-black tracking-tight leading-none">{{ novela.title }}</h1>
+                                <h2 v-if="novela.alternative_titles?.length" class="text-lg md:text-xl text-zinc-500 dark:text-zinc-400 font-medium italic">
+                                    {{ novela.alternative_titles.join(' • ') }}
+                                </h2>
+                            </div>
+                            
+                            <div class="flex flex-wrap items-center gap-6">
+                                <NovelaStats :novela="novela" />
+                                <NovelaRating :rating="novela.rating" :count="0" />
+                            </div>
+                        </div>
+
+                        <div class="md:hidden mb-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 rounded-2xl space-y-4">
+                            <div v-for="info in novelaInfo" :key="info.label" class="flex justify-between text-sm">
+                                <span class="text-zinc-500">{{ info.label }}</span>
+                                <span class="font-bold">{{ info.value || '—' }}</span>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <span v-for="genre in novela.genres" :key="genre" class="px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-zinc-500">
+                                    {{ genre }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-8 border-b border-zinc-200 dark:border-zinc-800 mb-8">
+                            <button 
+                                v-for="tab in ['about', 'chapters']" 
+                                :key="tab"
+                                @click="activeTab = tab as any"
+                                class="pb-4 text-lg font-bold transition-all relative cursor-pointer capitalize"
+                                :class="activeTab === tab ? 'text-zinc-900 dark:text-white' : 'text-zinc-400'"
+                            >
+                                {{ tab === 'about' ? 'Описание' : 'Главы' }}
+                                <span v-if="tab === 'chapters'" class="ml-2 text-xs opacity-50">{{ totalChapters }}</span>
+                                <div v-if="activeTab === tab" class="absolute bottom-0 left-0 w-full h-1 bg-yellow-500 rounded-t-full"></div>
+                            </button>
+                        </div>
+
+                        <div class="min-h-[300px]">
+                            <transition name="fade" mode="out-in">
+                                <div v-if="activeTab === 'about'" key="about" class="space-y-10">
+                                    <div class="prose dark:prose-invert max-w-none text-zinc-700 dark:text-zinc-300 leading-relaxed text-base md:text-lg whitespace-pre-line" v-html="novela.description"></div>
+                                    
+                                    <div v-if="novela.categories?.length">
+                                        <h3 class="text-xl font-black mb-4 uppercase tracking-tighter">Категории</h3>
+                                        <div class="flex flex-wrap gap-3">
+                                            <span v-for="cat in novela.categories" :key="cat" class="px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 text-sm font-medium hover:border-yellow-500 cursor-pointer transition-all">
+                                                #{{ cat }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-else key="chapters">
+                                    <ChapterList :volumes="novela.volumes" />
+                                </div>
+                            </transition>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div v-else class="flex-grow flex items-center justify-center">
+            <div class="w-12 h-12 border-4 border-zinc-300 border-t-yellow-500 rounded-full animate-spin"></div>
+        </div>
+    </div>
+</template>
+
+<style scoped>
+.shadow-text {
+    text-shadow: 4px 4px 2px rgba(0,0,0,0.6);
+}
+.fade-enter-active, .fade-leave-active {
+    transition: all 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+    opacity: 0;
+    transform: translateY(10px);
+}
+</style>
