@@ -77,7 +77,7 @@ func (r *NovelaRepository) Create(ctx context.Context, n *db.Novela) error {
 	return tx.Commit()
 }
 
-func (r *NovelaRepository) GetFullByID(ctx context.Context, id int) (*db.Novela, error) {
+func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db.Novela, error) {
 	n := &db.Novela{}
 
 	var (
@@ -145,12 +145,17 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id int) (*db.Novela,
 						), '[]'::json)
 					) ORDER BY v.volume_number
 				) FROM novela_volumes v WHERE v.novela_id = n.id
-			), '[]')
+			), '[]'),
+
+			CASE 
+				WHEN $2 > 0 THEN (SELECT category FROM user_novela_bookmarks WHERE novela_id = n.id AND user_id = $2)
+				ELSE NULL 
+			END as user_category
 
 		FROM novela n
 		WHERE n.id = $1`
 
-	err := r.DB.QueryRowContext(ctx, query, id).Scan(
+	err := r.DB.QueryRowContext(ctx, query, id, userID).Scan(
 		&n.ID,
 		&n.Title,
 		pq.Array(&n.AlternativeTitles),
@@ -168,6 +173,7 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id int) (*db.Novela,
 		pq.Array(&n.Categories),
 		&authorsJSON,
 		&volumesJSON,
+		&n.Bookmark,
 	)
 
 	if err != nil {
@@ -186,6 +192,10 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id int) (*db.Novela,
 		if err := json.Unmarshal(volumesJSON, &n.Volumes); err != nil {
 			return nil, err
 		}
+	}
+
+	if n.Bookmark != nil {
+		*n.Bookmark = db.BookmarkCategory(*n.Bookmark)
 	}
 
 	return n, nil

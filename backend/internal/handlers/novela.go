@@ -41,7 +41,12 @@ func (h *NovelaHandler) GetNovela(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	novela, err := h.service.GetNovelaById(r.Context(), NovelaID)
+	userID := 0
+    if val := r.Context().Value(middleware.UserIDKey); val != nil {
+        userID = val.(int)
+    }
+
+	novela, err := h.service.GetNovelaById(r.Context(), NovelaID, userID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return

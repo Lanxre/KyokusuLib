@@ -24,7 +24,9 @@ type Novela struct {
 	Categories []string      `json:"categories"`
 	Authors    []NovelaAuthor `json:"authors"`
 	
-	Volumes    []NovelaVolume `json:"volumes"` 
+	Volumes    []NovelaVolume `json:"volumes"`
+	
+	Bookmark   *BookmarkCategory `json:"bookmark"`
 }
 
 type NovelaAuthor struct {
