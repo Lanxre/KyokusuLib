@@ -55,7 +55,7 @@ func Load() *Config {
 		DiscordSocialRedirectURL:  getEnv("SOCIAL_DISCORD_CLIENT_URL", "http://localhost:8080/api/socials/discord/callback"),
 
 		DatabaseURL: getEnv("DATABASE_URL", "postgres://user:pass@localhost:5432/mydb?sslmode=disable"),
-		FrontendURL: getEnv("FRONTEND_URL", "http://localhost:5173"),
+		FrontendURL: getEnv("FRONTEND_URL", "http://localhost:3000"),
 		BackendURL:  getEnv("BACKEND_URL", "http://localhost:8080"),
 
 		JWTSecret:   getEnv("JWT_SECRET", "jwt_secret"),

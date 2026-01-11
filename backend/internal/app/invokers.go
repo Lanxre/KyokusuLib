@@ -34,9 +34,9 @@ func StartBackgroundWorkers(lc fx.Lifecycle, authService *service.AuthService) {
 
 func StartHTTPServer(lc fx.Lifecycle, r *mux.Router, cfg *config.Config) {
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With", "Cookie"},
 		AllowCredentials: true,
 		Debug:            false,
 	})
