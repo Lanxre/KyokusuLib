@@ -44,7 +44,7 @@ const togglePasswordVisibility = () => {
                 :placeholder="placeholder"
                 :autocomplete="autocomplete"
                 @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-                class="w-full bg-zinc-200 dark:bg-zinc-900 text-zinc-900 border rounded-md py-2 px-3 text-sm text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-300 focus:outline-none focus:ring-2 transition-all disabled:opacity-50"
+                class="w-full bg-zinc-200 dark:bg-zinc-900 text-zinc-900 border rounded-md py-2 px-3 text-sm dark:text-white placeholder-zinc-400 dark:placeholder-zinc-300 focus:outline-none focus:ring-2 transition-all disabled:opacity-50"
                 :class="[
                     error 
                         ? 'border-red-500 focus:ring-red-500' 
@@ -53,11 +53,11 @@ const togglePasswordVisibility = () => {
                 ]"
             />
 
-            <div v-if="type === 'email'" class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-zinc-900 group-focus-within:text-white transition-colors">
+            <div v-if="type === 'email'" class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-zinc-900 dark:text-white group-focus-within:text-white transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
             </div>
 
-            <div v-if="type === 'password'" class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-zinc-900 group-focus-within:text-white transition-colors">
+            <div v-if="type === 'password'" class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-zinc-900 dark:text-white group-focus-within:text-white transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </div>
 
@@ -65,7 +65,7 @@ const togglePasswordVisibility = () => {
                 v-if="type === 'password'"
                 type="button"
                 @click="togglePasswordVisibility"
-                class="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-900 hover:text-white cursor-pointer transition-colors focus:outline-none"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-900 dark:text-white hover:text-white cursor-pointer transition-colors focus:outline-none"
             >
                 <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>

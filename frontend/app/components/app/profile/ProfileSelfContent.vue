@@ -26,14 +26,14 @@ const {
 } = useProfile();
 
 const { activities, fetchActivities, isLoadingActivities } = useUserActivity();
-const { isShowTag } = useInterfaceSettings();
-
+const { isShowTag, syncSettingWithBackend } = useInterfaceSettings();
 const activeTab = ref("overview");
 const isModalOpen = ref(false);
 
 const { pending } = await useAsyncData('profile-init', async () => {
     await Promise.all([
-        fetchActivities()
+        fetchActivities(),
+        syncSettingWithBackend()
     ]);
     return true;
 });

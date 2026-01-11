@@ -83,7 +83,7 @@ const novelaInfo = computed(() => [
                     </div>
 
                     <div class="flex-1 min-w-0 md:pt-12">
-                        <div class="mb-48">
+                        <div class="md:mb-48">
                             <div class="flex flex-col gap-3 mb-12">
                                 <h1 class="text-4xl md:text-4xl shadow-text font-black tracking-tight leading-none">{{ novela.title }}</h1>
                                 <h2 v-if="novela.alternative_titles?.length" class="text-lg md:text-xl text-zinc-500 dark:text-zinc-400 font-medium italic">
@@ -91,7 +91,7 @@ const novelaInfo = computed(() => [
                                 </h2>
                             </div>
                             
-                            <div class="flex flex-wrap items-center gap-6">
+                            <div class="flex flex-wrap items-center gap-6 ml-2">
                                 <NovelaStats :novela="novela" />
                                 <NovelaRating :rating="novela.rating" :count="0" />
                             </div>
