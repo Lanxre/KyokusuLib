@@ -5,6 +5,7 @@ import (
 	"mime/multipart"
 
 	"github.com/lanxre/kyokusulib/internal/models/db"
+	"github.com/lanxre/kyokusulib/internal/models/dto"
 	"github.com/lanxre/kyokusulib/internal/repository"
 	"github.com/lanxre/kyokusulib/internal/utils/files"
 )
@@ -19,7 +20,7 @@ func NewNovelaService(repo *repository.NovelaRepository) *NovelaService {
 	}
 }
 
-func (s *NovelaService) GetNovelaById(ctx context.Context, id int) (*db.Novela, error){
+func (s *NovelaService) GetNovelaById(ctx context.Context, id int) (*db.Novela, error) {
 	ranobe, err := s.Repo.GetFullByID(ctx, id)
 	return ranobe, err
 }
@@ -31,3 +32,19 @@ func (s *NovelaService) UploadPoster(ctx context.Context, file multipart.File, h
 func (s *NovelaService) Create(ctx context.Context, novela *db.Novela) error {
 	return s.Repo.Create(ctx, novela)
 }
+
+func (s *NovelaService) SetBookmark(context context.Context, userID int, req dto.UpdateBookmarkRequest) error {
+
+	dbBookmark := &db.Bookmark{
+		UserID:   userID,
+		NovelaID: req.NovelaID,
+		Category: db.BookmarkCategory(req.Category),
+	}
+
+	return s.Repo.SetBookmark(context, dbBookmark)
+}
+
+func (s *NovelaService) RemoveBookmark(ctx context.Context, userID, novelaID int) error {
+	return s.Repo.RemoveBookmark(ctx, userID, novelaID)
+}
+

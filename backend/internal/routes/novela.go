@@ -9,8 +9,11 @@ import (
 )
 
 func (a *NovelaRoutes) Register(cfg *config.Config, r *mux.Router) {
-	ranobeRouter := r.PathPrefix("/api").Subrouter()
+	novelaRouter := r.PathPrefix("/api").Subrouter()
 	
-	ranobeRouter.Handle("/novela/{id:[0-9]+}", http.HandlerFunc(a.Handler.GetNovela)).Methods("GET")
-	ranobeRouter.Handle("/novela", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.CreateNovela), cfg.JWTSecret)).Methods("POST")
+	novelaRouter.Handle("/novela/{id:[0-9]+}", http.HandlerFunc(a.Handler.GetNovela)).Methods("GET")
+	novelaRouter.Handle("/novela", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.CreateNovela), cfg.JWTSecret)).Methods("POST")
+
+	novelaRouter.Handle("/novela/bookmark", http.HandlerFunc(a.Handler.SetBookmark)).Methods("POST")
+	novelaRouter.Handle("/novela/bookmark/{id:[0-9]+}", http.HandlerFunc(a.Handler.RemoveBookmark)).Methods("DELETE")
 }

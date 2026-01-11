@@ -79,7 +79,7 @@ func (r *NovelaRepository) Create(ctx context.Context, n *db.Novela) error {
 
 func (r *NovelaRepository) GetFullByID(ctx context.Context, id int) (*db.Novela, error) {
 	n := &db.Novela{}
-	
+
 	var (
 		authorsJSON []byte
 		volumesJSON []byte
@@ -231,7 +231,7 @@ func (r *NovelaRepository) LinkAuthor(ctx context.Context, novelaID int, authorN
 		INSERT INTO authors (name) VALUES ($1) 
 		ON CONFLICT (name) DO UPDATE SET name=EXCLUDED.name 
 		RETURNING id`, authorName).Scan(&authorID)
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to upsert author: %w", err)
 	}
@@ -255,7 +255,7 @@ func (r *NovelaRepository) linkTags(ctx context.Context, tx *sql.Tx, novelaID in
 			INSERT INTO %s (name) VALUES ($1) 
 			ON CONFLICT (name) DO UPDATE SET name=EXCLUDED.name 
 			RETURNING id`, tableName)
-		
+
 		err := tx.QueryRowContext(ctx, upsertQuery, name).Scan(&tagID)
 		if err != nil {
 			return err
@@ -264,7 +264,7 @@ func (r *NovelaRepository) linkTags(ctx context.Context, tx *sql.Tx, novelaID in
 		linkQuery := fmt.Sprintf(`
 			INSERT INTO %s (novela_id, %s) VALUES ($1, $2) 
 			ON CONFLICT DO NOTHING`, linkTable, fkCol)
-		
+
 		_, err = tx.ExecContext(ctx, linkQuery, novelaID, tagID)
 		if err != nil {
 			return err
@@ -278,7 +278,7 @@ func (r *NovelaRepository) CreateVolume(ctx context.Context, novelaID int, title
 		INSERT INTO novela_volumes (novela_id, title, volume_number) 
 		VALUES ($1, $2, $3) 
 		RETURNING id`
-	
+
 	var id int
 	err := r.DB.QueryRowContext(ctx, query, novelaID, title, number).Scan(&id)
 	if err != nil {
@@ -298,7 +298,7 @@ func (r *NovelaRepository) CreateChapter(ctx context.Context, volumeID int, ch *
 		INSERT INTO novela_chapters (novela_volume_id, title, chapter_number, content) 
 		VALUES ($1, $2, $3, $4) 
 		RETURNING id`
-	
+
 	err = tx.QueryRowContext(ctx, query, volumeID, ch.Title, ch.Number, ch.Content).Scan(&ch.ID)
 	if err != nil {
 		return fmt.Errorf("failed to create chapter: %w", err)
@@ -306,7 +306,7 @@ func (r *NovelaRepository) CreateChapter(ctx context.Context, volumeID int, ch *
 
 	if len(ch.Images) > 0 {
 		imgQuery := `INSERT INTO novela_chapter_images (chapter_id, image_url, caption) VALUES ($1, $2, $3)`
-		
+
 		stmt, err := tx.PrepareContext(ctx, imgQuery)
 		if err != nil {
 			return err
@@ -325,7 +325,7 @@ func (r *NovelaRepository) CreateChapter(ctx context.Context, volumeID int, ch *
 
 func (r *NovelaRepository) GetChapterByID(ctx context.Context, chapterID int) (*db.NovelaChapter, error) {
 	ch := &db.NovelaChapter{}
-	
+
 	query := `SELECT id, title, chapter_number, content FROM novela_chapters WHERE id = $1`
 	err := r.DB.QueryRowContext(ctx, query, chapterID).Scan(&ch.ID, &ch.Title, &ch.Number, &ch.Content)
 	if err != nil {
@@ -344,8 +344,8 @@ func (r *NovelaRepository) GetChapterByID(ctx context.Context, chapterID int) (*
 
 	for rows.Next() {
 		var img db.NovelaChapterImage
-		var caption sql.NullString 
-		
+		var caption sql.NullString
+
 		if err := rows.Scan(&img.ID, &img.ImageURL, &caption); err != nil {
 			return nil, err
 		}
@@ -358,7 +358,7 @@ func (r *NovelaRepository) GetChapterByID(ctx context.Context, chapterID int) (*
 
 func (r *NovelaRepository) FindByTitle(ctx context.Context, title string) (*db.Novela, error) {
 	novela := &db.Novela{}
-	
+
 	query := `
 		SELECT id, title, alternative_titles
 		FROM novela
@@ -366,13 +366,32 @@ func (r *NovelaRepository) FindByTitle(ctx context.Context, title string) (*db.N
 		LIMIT 1`
 
 	err := r.DB.QueryRowContext(ctx, query, title).Scan(&novela.ID, &novela.Title, pq.Array(&novela.AlternativeTitles))
-	
+
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, err 
+		return nil, err
 	}
 
 	return novela, nil
+}
+
+func (r *NovelaRepository) SetBookmark(ctx context.Context, bookmark *db.Bookmark) error {
+	query := `
+		INSERT INTO user_novela_bookmarks (user_id, novela_id, category, updated_at) 
+		VALUES ($1, $2, $3, CURRENT_TIMESTAMP) 
+		ON CONFLICT (user_id, novela_id) 
+		DO UPDATE SET 
+			category = EXCLUDED.category, 
+			updated_at = CURRENT_TIMESTAMP`
+
+	_, err := r.DB.ExecContext(ctx, query, bookmark.UserID, bookmark.NovelaID, bookmark.Category)
+	return err
+}
+
+func (r *NovelaRepository) RemoveBookmark(ctx context.Context, userID, novelaID int) error {
+	query := `DELETE FROM user_novela_bookmarks WHERE user_id = $1 AND novela_id = $2`
+	_, err := r.DB.ExecContext(ctx, query, userID, novelaID)
+	return err
 }
