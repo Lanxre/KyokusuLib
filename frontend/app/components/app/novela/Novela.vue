@@ -5,6 +5,7 @@ import { correctProfileImage } from "@/utils/str";
 import NovelaStats from "./NovelaStats.vue";
 import NovelaRating from "./NovelaRating.vue";
 import ChapterList from "./ChapterList.vue";
+import NovelaBookmarkButton from "./NovelaBookmarkButton.vue";
 
 const route = useRoute();
 const { novela, fetchNovela } = useNovela();
@@ -55,10 +56,10 @@ const novelaInfo = computed(() => [
                                 Читать
                             </button>
                             <div class="grid grid-cols-2 gap-3">
-                                <button class="py-2.5 cursor-pointer rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 text-sm font-semibold">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-                                    Закладки
-                                </button>
+                                <NovelaBookmarkButton 
+                                    v-model="novela.bookmark" 
+                                    :novela-id="novela.id" 
+                                />
                                 <button class="py-2.5 cursor-pointer rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 text-sm font-semibold">
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                                     Лайк

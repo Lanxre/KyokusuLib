@@ -7,23 +7,23 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	service "github.com/lanxre/kyokusulib/internal/services"
-	"github.com/lanxre/kyokusulib/internal/utils/response"
 )
 
-func AuthMiddleware(next http.HandlerFunc, jwtSecret string) http.HandlerFunc {
+func DefaultMiddleware(next http.HandlerFunc, jwtSecret string) http.HandlerFunc {
 	secretKey := []byte(jwtSecret)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("KYOKUSU_API_TOKEN")
+
 		if err != nil {
-			response.Error(w, http.StatusUnauthorized, "Unauthorized")
+			next(w, r)
 			return
 		}
 
 		tokenString := cookie.Value
 
 		claims := &service.Claims{}
-		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
 			if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
@@ -36,8 +36,6 @@ func AuthMiddleware(next http.HandlerFunc, jwtSecret string) http.HandlerFunc {
 		}
 
 		ctx := context.WithValue(r.Context(), UserIDKey, claims.UserID)
-		ctx = context.WithValue(ctx, UserEmailKey, claims.Email)
-		ctx = context.WithValue(ctx, UserRoleKey, claims.Role) 
 		
 		next(w, r.WithContext(ctx))
 	}

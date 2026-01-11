@@ -42,4 +42,5 @@ export interface NovelaDetails {
 	genres: string[];
 	categories: string[];
 	volumes: NovelaVolume[];
+	bookmark?: string;
 }
