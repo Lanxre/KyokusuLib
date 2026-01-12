@@ -1,7 +1,10 @@
 import { useApi } from "~/composables/api/useApi";
-import type { GetActivityResponse, UserActivity } from "@/types/backend/user_activity";
+import type { CreateUserActivity, GetActivityResponse, UserActivity } from "@/types/backend/user_activity";
+import type { ResponseMessage } from "~/types/backend/response_message";
 
 export function useUserActivity() {
+
+    const ACTIVITIES_LIMIT_QUERY = 20;
     const activities = useState<UserActivity[]>('user-activities', () => []);
     const isLoadingActivities = useState('is-loading-activities', () => false);
 
@@ -10,7 +13,7 @@ export function useUserActivity() {
         const url = userId ? `/api/user/activities/${userId}` : "/api/user/activities";
         
         try {
-            const { data, error } = await useApi<GetActivityResponse>(url);
+            const { data, error } = await useApi<GetActivityResponse>(url, { query: { limit: ACTIVITIES_LIMIT_QUERY } });
             if (error.value) throw error.value;
             
             activities.value = data.value?.message || [];
@@ -23,17 +26,17 @@ export function useUserActivity() {
         }
     };
 
-	const fetchByUserId = async (userId: number) => {
-        isLoadingActivities.value = true;
+    const createUserActivity = async (payload: CreateUserActivity) => {
         try {
-            const { data } = await useApi<GetActivityResponse>(`/api/user/activities/${userId}`)
-            activities.value = data.value?.message || [];
-			return activities.value;
-        } catch (e: any) {
-            console.error(e);
-            activities.value = [];
-        } finally {
-            isLoadingActivities.value = false;
+            const { data, error } = await useApi<ResponseMessage>("/api/user/activities", {
+                method: "POST",
+                body: payload,
+            });
+            if (error.value) throw error.value;
+            return data.value;
+        } catch (e) {
+            console.error("Failed to create activity:", e);
+            throw e;
         }
     };
 
@@ -41,6 +44,6 @@ export function useUserActivity() {
         activities,
         isLoadingActivities,
         fetchActivities,
-		fetchByUserId,
+        createUserActivity
     };
 }

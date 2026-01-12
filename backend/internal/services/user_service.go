@@ -20,7 +20,7 @@ func NewUserService(repo *repository.UserRepository, userProfileRepo *repository
 func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 	userDb, err := s.Repo.GetByID(userId)
 
-	if err != nil {
+	if err != nil || userDb == nil {
 		return nil, err
 	}
 	

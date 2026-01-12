@@ -33,3 +33,4 @@ export const NOVELA_CATEGORIES = [
 
 export const YEAR_MIN = 1900;
 export const YEAR_MAX = new Date().getFullYear() + 1;
+export const ACTIVITY_PAGE_SIZE = 3;

@@ -19,7 +19,7 @@ const props = defineProps<{
 }>();
 
 const { profileTabs, userRoleColor, getGenderText, getLastLogin, getIsLogin } = useProfile();
-const { activities, fetchByUserId, isLoadingActivities } = useUserActivity();
+const { activities, fetchActivities, isLoadingActivities } = useUserActivity();
 
 const activeTab = ref("overview");
 const isModalOpen = ref(false);
@@ -30,7 +30,7 @@ const genderText = computed(() => getGenderText(props.profileData?.gender));
 
 const initData = async () => {
 	if (props.profileData?.id) {
-		await fetchByUserId(props.profileData.id);
+		await fetchActivities(props.profileData.id);
 	}
 };
 

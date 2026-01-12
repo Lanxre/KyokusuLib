@@ -16,19 +16,25 @@ func NewUserActivityService(repo *repository.UserActivityRepository) *UserActivi
 	return &UserActivityService{Repo: repo}
 }
 
-func (s *UserActivityService) GetUserActivity(ctx context.Context, userID int) ([]*dto.GetUserActivity, error) {
-	var userActivity []*dto.GetUserActivity
-	activities, err := s.Repo.GetUserActivies(ctx, userID)
+func (s *UserActivityService) GetUserActivity(ctx context.Context, userID int, params dto.QueryParams) ([]*dto.GetUserActivity, error) {
+
+	if params.Limit <= 0 || params.Limit > 100 {
+		params.Limit = 20
+	}
+
+	activities, err := s.Repo.GetUserActivies(ctx, userID, params.Limit)
 	if err != nil {
 		return nil, err
 	}
 	
+	userActivity := make([]*dto.GetUserActivity, 0, len(activities))
 	for _, activity := range activities {
 		userActivity = append(userActivity, &dto.GetUserActivity{
-			ID: activity.ID,
+			ID:           activity.ID,
 			ActivityType: activity.ActivityType,
-			Timestamp: activity.Timestamp,
-			Metadata: activity.Metadata,
+			TargetID:     activity.TargetID,
+			Timestamp:    activity.Timestamp,
+			Metadata:     activity.Metadata,
 		})
 	}
 	return userActivity, nil

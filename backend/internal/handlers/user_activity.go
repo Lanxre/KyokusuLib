@@ -10,6 +10,7 @@ import (
 	"github.com/lanxre/kyokusulib/internal/models/dto"
 	service "github.com/lanxre/kyokusulib/internal/services"
 	"github.com/lanxre/kyokusulib/internal/utils/response"
+	"github.com/lanxre/kyokusulib/internal/utils/conv"
 )
 
 type UserActivityHandler struct {
@@ -50,7 +51,14 @@ func (h *UserActivityHandler) GetUserActivities(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	activities, err := h.Service.GetUserActivity(r.Context(), userID)
+	query := r.URL.Query()
+    
+    params := dto.QueryParams{
+        Limit:  conv.StringToInt(query.Get("limit")),
+        Offset: conv.StringToInt(query.Get("offset")),
+    }
+
+	activities, err := h.Service.GetUserActivity(r.Context(), userID, params)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
@@ -73,7 +81,14 @@ func (h *UserActivityHandler) GetUserActivityById(w http.ResponseWriter, r *http
 		return
 	}
 
-	activity, err := h.Service.GetUserActivity(r.Context(), userID)
+	query := r.URL.Query()
+    
+    params := dto.QueryParams{
+        Limit:  conv.StringToInt(query.Get("limit")),
+        Offset: conv.StringToInt(query.Get("offset")),
+    }
+
+	activity, err := h.Service.GetUserActivity(r.Context(), userID, params)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return

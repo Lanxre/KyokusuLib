@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/auth";
 import { GenderSetting } from "@/types/enums/gender-enum";
 import { KyokusuAppRole } from "@/types/enums/role-enum";
 import type { GetUserDto } from "@/types/backend/user";
+import auth from "~/middleware/auth";
 
 export function useProfile() {
 	const route = useRoute();
@@ -151,13 +152,13 @@ export function useProfile() {
 	};
 
 	const init = async () => {
-		const id = Number(route.params.id);
+		const id = Number(authStore.user?.id);
 		if (!isNaN(id)) {
 			await loadProfileData(id);
 		}
 	};
 
-	watch(() => route.params.id, init, { immediate: true });
+	watch(() => authStore.user?.id, init, { immediate: true });
 
 	return {
 		profileData,

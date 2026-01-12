@@ -28,7 +28,6 @@ export const useAuthStore = defineStore("auth", () => {
 		}
 	}
 
-	// Обновление данных (алиас для initAuth, если нужно вызвать вручную)
 	async function fetchUser() {
 		return initAuth();
 	}

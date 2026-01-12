@@ -15,14 +15,16 @@ func NewUserActivityRepository(db *sql.DB) *UserActivityRepository {
 	return &UserActivityRepository{DB: db}
 }
 
-func (r *UserActivityRepository) GetUserActivies(ctx context.Context, userID int) ([] *db.UserActivity, error) {
+func (r *UserActivityRepository) GetUserActivies(ctx context.Context, userID, limit int) ([] *db.UserActivity, error) {
 	var userActivity []*db.UserActivity
 	query := `
 		SELECT id, activity_type, target_id, metadata, timestamp
 		FROM user_activities
-		WHERE user_id = $1`
+		WHERE user_id = $1
+		ORDER BY timestamp DESC 
+        LIMIT $2`
 	
-	rows, err := r.DB.QueryContext(ctx, query, userID)
+	rows, err := r.DB.QueryContext(ctx, query, userID, limit)
 	if err != nil {
 		return nil, err
 	}

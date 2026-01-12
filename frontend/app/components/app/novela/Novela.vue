@@ -6,14 +6,19 @@ import NovelaStats from "./NovelaStats.vue";
 import NovelaRating from "./NovelaRating.vue";
 import ChapterList from "./ChapterList.vue";
 import NovelaBookmarkButton from "./NovelaBookmarkButton.vue";
+import { useUserActivity } from "~/composables/api/profile/useUserActivity";
+import { ACTIVITY_TYPES } from "~/constants/user-activity";
 
 const route = useRoute();
+const { user } = useAuthStore();
 const { novela, fetchNovela } = useNovela();
+const { createUserActivity } = useUserActivity();
 const activeTab = ref<"about" | "chapters">("about");
 
 const novelaId = computed(() => route.params.id as string);
 
 await useAsyncData(`novela-${novelaId.value}`, () => fetchNovela(novelaId.value));
+const bookmarkInitial = ref(Boolean(novela.value?.bookmark));
 
 const totalChapters = computed(() => {
     if (!novela.value) return 0;
@@ -26,10 +31,43 @@ const novelaInfo = computed(() => [
     { label: "Автор", value: novela.value?.authors?.[0]?.name, isLink: true },
 ]);
 
-const updateCountBookmarks = (categoryId: number) => {
-    if (categoryId !== null && novela.value) {
+const updateCountBookmarks = async (categoryId: number) => {
+    if (categoryId !== null && novela.value && user?.id) {
+        if (!bookmarkInitial.value) {
+            await createUserActivity({
+                user_id: user.id,
+                activity_type: ACTIVITY_TYPES.NOVELA_BOOKMARK,
+                target_id: novela.value.id,
+                metadata: {
+                    novela_title: novela.value.title,
+                    desc: 'Пользователь добавил сюжет в закладки'
+                }
+            });
+        } else {
+            await createUserActivity({
+                user_id: user.id,
+                activity_type: ACTIVITY_TYPES.NOVELA_BOOKMARK,
+                target_id: novela.value.id,
+                metadata: {
+                    novela_title: novela.value.title,
+                    desc: 'Пользователь обновил закладку сюжета',
+                }
+            });
+        }
+        
+
         novela.value.bookmark_count = (novela.value.bookmark_count || 0) + 1;
-    } else if (novela.value && categoryId === null) {
+    } else if (novela.value && categoryId === null && user?.id) {
+        await createUserActivity({
+            user_id: user.id,
+            activity_type: ACTIVITY_TYPES.NOVELA_BOOKMARK_REMOVE,
+            target_id: novela.value.id,
+            metadata: {
+                novela_title: novela.value.title,
+                desc: 'Пользователь удалил сюжет из закладок'
+            }
+        });
+        bookmarkInitial.value = false;
         novela.value.bookmark_count = (novela.value.bookmark_count || 0) - 1;
     }
 }
