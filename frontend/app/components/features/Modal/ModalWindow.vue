@@ -6,6 +6,7 @@ interface Props {
 	modelValue: boolean;
 	title?: string;
 	width?: string;
+    height?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -51,7 +52,7 @@ useModalLogic(toRef(props, "modelValue"), close);
                                 </button>
                             </div>
 
-                            <div class="px-6 py-4">
+                            <div class="px-6 py-4" :class="height">
                                 <slot></slot>
                             </div>
 

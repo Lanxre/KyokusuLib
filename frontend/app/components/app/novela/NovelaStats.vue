@@ -18,7 +18,7 @@ const formatNumber = (num: number) => {
 
 const stats = computed(() => [
 	{ label: "Просмотры", value: formatNumber(props.novela.views), icon: "eye" },
-	{ label: "В закладках", value: formatNumber(0), icon: "bookmark" },
+	{ label: "В закладках", value: formatNumber(props.novela.bookmark_count), icon: "bookmark" },
 	{
 		label: "Год",
 		value: getStingYear(props.novela.release_date),

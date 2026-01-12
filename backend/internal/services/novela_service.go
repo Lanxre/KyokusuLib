@@ -119,6 +119,7 @@ func (s *NovelaService) novelaToDto(novela *db.Novela) *dto.NovelaResponse {
 		Categories:        novela.Categories,
 		Authors:           authors,
 		Volumes:           volumes,
-		Bookmark: 		   &bookmark,		
+		Bookmark: 		   &bookmark,
+		BookmarkCount:     novela.BookmarkCount,		
 	}
 }

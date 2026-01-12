@@ -2,6 +2,8 @@
 import { ref, computed } from 'vue';
 import { onClickOutside } from '@vueuse/core';
 import { useBookmark } from '@/composables/api/novela/useBookmark';
+import { useAuthStore } from '#imports';
+import AuthRequiredModal from '~/components/common/AuthRequiredModal.vue';
 
 interface Props {
   modelValue: string | undefined;
@@ -12,8 +14,10 @@ const props = defineProps<Props>();
 const emit = defineEmits(['update:modelValue']);
 
 const { setBookmark, removeBookmark, loading, bookmarkCategories } = useBookmark();
+const { isAuthenticated } = useAuthStore();
 
 const isPopoverOpen = ref(false);
+const isModalOpen = ref(false);
 const containerRef = ref(null);
 
 onClickOutside(containerRef, () => {
@@ -26,6 +30,11 @@ const currentLabel = computed(() => {
 });
 
 const handleSelect = async (categoryId: string) => {
+  if (!isAuthenticated) {
+    isModalOpen.value = true;
+    return;
+  }
+  
   try {
     await setBookmark(props.novelaId, categoryId as any);
     emit('update:modelValue', categoryId);
@@ -100,6 +109,7 @@ const handleRemove = async () => {
         </div>
       </div>
     </Transition>
+    <AuthRequiredModal v-model="isModalOpen" action-text="добавлять новеллы в закладки" />
   </div>
 </template>
 

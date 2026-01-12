@@ -33,6 +33,7 @@ type NovelaResponse struct {
 	Authors    		  []NovelaAuthor 	`json:"authors"`
 	Volumes    		  []NovelaVolume 	`json:"volumes"`
 	Bookmark  		  *string			`json:"bookmark"`
+	BookmarkCount	  int				`json:"bookmark_count"`
 }
 
 type NovelaAuthor struct {

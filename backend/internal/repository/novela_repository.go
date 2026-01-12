@@ -150,7 +150,9 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 			CASE 
 				WHEN $2 > 0 THEN (SELECT category FROM user_novela_bookmarks WHERE novela_id = n.id AND user_id = $2)
 				ELSE NULL 
-			END as user_category
+			END as user_category,
+
+			COALESCE((SELECT COUNT(*) FROM user_novela_bookmarks WHERE novela_id = n.id), 0)
 
 		FROM novela n
 		WHERE n.id = $1`
@@ -174,6 +176,7 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 		&authorsJSON,
 		&volumesJSON,
 		&n.Bookmark,
+		&n.BookmarkCount,
 	)
 
 	if err != nil {
