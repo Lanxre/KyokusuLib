@@ -152,7 +152,10 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 				ELSE NULL 
 			END as user_category,
 
-			COALESCE((SELECT COUNT(*) FROM user_novela_bookmarks WHERE novela_id = n.id), 0)
+			COALESCE((SELECT COUNT(*) FROM user_novela_bookmarks WHERE novela_id = n.id), 0),
+
+			COALESCE((SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $2), FALSE)
+				
 
 		FROM novela n
 		WHERE n.id = $1`
@@ -177,6 +180,7 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 		&volumesJSON,
 		&n.Bookmark,
 		&n.BookmarkCount,
+		&n.HasLiked,
 	)
 
 	if err != nil {
@@ -406,5 +410,17 @@ func (r *NovelaRepository) SetBookmark(ctx context.Context, bookmark *db.Bookmar
 func (r *NovelaRepository) RemoveBookmark(ctx context.Context, userID, novelaID int) error {
 	query := `DELETE FROM user_novela_bookmarks WHERE user_id = $1 AND novela_id = $2`
 	_, err := r.DB.ExecContext(ctx, query, userID, novelaID)
+	return err
+}
+
+func (r *NovelaRepository) SetLike(ctx context.Context, novelaLike *db.NovelaLike) error {
+	query := `
+		INSERT INTO user_novela_likes (user_id, novela_id, has_liked, updated_at) 
+		VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+		ON CONFLICT (user_id, novela_id) 
+		DO UPDATE SET
+			has_liked = EXCLUDED.has_liked,
+			updated_at = CURRENT_TIMESTAMP`
+	_, err := r.DB.ExecContext(ctx, query, novelaLike.UserID, novelaLike.NovelaID, novelaLike.HasLiked)
 	return err
 }

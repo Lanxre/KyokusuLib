@@ -16,3 +16,8 @@ type BookmarkResponse struct {
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 }
+
+type UpdateLikeRequest struct {
+	NovelaID int  `json:"novela_id" validate:"required,gt=0"`
+	HasLiked bool `json:"has_liked" validate:"required"`
+}

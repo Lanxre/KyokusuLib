@@ -34,6 +34,7 @@ type NovelaResponse struct {
 	Volumes    		  []NovelaVolume 	`json:"volumes"`
 	Bookmark  		  *string			`json:"bookmark"`
 	BookmarkCount	  int				`json:"bookmark_count"`
+	HasLiked  		  bool				`json:"has_liked"`
 }
 
 type NovelaAuthor struct {

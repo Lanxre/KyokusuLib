@@ -20,14 +20,15 @@ type Novela struct {
 	Rating            float64   `json:"rating"`
 
 	
-	Genres     []string      `json:"genres"`
-	Categories []string      `json:"categories"`
-	Authors    []NovelaAuthor `json:"authors"`
+	Genres     		[]string      		`json:"genres"`
+	Categories 		[]string      		`json:"categories"`
+	Authors    		[]NovelaAuthor 		`json:"authors"`
 	
-	Volumes    []NovelaVolume 		`json:"volumes"`
+	Volumes    		[]NovelaVolume 		`json:"volumes"`
 	
-	Bookmark   *BookmarkCategory 	`json:"bookmark"`
-	BookmarkCount int 				`json:"bookmark_count"`
+	Bookmark      	*BookmarkCategory 	`json:"bookmark"`
+	BookmarkCount 	int 				`json:"bookmark_count"`
+	HasLiked      	bool				`json:"has_liked"`
 }
 
 type NovelaAuthor struct {
@@ -55,4 +56,9 @@ type NovelaChapterImage struct {
 	ID       int    `json:"id"`
 	ImageURL string `json:"image_url"`
 	Caption  string `json:"caption"`
+}
+type NovelaLike struct {
+	NovelaID int  `json:"novela_id"`
+	UserID   int  `json:"user_id"`
+	HasLiked bool `json:"has_liked"`
 }

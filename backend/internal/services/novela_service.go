@@ -53,6 +53,14 @@ func (s *NovelaService) RemoveBookmark(ctx context.Context, userID, novelaID int
 	return s.Repo.RemoveBookmark(ctx, userID, novelaID)
 }
 
+func (s *NovelaService) SetLike(ctx context.Context, userID int, req dto.UpdateLikeRequest) error {
+	return s.Repo.SetLike(ctx, &db.NovelaLike{
+		UserID:   userID,
+		NovelaID: req.NovelaID,
+		HasLiked: req.HasLiked,
+	})
+}
+
 func (s *NovelaService) novelaToDto(novela *db.Novela) *dto.NovelaResponse {
 	if novela == nil {
 		return nil
@@ -120,6 +128,7 @@ func (s *NovelaService) novelaToDto(novela *db.Novela) *dto.NovelaResponse {
 		Authors:           authors,
 		Volumes:           volumes,
 		Bookmark: 		   &bookmark,
-		BookmarkCount:     novela.BookmarkCount,		
+		BookmarkCount:     novela.BookmarkCount,
+		HasLiked:          novela.HasLiked,	
 	}
 }
