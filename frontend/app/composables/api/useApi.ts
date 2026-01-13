@@ -10,7 +10,17 @@ export function useApi<T>(
 		headers: useRequestHeaders(["cookie"]),
 	};
 
-	const params = defu(options, defaults);
+	return useFetch(url, defu(options, defaults));
+}
 
-	return useFetch(url, params);
+export function $api<T>(
+	url: string,
+	options: any = {},
+) {
+	const defaults = {
+		baseURL: "/api",
+		headers: useRequestHeaders(["cookie"]),
+	};
+
+	return $fetch<T>(url, defu(options, defaults));
 }

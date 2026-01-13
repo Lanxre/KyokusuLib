@@ -81,6 +81,31 @@ const updateCountLike = async (has_liked: boolean) => {
     }
 }
 
+const updateRating = (rating: number) => {
+    if (!novela.value) return;
+
+    const oldCount = novela.value.rating_count || 0;
+    const oldAverage = novela.value.rating || 0;
+    const previousUserRating = novela.value.user_rating || 0;
+
+    if (previousUserRating === rating) return;
+
+    let newCount = oldCount;
+    let newAverage = oldAverage;
+
+    if (previousUserRating === 0) {
+        newCount = oldCount + 1;
+        newAverage = ((oldAverage * oldCount) + rating) / newCount;
+    } else {
+        const oldSum = oldAverage * oldCount;
+        newAverage = (oldSum - previousUserRating + rating) / oldCount;
+    }
+
+    novela.value.rating_count = newCount;
+    novela.value.rating = roundTo(newAverage, 1);
+    novela.value.user_rating = rating; 
+}
+
 </script>
 
 <template>
@@ -152,7 +177,13 @@ const updateCountLike = async (has_liked: boolean) => {
                             
                             <div class="flex flex-wrap items-center gap-6 ml-2">
                                 <NovelaStats :novela="novela" />
-                                <NovelaRating :rating="novela.rating" :count="0" />
+                                <NovelaRating 
+                                    :novela-id="novela.id"
+                                    :rating="novela.rating" 
+                                    :count="novela.rating_count"
+                                    :user-rating="novela.user_rating || 1"
+                                    @update:rated="updateRating"
+                                />
                             </div>
                         </div>
 

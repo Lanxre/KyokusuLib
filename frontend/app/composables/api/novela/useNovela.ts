@@ -11,6 +11,7 @@ export function useNovela() {
             const { data, error } = await useApi<NovelaDetails>(`/api/novela/${id}`);
             if (error.value) throw error.value;
             novela.value = data.value || null;
+            return data.value;
         } catch (e) {
             console.error(e);
         } finally {

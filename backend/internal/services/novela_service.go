@@ -61,6 +61,14 @@ func (s *NovelaService) SetLike(ctx context.Context, userID int, req dto.UpdateL
 	})
 }
 
+func (s *NovelaService) SetRating(ctx context.Context, userID int, req dto.UpdateRatingRequest) error {
+	return s.Repo.SetRating(ctx, &db.NovelaRating{
+		UserID:   userID,
+		NovelaID: req.NovelaID,
+		Rating:   req.Rating,
+	})
+}
+
 func (s *NovelaService) novelaToDto(novela *db.Novela) *dto.NovelaResponse {
 	if novela == nil {
 		return nil
@@ -130,6 +138,8 @@ func (s *NovelaService) novelaToDto(novela *db.Novela) *dto.NovelaResponse {
 		Bookmark: 		   &bookmark,
 		BookmarkCount:     novela.BookmarkCount,
 		HasLiked:          novela.HasLiked,
-		LikeCount:         novela.LikeCount,	
+		LikeCount:         novela.LikeCount,
+		UserRating:        novela.UserRating,
+		RatingCount:       novela.RatingCount,
 	}
 }

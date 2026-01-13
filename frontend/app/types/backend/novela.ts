@@ -46,4 +46,6 @@ export interface NovelaDetails {
 	bookmark_count: number;
 	has_liked: boolean;
 	like_count: number;
+	user_rating: number;
+	rating_count: number;
 }

@@ -31,6 +31,9 @@ type Novela struct {
 	
 	HasLiked      	bool				`json:"has_liked"`
 	LikeCount     	int					`json:"like_count"`
+
+	UserRating      int 				`json:"user_rating"`
+	RatingCount     int 				`json:"rating_count"`
 }
 
 type NovelaAuthor struct {
@@ -63,4 +66,10 @@ type NovelaLike struct {
 	NovelaID int  `json:"novela_id"`
 	UserID   int  `json:"user_id"`
 	HasLiked bool `json:"has_liked"`
+}
+
+type NovelaRating struct {
+	NovelaID int  `json:"novela_id"`
+	UserID   int  `json:"user_id"`
+	Rating   int  `json:"rating"`
 }

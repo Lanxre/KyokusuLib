@@ -1,5 +1,5 @@
 import { defineStore, storeToRefs } from "pinia";
-import { computed, watch } from "vue";
+import { computed, watch, ref } from "vue";
 import {
 	useIdle,
 	useWindowFocus,
@@ -8,7 +8,7 @@ import {
 } from "@vueuse/core";
 import { useAuthStore } from "@/stores/auth";
 import { OnlineStatusEnum } from "@/types/enums/online-status-enum";
-import { useApi } from "@/composables/api/useApi";
+import { $api } from "@/composables/api/useApi";
 
 export const useActivityStore = defineStore("activity", () => {
 	const authStore = useAuthStore();
@@ -23,10 +23,10 @@ export const useActivityStore = defineStore("activity", () => {
 	});
 
 	const sendHeartbeat = async () => {
-		if (!isAuthenticated.value) return;
+		if (!isAuthenticated.value || import.meta.server) return;
 
 		try {
-			await useApi("/api/user/activity", {
+			await $api("/api/user/activity", {
 				method: "POST",
 				body: {
 					status: isUserActive.value
@@ -36,7 +36,7 @@ export const useActivityStore = defineStore("activity", () => {
 				},
 			});
 		} catch (e) {
-			console.error("Heartbeat failed", e);
+			console.warn("Heartbeat failed");
 		}
 	};
 
@@ -44,10 +44,10 @@ export const useActivityStore = defineStore("activity", () => {
 		if (isUserActive.value) {
 			sendHeartbeat();
 		}
-	}, 30000);
+	}, 30000, { immediate: false });
 
 	const initActivityTracking = () => {
-		resume();
+		if (import.meta.server) return;
 
 		watch(
 			isAuthenticated,

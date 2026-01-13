@@ -22,3 +22,8 @@ func ErrorWithDetails(w http.ResponseWriter, status int, entity any) {
 func Success(w http.ResponseWriter, status int, entity any) {
 	JSON(w, status, map[string]any{"message": entity})
 }
+
+func SuccessOkEmpty(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}

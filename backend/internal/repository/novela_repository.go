@@ -83,6 +83,8 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 	var (
 		authorsJSON []byte
 		volumesJSON []byte
+
+		userRating sql.NullInt32
 	)
 
 	query := `
@@ -154,9 +156,19 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 
 			COALESCE((SELECT COUNT(*) FROM user_novela_bookmarks WHERE novela_id = n.id), 0),
 
-			COALESCE((SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $2), FALSE),
-			COALESCE((SELECT COUNT(*) FROM user_novela_likes WHERE novela_id = n.id AND has_liked = TRUE), 0)
-				
+			CASE
+				WHEN $2 > 0 THEN (SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $2)
+				ELSE FALSE
+			END as has_liked,
+
+			COALESCE((SELECT COUNT(*) FROM user_novela_likes WHERE novela_id = n.id AND has_liked = TRUE), 0),
+
+			CASE
+				WHEN $2 > 0 THEN (SELECT rating FROM novela_ratings WHERE novela_id = n.id AND user_id = $2)
+				ELSE 0
+			END as user_rating,
+
+			COALESCE((SELECT COUNT(*) FROM novela_ratings WHERE novela_id = n.id), 0)
 
 		FROM novela n
 		WHERE n.id = $1`
@@ -183,6 +195,8 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 		&n.BookmarkCount,
 		&n.HasLiked,
 		&n.LikeCount,
+		&userRating,
+		&n.RatingCount,
 	)
 
 	if err != nil {
@@ -206,6 +220,11 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 	if n.Bookmark != nil {
 		*n.Bookmark = db.BookmarkCategory(*n.Bookmark)
 	}
+
+	if userRating.Valid {
+		n.UserRating = int(userRating.Int32)
+	}
+	
 
 	return n, nil
 }
@@ -424,5 +443,16 @@ func (r *NovelaRepository) SetLike(ctx context.Context, novelaLike *db.NovelaLik
 			has_liked = EXCLUDED.has_liked,
 			updated_at = CURRENT_TIMESTAMP`
 	_, err := r.DB.ExecContext(ctx, query, novelaLike.UserID, novelaLike.NovelaID, novelaLike.HasLiked)
+	return err
+}
+
+func (r *NovelaRepository) SetRating(ctx context.Context, rating *db.NovelaRating) error {
+	query := `
+		INSERT INTO novela_ratings (user_id, novela_id, rating) 
+		VALUES ($1, $2, $3)
+		ON CONFLICT (user_id, novela_id) 
+		DO UPDATE SET
+			rating = EXCLUDED.rating`
+	_, err := r.DB.ExecContext(ctx, query, rating.UserID, rating.NovelaID, rating.Rating)
 	return err
 }

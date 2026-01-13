@@ -36,6 +36,8 @@ type NovelaResponse struct {
 	BookmarkCount	  int				`json:"bookmark_count"`
 	HasLiked  		  bool				`json:"has_liked"`
 	LikeCount  		  int				`json:"like_count"`
+	UserRating  	  int				`json:"user_rating"`
+	RatingCount  	  int				`json:"rating_count"`
 }
 
 type NovelaAuthor struct {

@@ -155,7 +155,7 @@ func (h *NovelaHandler) SetBookmark(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Success(w, http.StatusOK, map[string]string{"message": "Bookmark set successfully"})
+	response.SuccessOkEmpty(w)
 }
 
 func (h *NovelaHandler) RemoveBookmark(w http.ResponseWriter, r *http.Request) {
@@ -185,7 +185,7 @@ func (h *NovelaHandler) RemoveBookmark(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Success(w, http.StatusOK, map[string]string{"message": "Bookmark removed successfully"})
+	response.SuccessOkEmpty(w)
 }
 
 func (h *NovelaHandler) SetLike(w http.ResponseWriter, r *http.Request) {
@@ -214,5 +214,34 @@ func (h *NovelaHandler) SetLike(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Success(w, http.StatusOK, map[string]string{"message": "Like set successfully"})
+	response.SuccessOkEmpty(w)
+}
+
+func (h *NovelaHandler) SetRating(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusInternalServerError, "User not found")
+		return
+	}
+
+	var req dto.UpdateRatingRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if err := h.Validator.Struct(req); err != nil {
+		response.ErrorWithDetails(w, http.StatusBadRequest, map[string]string{
+			"error":   "Validation failed",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	if err := h.service.SetRating(r.Context(), userID, req); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.SuccessOkEmpty(w)
 }

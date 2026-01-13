@@ -35,7 +35,7 @@ const { pending } = await useAsyncData('profile-init', async () => {
         fetchActivities(),
         syncSettingWithBackend()
     ]);
-    return true;
+    return { success: true};
 });
 </script>
 

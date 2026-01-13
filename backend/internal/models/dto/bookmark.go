@@ -21,3 +21,8 @@ type UpdateLikeRequest struct {
 	NovelaID int  `json:"novela_id" validate:"required,gt=0"`
 	HasLiked bool `json:"has_liked"`
 }
+
+type UpdateRatingRequest struct {
+	NovelaID int `json:"novela_id" validate:"required,gt=0"`
+	Rating   int `json:"rating" validate:"required,gt=0,lte=10"`
+}

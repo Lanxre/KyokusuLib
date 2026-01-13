@@ -1,4 +1,4 @@
-import { useApi } from "@/composables/api/useApi";
+import { $api } from "@/composables/api/useApi";
 import type { BookmarkCategory } from "~/types/frontend/bookmarks";
 
 export function useBookmark() {
@@ -15,7 +15,7 @@ export function useBookmark() {
   const setBookmark = async (novelaId: number, category: BookmarkCategory) => {
     loading.value = true;
     try {
-      const { data, error } = await useApi("/api/novela/bookmark", {
+      const data = await $api("/api/novela/bookmark", {
         method: "POST",
         body: {
           novela_id: novelaId,
@@ -23,8 +23,7 @@ export function useBookmark() {
         },
       });
 
-      if (error.value) throw error.value;
-      return data.value;
+      return data;
     } catch (e) {
       console.error("Failed to set bookmark:", e);
       throw e;
@@ -36,12 +35,11 @@ export function useBookmark() {
   const removeBookmark = async (novelaId: number) => {
     loading.value = true;
     try {
-      const { data, error } = await useApi(`/api/novela/bookmark/${novelaId}`, {
+      const data = await $api(`/api/novela/bookmark/${novelaId}`, {
         method: "DELETE",
       });
 
-      if (error.value) throw error.value;
-      return data.value;
+      return data;
     } catch (e) {
       console.error("Failed to remove bookmark:", e);
       throw e;

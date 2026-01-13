@@ -1,20 +1,20 @@
 import { $api } from "@/composables/api/useApi";
-import type { NovelaLikeRequest } from "~/types/frontend/novela-like";
+import type { NovelaRatingRequest } from "~/types/frontend/novela-rating";
 
-export function useNovelaLike() {
+export function useNovelaRating() {
   const loading = ref(false);
 
-  const setNovelaLike = async (payload: NovelaLikeRequest) => {
+  const setNovelaRating = async (payload: NovelaRatingRequest) => {
     loading.value = true;
     try {
-      const data = $api("/api/novela/like", {
+      const data = await $api("/api/novela/rating", {
         method: "POST",
         body: payload,
       });
 
       return data;
     } catch (e) {
-      console.error("Failed to set like:", e);
+      console.error("Failed to set rating:", e);
       throw e;
     } finally {
       loading.value = false;
@@ -23,6 +23,6 @@ export function useNovelaLike() {
 
   return {
     loading,
-    setNovelaLike,
+    setNovelaRating,
   };
 }
