@@ -151,8 +151,8 @@ export function useProfile() {
 		}
 	};
 
-	const init = async () => {
-		const id = Number(authStore.user?.id);
+	const init = async () => {;
+		const id = Number(route.params.id);
 		if (!isNaN(id)) {
 			await loadProfileData(id);
 		}

@@ -45,6 +45,12 @@ function naviagateFromActivity(activity: UserActivity) {
         case ACTIVITY_TYPES.RANOBE_ADD:
             navigateTo(`/ranobe/${activity.target_id}`)
             break;
+        case ACTIVITY_TYPES.USER_NOVELA_LIKE:
+            navigateTo(`/novela/${activity.target_id}`)
+            break;
+        case ACTIVITY_TYPES.USER_NOVELA_LIKE_REMOVE:
+            navigateTo(`/novela/${activity.target_id}`)
+            break;
     }
 }
 

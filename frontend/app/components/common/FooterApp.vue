@@ -49,7 +49,7 @@ import TelegramIcon from "@/assets/images/social/telegram.png";
 
         
       </div>
-        <div class="flex justify-between p-8 text-zinc-500 dark:text-stone-400 mt-12 border-t border-zinc-200 dark:border-stone-600 gap-4 max-[720px]:flex-col max-[720px]:items-center">
+        <div class="flex justify-between p-2 text-zinc-500 dark:text-stone-400 mt-12 border-t border-zinc-200 dark:border-stone-600 gap-4 max-[720px]:flex-col max-[720px]:items-center">
           <span>© 2026 KyokusuLib. Все права защищены.</span>
         </div>
      </div>

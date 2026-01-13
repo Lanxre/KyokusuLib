@@ -5,6 +5,9 @@ export const ACTIVITY_TYPES = {
 	NOVELA_BOOKMARK: "novela_added_to_bookmarks",
 	NOVELA_BOOKMARK_REMOVE: "novela_removed_from_bookmarks",
 	RANOBE_ADD: "ranobe_added",
+	USER_NOVELA_LIKE: "user_novela_like",
+	USER_NOVELA_LIKE_REMOVE: "user_novela_like_remove",
+	USER_NOVELA_RATING: "user_novela_rating",
 	ACHIEVEMENT_EARNED: "achievement_earned",
 	DEFAULT: "default",
 } as const;
@@ -46,4 +49,26 @@ export const STRATEGIES: { [K in UserActivityType]?: (activity: Extract<UserActi
 		title: "Удалено из закладок",
 		description: `${activity.metadata.desc || "Без описания"}: "${activity.metadata.novela_title || "Без названия"}"`,
 	}),
+
+	[ACTIVITY_TYPES.USER_NOVELA_LIKE]: (activity) => ({
+		icon: "heart",
+		color: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
+		title: "Понравилось",
+		description: `${activity.metadata.desc || "Без описания"}: "${activity.metadata.name || "Без названия"}"`,
+	}),
+
+	[ACTIVITY_TYPES.USER_NOVELA_LIKE_REMOVE]: (activity) => ({
+		icon: "heart",
+		color: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
+		title: "Удалено из понравившихся",
+		description: `${activity.metadata.desc || "Без описания"}: "${activity.metadata.name || "Без названия"}"`,
+	}),
+
+	[ACTIVITY_TYPES.USER_NOVELA_RATING]: (activity) => ({
+		icon: "star",
+		color: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
+		title: "Оценено",
+		description: `${activity.metadata.desc || "Без описания"}: "${activity.metadata.name || "Без названия"}" на ${activity.metadata.rating} баллов`,
+	}),
+
 };

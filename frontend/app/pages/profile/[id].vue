@@ -24,7 +24,6 @@ useSeoMeta({
     <div v-if="isLoading" class="flex justify-center py-20">
         <svg class="animate-spin h-10 w-10 text-zinc-500"></svg>
     </div>
-
     <div v-else="profileData" class="bg-white dark:bg-[#0f0f0f]">
         <ProfileSelfContent v-if="isSelfProfile"/>
         <ProfilePublic v-else-if="isPublicAccount" :profileData="profileData"/>

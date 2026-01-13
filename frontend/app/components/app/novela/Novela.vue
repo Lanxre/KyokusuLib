@@ -75,8 +75,30 @@ const updateCountBookmarks = async (categoryId: number) => {
 
 const updateCountLike = async (has_liked: boolean) => {
     if (novela.value && has_liked) {
+        if (user?.id) {
+            await createUserActivity({
+                user_id: user.id,
+                activity_type: ACTIVITY_TYPES.USER_NOVELA_LIKE,
+                target_id: novela.value.id,
+                metadata: {
+                    name: novela.value.title,
+                    desc: 'Пользователь поставил лайк сюжету'
+                }
+            })
+        }
         novela.value.like_count = (novela.value.like_count || 0) + 1;
     } else if (novela.value && !has_liked) {
+        if (user?.id) {
+            await createUserActivity({
+                user_id: user.id,
+                activity_type: ACTIVITY_TYPES.USER_NOVELA_LIKE_REMOVE,
+                target_id: novela.value.id,
+                metadata: {
+                    name: novela.value.title,
+                    desc: 'Пользователь убрал лайк'
+                }
+            })
+        }
         novela.value.like_count = (novela.value.like_count || 0) - 1;
     }
 }
@@ -104,6 +126,19 @@ const updateRating = (rating: number) => {
     novela.value.rating_count = newCount;
     novela.value.rating = roundTo(newAverage, 1);
     novela.value.user_rating = rating; 
+
+    if (user?.id) {
+        createUserActivity({
+            user_id: user.id,
+            activity_type: ACTIVITY_TYPES.USER_NOVELA_RATING,
+            target_id: novela.value.id,
+            metadata: {
+                name: novela.value.title,
+                rating: rating,
+                desc: 'Пользователь оценил произведение'
+            }
+        });
+    }
 }
 
 </script>
