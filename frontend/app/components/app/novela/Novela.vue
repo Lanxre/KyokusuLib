@@ -6,6 +6,7 @@ import NovelaStats from "./NovelaStats.vue";
 import NovelaRating from "./NovelaRating.vue";
 import ChapterList from "./ChapterList.vue";
 import NovelaBookmarkButton from "./NovelaBookmarkButton.vue";
+import NovelaLikeButton from "./NovelaLikeButton.vue";
 import { useUserActivity } from "~/composables/api/profile/useUserActivity";
 import { ACTIVITY_TYPES } from "~/constants/user-activity";
 
@@ -72,6 +73,14 @@ const updateCountBookmarks = async (categoryId: number) => {
     }
 }
 
+const updateCountLike = async (has_liked: boolean) => {
+    if (novela.value && has_liked) {
+        novela.value.like_count = (novela.value.like_count || 0) + 1;
+    } else if (novela.value && !has_liked) {
+        novela.value.like_count = (novela.value.like_count || 0) - 1;
+    }
+}
+
 </script>
 
 <template>
@@ -108,10 +117,11 @@ const updateCountBookmarks = async (categoryId: number) => {
                                     :novela-id="novela.id" 
                                     @update:model-value="updateCountBookmarks"
                                 />
-                                <button class="py-2.5 cursor-pointer rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 text-sm font-semibold">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                                    Лайк
-                                </button>
+                                <NovelaLikeButton 
+                                    v-model="novela.has_liked"
+                                    :novela-id="novela.id"
+                                    @update:model-value="updateCountLike"
+                                />
                             </div>
                         </div>
 

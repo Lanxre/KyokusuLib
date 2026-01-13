@@ -19,5 +19,5 @@ type BookmarkResponse struct {
 
 type UpdateLikeRequest struct {
 	NovelaID int  `json:"novela_id" validate:"required,gt=0"`
-	HasLiked bool `json:"has_liked" validate:"required"`
+	HasLiked bool `json:"has_liked"`
 }

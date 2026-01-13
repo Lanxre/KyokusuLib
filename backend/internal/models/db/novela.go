@@ -28,7 +28,9 @@ type Novela struct {
 	
 	Bookmark      	*BookmarkCategory 	`json:"bookmark"`
 	BookmarkCount 	int 				`json:"bookmark_count"`
+	
 	HasLiked      	bool				`json:"has_liked"`
+	LikeCount     	int					`json:"like_count"`
 }
 
 type NovelaAuthor struct {

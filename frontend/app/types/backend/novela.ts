@@ -44,4 +44,6 @@ export interface NovelaDetails {
 	volumes: NovelaVolume[];
 	bookmark?: string;
 	bookmark_count: number;
+	has_liked: boolean;
+	like_count: number;
 }

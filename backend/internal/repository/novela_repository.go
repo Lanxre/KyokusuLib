@@ -154,7 +154,8 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 
 			COALESCE((SELECT COUNT(*) FROM user_novela_bookmarks WHERE novela_id = n.id), 0),
 
-			COALESCE((SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $2), FALSE)
+			COALESCE((SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $2), FALSE),
+			COALESCE((SELECT COUNT(*) FROM user_novela_likes WHERE novela_id = n.id AND has_liked = TRUE), 0)
 				
 
 		FROM novela n
@@ -181,6 +182,7 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 		&n.Bookmark,
 		&n.BookmarkCount,
 		&n.HasLiked,
+		&n.LikeCount,
 	)
 
 	if err != nil {

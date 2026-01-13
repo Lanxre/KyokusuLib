@@ -129,6 +129,7 @@ func (s *NovelaService) novelaToDto(novela *db.Novela) *dto.NovelaResponse {
 		Volumes:           volumes,
 		Bookmark: 		   &bookmark,
 		BookmarkCount:     novela.BookmarkCount,
-		HasLiked:          novela.HasLiked,	
+		HasLiked:          novela.HasLiked,
+		LikeCount:         novela.LikeCount,	
 	}
 }

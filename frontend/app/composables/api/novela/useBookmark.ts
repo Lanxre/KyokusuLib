@@ -1,5 +1,5 @@
 import { useApi } from "@/composables/api/useApi";
-import type { BookmarkCategory, Bookmark } from "~/types/frontend/bookmarks";
+import type { BookmarkCategory } from "~/types/frontend/bookmarks";
 
 export function useBookmark() {
   const loading = ref(false);
