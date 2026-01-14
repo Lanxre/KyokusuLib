@@ -18,28 +18,36 @@ const props = defineProps<{
 	profileData: GetUserDto | null;
 }>();
 
-const { profileTabs, userRoleColor, getGenderText, getLastLogin, getIsLogin } = useProfile();
+const { profileTabs, accountCreated, userRoleColor, getGenderText, lastLogin, isLogin } = useProfile();
 const { activities, fetchActivities, isLoadingActivities } = useUserActivity();
 
 const activeTab = ref("overview");
 const isModalOpen = ref(false);
 
-const lastLoginText = computed(() => getLastLogin(props.profileData?.last_login));
-const isUserOnline = computed(() => getIsLogin(props.profileData?.last_login));
 const genderText = computed(() => getGenderText(props.profileData?.gender));
 
-const initData = async () => {
-	if (props.profileData?.id) {
-		await fetchActivities(props.profileData.id);
-	}
-};
-
-onMounted(initData);
-watch(() => props.profileData?.id, initData);
+const { status } = await useAsyncData(
+    `profile-activities-${props.profileData?.id}`, 
+    async () => {
+        if (props.profileData?.id) {
+            return await fetchActivities(props.profileData.id);
+        }
+        return [];
+    },
+    { 
+        watch: [() => props.profileData?.id] 
+    }
+);
 </script>
 
 <template>
-    <div class="min-h-screen flex flex-col relative overflow-hidden font-sans transition-all duration-300">
+    <div v-if="status === 'pending'" class="flex justify-center py-20 items-center min-h-screen">
+            <svg class="animate-spin h-10 w-10 text-zinc-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+    </div>
+    <div v-else class="min-h-screen flex flex-col relative overflow-hidden font-sans transition-all duration-300">
         
         <div class="h-48 md:h-64 w-full bg-linear-to-r from-zinc-800 to-zinc-700 relative overflow-hidden group">
             <img 
@@ -65,7 +73,7 @@ watch(() => props.profileData?.id, initData);
                     </div>
                     <div 
                         class="absolute bottom-2 right-2 w-5 h-5 border-4 border-white dark:border-zinc-900 rounded-full transition-colors duration-300"
-                        :class="isUserOnline ? 'bg-green-500' : 'bg-red-500'"
+                        :class="isLogin ? 'bg-green-500' : 'bg-red-500'"
                     ></div>
                 </div>
 
@@ -121,8 +129,12 @@ watch(() => props.profileData?.id, initData);
                         
                         <div class="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800 space-y-3 text-sm">
                             <div class="flex justify-between">
+                                <span class="text-zinc-500">Дата регистрации</span>
+                                <span class="dark:text-zinc-300 font-medium">{{ accountCreated }}</span>
+                            </div>
+                            <div class="flex justify-between">
                                 <span class="text-zinc-500">Последняя активность</span>
-                                <span class="dark:text-zinc-300 font-medium">{{ lastLoginText }}</span>
+                                <span class="dark:text-zinc-300 font-medium">{{ lastLogin }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-zinc-500">Пол</span>

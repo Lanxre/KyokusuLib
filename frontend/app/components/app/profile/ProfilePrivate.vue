@@ -9,9 +9,8 @@ const props = defineProps<{
 	profileData: GetUserDto | null;
 }>();
 
-const { userRoleColor, getIsLogin } = useProfile();
+const { userRoleColor, isLogin } = useProfile();
 
-const isUserOnline = computed(() => getIsLogin(props.profileData?.last_login));
 </script>
 
 <template>
@@ -40,8 +39,8 @@ const isUserOnline = computed(() => getIsLogin(props.profileData?.last_login));
                     </div>
                     <div 
                         class="absolute bottom-2 right-2 w-5 h-5 border-4 border-white dark:border-zinc-900 rounded-full transition-colors duration-300"
-                        :title="isUserOnline ? 'Онлайн' : 'Оффлайн'"
-                        :class="isUserOnline ? 'bg-green-500' : 'bg-red-500'"
+                        :title="isLogin ? 'Онлайн' : 'Оффлайн'"
+                        :class="isLogin ? 'bg-green-500' : 'bg-red-500'"
                     ></div>
                 </div>
 

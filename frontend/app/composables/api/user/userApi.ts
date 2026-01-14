@@ -12,7 +12,7 @@ export function useUserApi() {
 				console.error("USER FETCHER ERROR:", error.value);
 				return null;
 			}
-			return data.value || null;
+			return data.value!;
 		} catch (e) {
 			console.error("USER FETCHER EXCEPTION:", e);
 			return null;
