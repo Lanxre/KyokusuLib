@@ -7,11 +7,13 @@ interface Props {
 	title?: string;
 	width?: string;
     height?: string;
+    centerTitle?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
 	modelValue: false,
 	width: "max-w-lg",
+    centerTitle: false,
 });
 
 const emit = defineEmits(["update:modelValue", "close"]);
@@ -38,13 +40,17 @@ useModalLogic(toRef(props, "modelValue"), close);
                             :class="width"
                             @click.stop
                         >
-                            <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
-                                <h3 class="text-lg font-semibold leading-6 text-zinc-900 dark:text-white" id="modal-title">
+                            <div 
+                                class="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800"
+                                :class="centerTitle ? 'justify-center' : 'justify-between'"
+                            >
+                                <h3 class="text-lg font-semibold leading-6 text-zinc-900 dark:text-white cursor-default" id="modal-title">
                                     {{ title }}
                                 </h3>
                                 <button 
                                     @click="close"
-                                    class="text-zinc-400 hover:text-zinc-500 cursor-pointer dark:hover:text-zinc-300 transition-colors focus:outline-none"
+                                    class="text-zinc-400 hover:text-zinc-500 cursor-pointer dark:hover:text-zinc-300 transition-colors focus:outline-none z-10"
+                                    :class="[centerTitle ? 'absolute right-6' : 'ml-4']"
                                 >
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

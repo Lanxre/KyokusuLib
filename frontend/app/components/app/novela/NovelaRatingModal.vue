@@ -53,7 +53,8 @@ const changeRating = (delta: number) => {
     :model-value="modelValue" 
     @update:model-value="$emit('update:modelValue', $event)"
     title="Оцените произведение" 
-    width="w-full max-w-xl" 
+    width="w-full max-w-xl"
+    center-title
   >
     <div class="py-6 space-y-8 flex flex-col items-center">
       <div class="hidden md:block space-y-3">

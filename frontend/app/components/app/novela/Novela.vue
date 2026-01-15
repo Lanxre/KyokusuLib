@@ -5,21 +5,32 @@ import { correctProfileImage } from "@/utils/str";
 import NovelaStats from "./NovelaStats.vue";
 import NovelaRating from "./NovelaRating.vue";
 import ChapterList from "./ChapterList.vue";
+import NovelaSettings from "./NovelaSettings.vue";
+
+import EditIcon from "@/assets/images/special/setting.png";
+
 import NovelaBookmarkButton from "./NovelaBookmarkButton.vue";
 import NovelaLikeButton from "./NovelaLikeButton.vue";
 import { useUserActivity } from "~/composables/api/profile/useUserActivity";
 import { ACTIVITY_TYPES } from "~/constants/user-activity";
+import { KyokusuAppRole } from "~/types/enums/role-enum";
+import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
 
 const route = useRoute();
+
 const { user } = useAuthStore();
 const { novela, fetchNovela } = useNovela();
 const { createUserActivity } = useUserActivity();
+const { hasPermission } = useRolePermissions();
+
+
 const activeTab = ref<"about" | "chapters">("about");
 
 const novelaId = computed(() => route.params.id as string);
 
 await useAsyncData(`novela-${novelaId.value}`, () => fetchNovela(novelaId.value));
 const bookmarkInitial = ref(Boolean(novela.value?.bookmark));
+const isOpenNovelaSettings = ref(false);
 
 const totalChapters = computed(() => {
     if (!novela.value) return 0;
@@ -140,7 +151,6 @@ const updateRating = (rating: number) => {
         });
     }
 }
-
 </script>
 
 <template>
@@ -203,11 +213,32 @@ const updateRating = (rating: number) => {
 
                     <div class="flex-1 min-w-0 md:pt-12">
                         <div class="md:mb-48">
-                            <div class="flex flex-col gap-3 mb-12">
-                                <h1 class="text-4xl md:text-4xl shadow-text font-black tracking-tight leading-none">{{ novela.title }}</h1>
-                                <h2 v-if="novela.alternative_titles?.length" class="text-lg md:text-xl text-zinc-500 dark:text-zinc-400 font-medium italic">
-                                    {{ novela.alternative_titles.join(' • ') }}
-                                </h2>
+                            <div class="flex flex-row">
+                                <div class="flex flex-col gap-3 mb-12">
+                                    <h1 class="text-4xl md:text-4xl shadow-text font-black tracking-tight leading-none">{{ novela.title }}</h1>
+                                    <h2 v-if="novela.alternative_titles?.length" class="text-lg md:text-xl text-zinc-500 dark:text-zinc-400 font-medium italic">
+                                        {{ novela.alternative_titles.join(' • ') }}
+                                    </h2>
+                                </div>
+                               <div 
+                                    v-if="hasPermission(KyokusuAppRole.MODERATOR)" 
+                                    class="flex items-start mt-3 px-4 w-auto"
+                                >
+                                        <button 
+                                            class="p-2 -m-4 cursor-pointer group outline-none"
+                                            @click="isOpenNovelaSettings = true"
+                                        >
+                                            <img 
+                                                :src="EditIcon" 
+                                                class="w-5 h-5 md:w-4 md:h-4 dark:invert opacity-60 group-hover:opacity-100 transition-opacity"
+                                            />
+                                        </button>
+                                </div>
+
+                                <NovelaSettings
+                                    v-model="isOpenNovelaSettings"
+                                    :novela="novela"
+                                />
                             </div>
                             
                             <div class="flex flex-wrap items-center gap-6 ml-2">
