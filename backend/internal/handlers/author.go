@@ -93,5 +93,6 @@ func (h *AuthorHandler) GetAuthors(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	response.Success(w, http.StatusOK, authors)
+	response.SuccessWithEntity(w, http.StatusOK, authors)
 }
+

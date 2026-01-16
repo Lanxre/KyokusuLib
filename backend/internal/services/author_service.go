@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/lanxre/kyokusulib/internal/models/db"
+	"github.com/lanxre/kyokusulib/internal/models/dto"
 	"github.com/lanxre/kyokusulib/internal/repository"
 	"github.com/lanxre/kyokusulib/internal/utils/files"
 )
@@ -40,5 +41,27 @@ func (s *AuthorService) GetAuthorByName(ctx context.Context, name string) (*db.A
 }
 
 func (s *AuthorService) GetAuthors(ctx context.Context) ([]*db.Author, error) {
-	return s.repo.GetAuthors(ctx)
+	authorsDb, err := s.repo.GetAuthors(ctx)
+	
+	if err != nil {
+		return nil, err
+	}
+
+	authorsDto := make([]*dto.AuthorDTO, len(authorsDb))
+	for i, author := range authorsDb {
+		authorsDto[i] = s.toDTO(author)
+	}
+
+	return authorsDb, nil
+}
+
+func (s *AuthorService) toDTO(author *db.Author) *dto.AuthorDTO {
+	return &dto.AuthorDTO{
+		ID:       author.ID,
+		Name:     author.Name,
+		Country:  author.Country,
+		Metier:   author.Metier,
+		Picture:  author.Picture,
+		Bio:      author.Bio,
+	}
 }
