@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
-import { correctProfileImage } from "@/utils/str";
+import { staticImage } from "@/utils/str";
 import { useProfile } from "@/composables/api/profile/useProfile";
 import { useUserActivity } from "@/composables/api/profile/useUserActivity";
 import { useInterfaceSettings } from "@/composables/api/settings/useInterfaceSettings";
@@ -52,7 +52,7 @@ const { status } = await useAsyncData(
         <div class="h-48 md:h-64 w-full bg-linear-to-r from-zinc-800 to-zinc-700 relative overflow-hidden group">
             <img 
                 v-if="profileData?.banner" 
-                :src="correctProfileImage(profileData.banner)" 
+                :src="staticImage(profileData.banner)" 
                 alt="Banner"
                 class="absolute inset-0 w-full h-full"
             />
@@ -66,7 +66,7 @@ const { status } = await useAsyncData(
                 <div class="relative shrink-0">
                     <div class="w-32 h-32 md:w-40 md:h-40 rounded-2xl border-4 border-white dark:border-zinc-900 bg-zinc-800 overflow-hidden shadow-xl">
                         <img 
-                            :src="correctProfileImage(profileData?.picture || '')" 
+                            :src="staticImage(profileData?.picture || '')" 
                             class="w-full h-full object-cover"
                             alt="Avatar"
                         />

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { correctProfileImage } from "@/utils/str";
+import { staticImage } from "@/utils/str";
 import Separator from "@/components/ui/Separator/Separtor.vue";
 import { useProfile } from "@/composables/api/profile/useProfile";
 import type { GetUserDto } from "@/types/backend/user";
@@ -19,7 +19,7 @@ const { userRoleColor, isLogin } = useProfile();
         <div class="h-48 md:h-64 w-full bg-linear-to-r from-zinc-800 to-zinc-700 relative overflow-hidden">
             <img 
                 v-if="profileData?.banner" 
-                :src="correctProfileImage(profileData.banner)" 
+                :src="staticImage(profileData.banner)" 
                 alt="Profile Banner"
                 class="absolute inset-0 w-full h-full object-cover opacity-50 blur-sm"
             />
@@ -32,7 +32,7 @@ const { userRoleColor, isLogin } = useProfile();
                 <div class="relative shrink-0">
                     <div class="w-32 h-32 md:w-40 md:h-40 rounded-2xl border-4 border-white dark:border-zinc-900 bg-zinc-800 overflow-hidden shadow-xl">
                         <img 
-                            :src="correctProfileImage(profileData?.picture || '')" 
+                            :src="staticImage(profileData?.picture || '')" 
                             class="w-full h-full object-cover"
                             alt="Avatar"
                         />

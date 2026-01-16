@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -127,6 +128,40 @@ func (h *NovelaHandler) CreateNovela(w http.ResponseWriter, r *http.Request) {
 		"id":      novela.ID,
 		"message": "Novela created successfully",
 	})
+}
+
+func (h *NovelaHandler) UpdateNovela(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		response.Error(w, http.StatusBadRequest, "Payload error")
+		return
+	}
+
+	var req dto.UpdateNovelaRequest
+	if err := json.Unmarshal([]byte(r.FormValue("data")), &req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid JSON")
+		return
+	}
+
+	var posterURL string
+	if file, header, err := r.FormFile("poster"); err == nil {
+		defer file.Close()
+		posterURL, _ = h.service.UploadPoster(r.Context(), file, header)
+	}
+
+	err := h.service.UpdateNovela(r.Context(), id, req, posterURL)
+	if err != nil {
+		switch {
+		case errors.Is(err, service.ErrNovelaNotFound):
+			response.Error(w, http.StatusNotFound, err.Error())
+		default:
+			response.Error(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	response.SuccessOkEmpty(w)
 }
 
 func (h *NovelaHandler) SetBookmark(w http.ResponseWriter, r *http.Request) {

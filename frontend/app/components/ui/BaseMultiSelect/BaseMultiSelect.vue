@@ -1,32 +1,54 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 
+interface Option {
+	id: string | number;
+	label: string;
+}
+
 interface Props {
-	modelValue: string[];
-	options: string[];
+	modelValue: (string | number | Option)[];
+	options: (string | Option)[];
 	id: string;
 	label?: string;
 	placeholder?: string;
 	error?: string;
 	disabled?: boolean;
+	loading?: boolean;
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue", "search"]);
 
 const isOpen = ref(false);
 const searchQuery = ref("");
 const wrapperRef = ref<HTMLElement | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
 
+const normalizedOptions = computed(() => {
+	return props.options.map((opt) => 
+		typeof opt === "string" ? { id: opt, label: opt } : opt
+	);
+});
+
+const normalizedSelected = computed(() => {
+	return props.modelValue.map((val) => {
+		if (typeof val === "object" && val !== null) return val as Option;
+		
+		const found = normalizedOptions.value.find(opt => opt.id === val);
+		return found || { id: val, label: String(val) };
+	});
+});
+
 const availableOptions = computed(() => {
-	return props.options.filter((option) => !props.modelValue.includes(option));
+	const selectedIds = normalizedSelected.value.map((s) => s.id);
+	return normalizedOptions.value.filter((opt) => !selectedIds.includes(opt.id));
 });
 
 const filteredOptions = computed(() => {
 	if (!searchQuery.value) return availableOptions.value;
-	return availableOptions.value.filter((option) =>
-		option.toLowerCase().includes(searchQuery.value.toLowerCase()),
+	return availableOptions.value.filter((opt) =>
+		opt.label.toLowerCase().includes(searchQuery.value.toLowerCase()),
 	);
 });
 
@@ -41,10 +63,12 @@ const closeDropdown = () => {
 	searchQuery.value = "";
 };
 
-const selectOption = (option: string) => {
-	emit("update:modelValue", [...props.modelValue, option]);
+const selectOption = (option: Option) => {
+    const isObjectInModel = props.modelValue.length > 0 && typeof props.modelValue[0] === 'object';
+    const valueToAdd = isObjectInModel ? option : option.id;
+	emit("update:modelValue", [...props.modelValue, valueToAdd]);
 	searchQuery.value = "";
-	inputRef.value?.focus();
+	nextTick(() => inputRef.value?.focus());
 };
 
 const removeOption = (index: number) => {
@@ -52,6 +76,11 @@ const removeOption = (index: number) => {
 	const newSelected = [...props.modelValue];
 	newSelected.splice(index, 1);
 	emit("update:modelValue", newSelected);
+};
+
+const handleInput = (e: Event) => {
+	const target = e.target as HTMLInputElement;
+	emit("search", target.value);
 };
 
 const handleBackspace = () => {
@@ -66,37 +95,36 @@ const handleClickOutside = (event: MouseEvent) => {
 	}
 };
 
-onMounted(() => document.addEventListener("click", handleClickOutside));
-onUnmounted(() => document.removeEventListener("click", handleClickOutside));
+onMounted(() => document.addEventListener("mousedown", handleClickOutside));
+onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside));
 </script>
 
 <template>
-    <div class="space-y-1 relative" ref="wrapperRef">
-        <label v-if="label" :for="id" class="text-sm font-medium text-zinc-700 dark:text-zinc-300 ml-[3px]">
+    <div class="space-y-1 relative w-full" ref="wrapperRef">
+        <label v-if="label" :for="id" class="text-[10px] font-black uppercase tracking-wider text-zinc-500 ml-1">
             {{ label }}
         </label>
 
         <div 
-            class="w-full bg-zinc-50 dark:bg-zinc-900/50 border rounded-lg mt-1 py-1.5 px-2 min-h-8 flex flex-wrap items-center gap-2 transition-all cursor-text relative"
+            class="w-full bg-zinc-50 dark:bg-zinc-900/50 border rounded-xl mt-1.5 py-2 px-3 min-h-[46px] flex flex-wrap items-center gap-2 transition-all cursor-text relative"
             :class="[
                 error 
-                    ? 'border-red-500 focus-within:ring-2 focus-within:ring-red-500' 
-                    : 'border-zinc-300 dark:border-zinc-700 focus-within:ring-2 focus-within:ring-zinc-500 dark:focus-within:ring-zinc-600 focus-within:border-transparent',
+                    ? 'border-red-500' 
+                    : 'border-zinc-200 dark:border-zinc-800 focus-within:border-yellow-500/50 focus-within:ring-4 focus-within:ring-yellow-500/5',
                 disabled ? 'opacity-50 cursor-not-allowed' : ''
             ]"
             @click="openDropdown"
         >
             <div 
-                v-for="(item, index) in modelValue" 
-                :key="item"
-                class="flex h-8 items-center gap-2 cursor-default bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-200 px-4 py-1 rounded-4xl text-[15px] group transition-colors hover:bg-red-100 dark:hover:bg-orange-700/30"
+                v-for="(item, index) in normalizedSelected" 
+                :key="item.id"
+                class="flex h-7 items-center gap-2 cursor-default bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-200 pl-3 pr-1.5 rounded-lg text-xs font-bold border border-zinc-200 dark:border-zinc-700 shadow-sm"
             >
-                <span>{{ item }}</span>
+                <span>{{ item.label }}</span>
                 <button 
                     type="button" 
                     @click.stop="removeOption(index)"
-                    :disabled="disabled"
-                    class="text-zinc-500 cursor-pointer hover:text-red-500 transition-colors focus:outline-none"
+                    class="text-zinc-400 hover:text-red-500 transition-colors cursor-pointer"
                 >
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -109,49 +137,33 @@ onUnmounted(() => document.removeEventListener("click", handleClickOutside));
                 ref="inputRef"
                 v-model="searchQuery"
                 type="text"
-                class="flex-1 bg-transparent border-none outline-none text-sm text-zinc-900 dark:text-zinc-200 placeholder-zinc-400 min-w-[100px] h-7"
+                class="flex-1 bg-transparent border-none outline-none text-sm text-zinc-900 dark:text-zinc-200 placeholder-zinc-400 min-w-[120px] h-7"
                 :placeholder="modelValue.length === 0 ? placeholder : ''"
                 :disabled="disabled"
+                @input="handleInput"
                 @keydown.backspace="handleBackspace"
                 @focus="isOpen = true"
             />
+
+            <div v-if="loading" class="absolute right-3">
+                <div class="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
         </div>
 
-        <div 
-            v-if="isOpen && (filteredOptions.length > 0 || searchQuery)" 
-            class="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-xl max-h-60 overflow-hidden flex flex-col"
-        >
-            <ul class="overflow-y-auto flex-1 p-1 custom-scrollbar">
+        <div v-if="isOpen" class="absolute z-[100] w-full mt-2 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <ul class="overflow-y-auto max-h-60 p-2 custom-scrollbar">
                 <li 
                     v-for="option in filteredOptions" 
-                    :key="option"
-                    @click="selectOption(option)"
-                    class="px-3 py-2 text-sm rounded-md cursor-pointer transition-colors text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    :key="option.id"
+                    @click.stop="selectOption(option)"
+                    class="px-4 py-2.5 text-sm rounded-xl cursor-pointer transition-all text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-medium"
                 >
-                    {{ option }}
+                    {{ option.label }}
                 </li>
-                <li v-if="filteredOptions.length === 0" class="px-3 py-2 text-sm text-zinc-400 text-center">
-                    Ничего не найдено
+                <li v-if="filteredOptions.length === 0 && !loading" class="px-4 py-8 text-sm text-zinc-400 text-center italic">
+                    {{ searchQuery ? 'Ничего не найдено' : 'Начните вводить...' }}
                 </li>
             </ul>
         </div>
-
-        <p v-if="error" class="text-xs text-red-500 dark:text-red-400 ml-[3px]">{{ error }}</p>
     </div>
 </template>
-
-<style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #52525b;
-    border-radius: 2px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #71717a;
-}
-</style>

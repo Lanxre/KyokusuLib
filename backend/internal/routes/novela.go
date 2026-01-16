@@ -12,6 +12,8 @@ func (a *NovelaRoutes) Register(cfg *config.Config, r *mux.Router) {
 	novelaRouter := r.PathPrefix("/api").Subrouter()
 	
 	novelaRouter.Handle("/novela/{id:[0-9]+}", middleware.DefaultMiddleware(http.HandlerFunc(a.Handler.GetNovela), cfg.JWTSecret)).Methods("GET")
+	novelaRouter.Handle("/novela/{id:[0-9]+}", middleware.DefaultMiddleware(http.HandlerFunc(a.Handler.UpdateNovela), cfg.JWTSecret)).Methods("PUT")
+
 	novelaRouter.Handle("/novela", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.CreateNovela), cfg.JWTSecret)).Methods("POST")
 
 	novelaRouter.Handle("/novela/bookmark", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.SetBookmark), cfg.JWTSecret)).Methods("POST")

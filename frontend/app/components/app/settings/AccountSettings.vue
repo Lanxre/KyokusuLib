@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { correctProfileImage } from "@/utils/str";
+import { staticImage } from "@/utils/str";
 import BaseDateInput from "@/components/ui/BaseDateInput/BaseDateInput.vue";
 import BaseInput from "@/components/ui/BaseInput/BaseInput.vue";
 import BaseSelect from "@/components/ui/BaseSelect/BaseSelect.vue";
@@ -57,7 +57,7 @@ const genderOptions = [
                     <div v-if="isLoading" class="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
                         <svg class="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     </div> 
-                    <img :src="correctProfileImage(profile.picture)" alt="Avatar" class="w-full h-full object-cover bg-zinc-100 dark:bg-zinc-800" />
+                    <img :src="staticImage(profile.picture)" alt="Avatar" class="w-full h-full object-cover bg-zinc-100 dark:bg-zinc-800" />
                 </div>
                 <div v-if="!isLoading" class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <span class="text-xs text-white font-medium">Изменить</span>
@@ -83,7 +83,7 @@ const genderOptions = [
                     </div> 
                     <img 
                         v-if="profile.banner" 
-                        :src="correctProfileImage(profile.banner)" 
+                        :src="staticImage(profile.banner)" 
                         alt="Banner" 
                         class="w-full h-full object-cover bg-zinc-100 dark:bg-zinc-800" 
                     />

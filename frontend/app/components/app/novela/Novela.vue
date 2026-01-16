@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useNovela } from "@/composables/api/novela/useNovela";
-import { correctProfileImage } from "@/utils/str";
+import { staticImage } from "@/utils/str";
 
 import NovelaStats from "./NovelaStats.vue";
 import NovelaRating from "./NovelaRating.vue";
@@ -15,6 +15,7 @@ import { useUserActivity } from "~/composables/api/profile/useUserActivity";
 import { ACTIVITY_TYPES } from "~/constants/user-activity";
 import { KyokusuAppRole } from "~/types/enums/role-enum";
 import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
+import type { NovelaDetails } from "~/types/backend/novela";
 
 const route = useRoute();
 
@@ -40,7 +41,8 @@ const totalChapters = computed(() => {
 const novelaInfo = computed(() => [
     { label: "Статус", value: novela.value?.status },
     { label: "Перевод", value: novela.value?.translation_status },
-    { label: "Автор", value: novela.value?.authors?.[0]?.name, isLink: true },
+    { label: "Страна", value: novela.value?.country },
+    { label: "Автор", value: novela.value?.authors?.[0]?.name },
 ]);
 
 const updateCountBookmarks = async (categoryId: number) => {
@@ -151,6 +153,13 @@ const updateRating = (rating: number) => {
         });
     }
 }
+
+const updatedNovela = (payload: NovelaDetails) => {
+    if (novela.value) {
+        Object.assign(novela.value, payload);
+    }
+}
+
 </script>
 
 <template>
@@ -160,7 +169,7 @@ const updateRating = (rating: number) => {
             <div class="relative h-[300px] md:h-[450px] w-full overflow-hidden">
                 <div class="absolute inset-0 bg-black/40 z-10 backdrop-blur-sm"></div>
                 <div class="absolute inset-0 bg-gradient-to-t from-zinc-50 dark:from-[#0f0f0f] via-transparent to-transparent z-20"></div>
-                <img :src="correctProfileImage(novela.poster_url || '')" class="w-full h-full object-cover blur-md scale-110" alt="Backdrop" />
+                <img :src="staticImage(novela.poster_url || '')" class="w-full h-full object-cover blur-md scale-110" alt="Backdrop" />
             </div>
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-64 md:-mt-106 relative z-30 pb-12">
@@ -168,7 +177,7 @@ const updateRating = (rating: number) => {
                     
                     <div class="w-full md:w-[300px] flex-shrink-0 flex flex-col gap-6">
                         <div class="relative rounded-2xl overflow-hidden shadow-2xl aspect-[2/3] border border-white/10 group">
-                            <img :src="correctProfileImage(novela.poster_url || '')" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" :alt="novela.title" />
+                            <img :src="staticImage(novela.poster_url || '')" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" :alt="novela.title" />
                             <div class="absolute top-3 left-3 bg-zinc-900/80 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold text-white">
                                 {{ novela.age_rating }}
                             </div>
@@ -198,7 +207,7 @@ const updateRating = (rating: number) => {
                         <div class="hidden md:flex flex-col gap-4 bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl backdrop-blur-sm">
                             <div v-for="info in novelaInfo" :key="info.label" class="flex justify-between items-center text-sm">
                                 <span class="text-zinc-500">{{ info.label }}</span>
-                                <span :class="['font-semibold', info.isLink ? 'text-blue-500 hover:underline cursor-pointer' : 'text-zinc-800 dark:text-zinc-200']">
+                                <span :class="['font-semibold cursor-default', info.value ? 'text-zinc-900 dark:text-zinc-200' : 'text-zinc-500']">
                                     {{ info.value || '—' }}
                                 </span>
                             </div>
@@ -238,6 +247,7 @@ const updateRating = (rating: number) => {
                                 <NovelaSettings
                                     v-model="isOpenNovelaSettings"
                                     :novela="novela"
+                                    @updated="updatedNovela"
                                 />
                             </div>
                             

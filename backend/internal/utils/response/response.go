@@ -23,6 +23,14 @@ func Success(w http.ResponseWriter, status int, entity any) {
 	JSON(w, status, map[string]any{"message": entity})
 }
 
+func SuccessWithEntity(w http.ResponseWriter, status int, entity any) {
+	JSON(w, status, entity)
+}
+
+func SuccessData(w http.ResponseWriter, status int, entity any) {
+	JSON(w, status, map[string]any{"data": entity})
+}
+
 func SuccessOkEmpty(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

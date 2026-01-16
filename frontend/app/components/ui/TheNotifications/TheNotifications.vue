@@ -8,7 +8,7 @@ const { notifications } = storeToRefs(store);
 </script>
 
 <template>
-    <div class="fixed top-24 right-8 z-50 flex flex-col gap-2 w-full max-w-sm pointer-events-none p-4 sm:p-0 overflow-x-hidden">
+    <div class="fixed top-24 right-8 z-9999 flex flex-col gap-2 w-full max-w-sm pointer-events-none p-4 sm:p-0 overflow-x-hidden">
         <TransitionGroup 
             enter-active-class="transform ease-out duration-300 transition"
             enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-4"

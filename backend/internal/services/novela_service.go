@@ -2,7 +2,10 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"mime/multipart"
+	"time"
 
 	"github.com/lanxre/kyokusulib/internal/models/db"
 	"github.com/lanxre/kyokusulib/internal/models/dto"
@@ -32,6 +35,10 @@ func (s *NovelaService) GetNovelaById(ctx context.Context, id, userID int) (*dto
 
 func (s *NovelaService) UploadPoster(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
 	return files.UploadImage(ctx, file, header, "/novelas/posters", 600, 900)
+}
+
+func (s *NovelaService) SavePoster(ctx context.Context, id int, posterURL string) error {
+	return s.Repo.UpdatePoster(ctx, id, posterURL)
 }
 
 func (s *NovelaService) Create(ctx context.Context, novela *db.Novela) error {
@@ -69,6 +76,38 @@ func (s *NovelaService) SetRating(ctx context.Context, userID int, req dto.Updat
 	})
 }
 
+func (s *NovelaService) UpdateNovela(ctx context.Context, id int, req dto.UpdateNovelaRequest, posterURL string) error {
+	releaseDate, _ := time.Parse("2006", req.ReleaseDate)
+	novela := &db.Novela{
+		ID:                id,
+		Title:             req.Title,
+		AlternativeTitles: req.AlternativeTitles,
+		Description:       req.Description,
+		Type:              req.Type,
+		AgeRating:         req.AgeRating,
+		ReleaseDate:       releaseDate,
+		Status:            req.Status,
+		Country:           req.Country,
+		TranslationStatus: req.TranslationStatus,
+		PosterURL:         posterURL,
+		Genres:            req.Genres,
+		Categories:        req.Categories,
+	}
+
+	for _, authorID := range req.Authors {
+		novela.Authors = append(novela.Authors, db.NovelaAuthor{ID: authorID})
+	}
+
+	err := s.Repo.UpdateFull(ctx, novela)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errors.ErrUnsupported
+		}
+		return ErrInternal
+	}
+
+	return nil
+}
 func (s *NovelaService) novelaToDto(novela *db.Novela) *dto.NovelaResponse {
 	if novela == nil {
 		return nil

@@ -6,7 +6,7 @@ export function correctProfileImageLink(link: string) {
 	return `${backendUrl}/${link}`;
 }
 
-export function correctProfileImage(picture: string | null | undefined) {
+export function staticImage(picture: string | null | undefined) {
 	if (picture && picture.startsWith("/uploads")) {
 		const backendUrl = getApiBase();
 		return `${backendUrl}${picture}`;

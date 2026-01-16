@@ -66,3 +66,18 @@ type NovelaChapterImage struct {
 	ImageURL string `json:"image_url"`
 	Caption  string `json:"caption"`
 }
+
+type UpdateNovelaRequest struct {
+	Title             string   `json:"title" validate:"required"`
+	AlternativeTitles []string `json:"alternative_titles"`
+	Description       string   `json:"description"`
+	Type              string   `json:"type"`
+	AgeRating         string   `json:"age_rating"`
+	ReleaseDate       string   `json:"release_date"`
+	Status            string   `json:"status"`
+	Country           string   `json:"country"`
+	TranslationStatus string   `json:"translation_status"`
+	Genres            []string `json:"genres"`
+	Categories        []string `json:"categories"`
+	Authors           []int    `json:"authors"`
+}

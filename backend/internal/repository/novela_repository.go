@@ -229,26 +229,58 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 	return n, nil
 }
 
-func (r *NovelaRepository) Update(ctx context.Context, n *db.Novela) error {
+func (r *NovelaRepository) UpdateFull(ctx context.Context, n *db.Novela) error {
+	tx, err := r.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	query := `
 		UPDATE novela 
-		SET title=$1, alternative_titles=$2, description=$3, type=$4, age_rating=$5, 
-		    release_date=$6, status=$7, translation_status=$8, poster_url=$9, updated_at=NOW()
-		WHERE id=$10`
+		SET title = $1, alternative_titles = $2, description = $3, type = $4, 
+		    age_rating = $5, release_date = $6, status = $7, country = $8, 
+		    translation_status = $9, poster_url = COALESCE(NULLIF($10, ''), poster_url),
+			updated_at = NOW()
+		WHERE id = $11`
 
-	_, err := r.DB.ExecContext(ctx, query,
-		n.Title,
-		n.AlternativeTitles,
-		n.Description,
-		n.Type,
-		n.AgeRating,
-		n.ReleaseDate,
-		n.Status,
-		n.TranslationStatus,
-		n.PosterURL,
-		n.ID,
+	res, err := tx.ExecContext(ctx, query,
+		n.Title, pq.Array(n.AlternativeTitles), n.Description, n.Type,
+		n.AgeRating, n.ReleaseDate, n.Status, n.Country,
+		n.TranslationStatus, n.PosterURL, n.ID,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+
+	if rows, _ := res.RowsAffected(); rows == 0 {
+		return sql.ErrNoRows
+	}
+
+	for _, table := range []string{"novela_genres", "novela_categories", "novela_authors"} {
+		if _, err := tx.ExecContext(ctx, fmt.Sprintf("DELETE FROM %s WHERE novela_id = $1", table), n.ID); err != nil {
+			return err
+		}
+	}
+
+	if err := r.linkTags(ctx, tx, n.ID, n.Genres, "genres", "novela_genres", "genre_id"); err != nil {
+		return err
+	}
+
+	if err := r.linkTags(ctx, tx, n.ID, n.Categories, "categories", "novela_categories", "category_id"); err != nil {
+		return err
+	}
+
+	for _, author := range n.Authors {
+		if _, err := tx.ExecContext(ctx,
+			`INSERT INTO novela_authors (novela_id, author_id, role) VALUES ($1, $2, $3)`,
+			n.ID, author.ID, "Author",
+		); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
 }
 
 func (r *NovelaRepository) Delete(ctx context.Context, id int) error {
@@ -454,5 +486,11 @@ func (r *NovelaRepository) SetRating(ctx context.Context, rating *db.NovelaRatin
 		DO UPDATE SET
 			rating = EXCLUDED.rating`
 	_, err := r.DB.ExecContext(ctx, query, rating.UserID, rating.NovelaID, rating.Rating)
+	return err
+}
+
+func (r *NovelaRepository) UpdatePoster(ctx context.Context, id int, posterURL string) error {
+	query := `UPDATE novela SET poster_url = $2 WHERE id = $1`
+	_, err := r.DB.ExecContext(ctx, query, id, posterURL)
 	return err
 }

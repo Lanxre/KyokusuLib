@@ -2,7 +2,7 @@
 import { onClickOutside } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
-import { correctProfileImage } from "@/utils/str";
+import { staticImage } from "@/utils/str";
 
 import BookMarkIcon from "@/assets/images/header/bookmark-white.png";
 import LogoIcon from "@/assets/images/Kyokusu/kyokusulib_logo_2.png";
@@ -98,7 +98,7 @@ const goToLogin = () => {
                 class="flex items-center gap-2 focus:outline-none"
             >
                 <div class="h-10 w-10 cursor-pointer rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center overflow-hidden border-2 border-transparent hover:border-zinc-400 dark:hover:border-zinc-300/50 transition-colors">
-                    <img :src="correctProfileImage(user.picture)" class="w-full h-full object-cover" alt="Avatar" />
+                    <img :src="staticImage(user.picture)" class="w-full h-full object-cover" alt="Avatar" />
                 </div>
             </button>
 
@@ -191,7 +191,7 @@ const goToLogin = () => {
             <div v-if="isAuthenticated && user" class="flex items-center gap-3 p-3 bg-zinc-100 dark:bg-zinc-800/50 rounded-xl mb-2">
                 <NuxtLink :to="`/profile/${user.id}`" class="h-10 w-10 shrink-0 rounded-full flex items-center justify-center overflow-hidden" @click="closeMobileMenu">
                     <div class="h-10 w-10 rounded-full bg-zinc-600 flex items-center justify-center overflow-hidden">
-                        <img :src="correctProfileImage(user.picture)" class="w-full h-full object-cover" />
+                        <img :src="staticImage(user.picture)" class="w-full h-full object-cover" />
                     </div>
                 </NuxtLink>
                 <div class="flex-1 min-w-0">

@@ -48,4 +48,5 @@ export interface NovelaDetails {
 	like_count: number;
 	user_rating: number;
 	rating_count: number;
+	country: string;
 }
