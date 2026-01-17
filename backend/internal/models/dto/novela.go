@@ -81,3 +81,14 @@ type UpdateNovelaRequest struct {
 	Categories        []string `json:"categories"`
 	Authors           []int    `json:"authors"`
 }
+
+type NovelaFilters struct {
+	Limit      int
+	Offset     int
+	Search     string
+	Sort       string
+	Genres     []string
+	Categories []string
+	Type       string
+	Status     string
+}

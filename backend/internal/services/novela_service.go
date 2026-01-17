@@ -108,6 +108,28 @@ func (s *NovelaService) UpdateNovela(ctx context.Context, id int, req dto.Update
 
 	return nil
 }
+
+func (s *NovelaService) GetNovelas(ctx context.Context, userID int, filters dto.NovelaFilters) ([]dto.NovelaResponse, int, error) {
+	if filters.Limit > 100 {
+		filters.Limit = 100
+	}
+	
+	dbNovelas, total, err := s.Repo.GetNovelas(ctx, userID, filters)
+	if err != nil {
+		return nil, 0, err
+	}
+
+    var response []dto.NovelaResponse
+    for _, novela := range dbNovelas {
+        dto := s.novelaToDto(&novela)
+        if dto != nil {
+            response = append(response, *dto)
+        }
+    }
+
+	return response, total, nil
+}
+
 func (s *NovelaService) novelaToDto(novela *db.Novela) *dto.NovelaResponse {
 	if novela == nil {
 		return nil

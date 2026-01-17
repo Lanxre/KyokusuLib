@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/lanxre/kyokusulib/internal/models/db"
+	"github.com/lanxre/kyokusulib/internal/models/dto"
 	"github.com/lib/pq"
 )
 
@@ -43,7 +45,7 @@ func (r *NovelaRepository) Create(ctx context.Context, n *db.Novela) error {
 
 	err = tx.QueryRowContext(ctx, query,
 		n.Title,
-		n.AlternativeTitles,
+		pq.Array(n.AlternativeTitles),
 		n.Description,
 		n.Type,
 		n.AgeRating,
@@ -76,15 +78,13 @@ func (r *NovelaRepository) Create(ctx context.Context, n *db.Novela) error {
 
 	return tx.Commit()
 }
-
 func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db.Novela, error) {
 	n := &db.Novela{}
 
 	var (
 		authorsJSON []byte
 		volumesJSON []byte
-
-		userRating sql.NullInt32
+		userRating  sql.NullInt32
 	)
 
 	query := `
@@ -218,13 +218,13 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 	}
 
 	if n.Bookmark != nil {
-		*n.Bookmark = db.BookmarkCategory(*n.Bookmark)
+		val := db.BookmarkCategory(*n.Bookmark)
+		n.Bookmark = &val
 	}
 
 	if userRating.Valid {
 		n.UserRating = int(userRating.Int32)
 	}
-	
 
 	return n, nil
 }
@@ -305,6 +305,7 @@ func (r *NovelaRepository) LinkAuthor(ctx context.Context, novelaID int, authorN
 	if err != nil {
 		return fmt.Errorf("failed to upsert author: %w", err)
 	}
+
 	query := `
 		INSERT INTO novela_authors (novela_id, author_id, role) 
 		VALUES ($1, $2, $3)
@@ -318,6 +319,7 @@ func (r *NovelaRepository) LinkAuthor(ctx context.Context, novelaID int, authorN
 
 	return tx.Commit()
 }
+
 func (r *NovelaRepository) linkTags(ctx context.Context, tx *sql.Tx, novelaID int, tags []string, tableName, linkTable, fkCol string) error {
 	for _, name := range tags {
 		var tagID int
@@ -376,7 +378,6 @@ func (r *NovelaRepository) CreateChapter(ctx context.Context, volumeID int, ch *
 
 	if len(ch.Images) > 0 {
 		imgQuery := `INSERT INTO novela_chapter_images (chapter_id, image_url, caption) VALUES ($1, $2, $3)`
-
 		stmt, err := tx.PrepareContext(ctx, imgQuery)
 		if err != nil {
 			return err
@@ -426,27 +427,6 @@ func (r *NovelaRepository) GetChapterByID(ctx context.Context, chapterID int) (*
 	return ch, nil
 }
 
-func (r *NovelaRepository) FindByTitle(ctx context.Context, title string) (*db.Novela, error) {
-	novela := &db.Novela{}
-
-	query := `
-		SELECT id, title, alternative_titles
-		FROM novela
-		WHERE title ILIKE $1 OR $1 ILIKE ANY(alternative_titles)
-		LIMIT 1`
-
-	err := r.DB.QueryRowContext(ctx, query, title).Scan(&novela.ID, &novela.Title, pq.Array(&novela.AlternativeTitles))
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	return novela, nil
-}
-
 func (r *NovelaRepository) SetBookmark(ctx context.Context, bookmark *db.Bookmark) error {
 	query := `
 		INSERT INTO user_novela_bookmarks (user_id, novela_id, category, updated_at) 
@@ -493,4 +473,175 @@ func (r *NovelaRepository) UpdatePoster(ctx context.Context, id int, posterURL s
 	query := `UPDATE novela SET poster_url = $2 WHERE id = $1`
 	_, err := r.DB.ExecContext(ctx, query, id, posterURL)
 	return err
+}
+
+func (r *NovelaRepository) GetNovelas(ctx context.Context, userID int, f dto.NovelaFilters) ([]db.Novela, int, error) {
+	var filterArgs []interface{}
+	filterArgIDStart := 2 
+	
+	whereParts := []string{"1=1"}
+	
+	ph := func(idx int) string {
+		return fmt.Sprintf("$%d", idx)
+	}
+
+	currentArgID := filterArgIDStart
+
+	if f.Search != "" {
+		whereParts = append(whereParts, fmt.Sprintf("(title ILIKE %s OR %s ILIKE ANY(alternative_titles))", ph(currentArgID), ph(currentArgID)))
+		filterArgs = append(filterArgs, "%"+f.Search+"%")
+		currentArgID++
+	}
+
+	if len(f.Genres) > 0 {
+		whereParts = append(whereParts, fmt.Sprintf(`EXISTS (
+			SELECT 1 FROM novela_genres ng JOIN genres g ON ng.genre_id = g.id 
+			WHERE ng.novela_id = n.id AND g.name = ANY(%s)
+		)`, ph(currentArgID)))
+		filterArgs = append(filterArgs, pq.Array(f.Genres))
+		currentArgID++
+	}
+
+	if len(f.Categories) > 0 {
+		whereParts = append(whereParts, fmt.Sprintf(`EXISTS (
+			SELECT 1 FROM novela_categories nc JOIN categories c ON nc.category_id = c.id 
+			WHERE nc.novela_id = n.id AND c.name = ANY(%s)
+		)`, ph(currentArgID)))
+		filterArgs = append(filterArgs, pq.Array(f.Categories))
+		currentArgID++
+	}
+
+	if f.Type != "" {
+		whereParts = append(whereParts, fmt.Sprintf("type = %s", ph(currentArgID)))
+		filterArgs = append(filterArgs, f.Type)
+		currentArgID++
+	}
+
+	if f.Status != "" {
+		whereParts = append(whereParts, fmt.Sprintf("status = %s", ph(currentArgID)))
+		filterArgs = append(filterArgs, f.Status)
+		currentArgID++
+	}
+
+	whereSQL := strings.Join(whereParts, " AND ")
+
+	orderBy := "created_at DESC"
+	switch f.Sort {
+	case "popular":
+		orderBy = "views DESC"
+	case "rating":
+		orderBy = "(SELECT AVG(rating) FROM novela_ratings WHERE novela_id = n.id) DESC NULLS LAST"
+	case "old":
+		orderBy = "created_at ASC"
+	}
+
+	query := fmt.Sprintf(`
+		SELECT 
+			n.id, n.title, 
+			COALESCE(n.alternative_titles, '{}')::text[],
+			n.description, n.type, n.age_rating, n.release_date, 
+			n.status, n.country, n.translation_status, n.poster_url, n.views,
+			COALESCE((SELECT AVG(rating) FROM novela_ratings WHERE novela_id = n.id), 0) as rating,
+
+			COALESCE((SELECT array_agg(g.name) FROM novela_genres ng JOIN genres g ON ng.genre_id = g.id WHERE ng.novela_id = n.id), '{}')::text[],
+			COALESCE((SELECT array_agg(c.name) FROM novela_categories nc JOIN categories c ON nc.category_id = c.id WHERE nc.novela_id = n.id), '{}')::text[],
+
+			COALESCE((
+				SELECT json_agg(json_build_object('id', a.id, 'name', a.name, 'role', na.role))
+				FROM novela_authors na JOIN authors a ON na.author_id = a.id WHERE na.novela_id = n.id
+			), '[]'),
+
+			COALESCE((
+				SELECT json_agg(
+					json_build_object(
+						'id', v.id,
+						'title', v.title,
+						'number', v.volume_number,
+						'chapters', COALESCE((
+							SELECT json_agg(
+								json_build_object(
+									'id', ch.id,
+									'title', ch.title,
+									'number', ch.chapter_number,
+									'images', COALESCE((
+										SELECT json_agg(
+											json_build_object('id', img.id, 'image_url', img.image_url, 'caption', img.caption)
+											ORDER BY img.id
+										) FROM novela_chapter_images img WHERE img.chapter_id = ch.id
+									), '[]'::json)
+								) ORDER BY ch.chapter_number
+							) FROM novela_chapters ch WHERE ch.novela_volume_id = v.id
+						), '[]'::json)
+					) ORDER BY v.volume_number
+				) FROM novela_volumes v WHERE v.novela_id = n.id
+			), '[]'),
+			
+			CASE WHEN $1 > 0 THEN (SELECT category FROM user_novela_bookmarks WHERE novela_id = n.id AND user_id = $1) ELSE NULL END,
+			COALESCE((SELECT COUNT(*) FROM user_novela_bookmarks WHERE novela_id = n.id), 0),
+
+			CASE WHEN $1 > 0 THEN (SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $1) ELSE FALSE END,
+			COALESCE((SELECT COUNT(*) FROM user_novela_likes WHERE novela_id = n.id AND has_liked = TRUE), 0),
+
+			CASE WHEN $1 > 0 THEN (SELECT rating FROM novela_ratings WHERE novela_id = n.id AND user_id = $1) ELSE 0 END,
+			COALESCE((SELECT COUNT(*) FROM novela_ratings WHERE novela_id = n.id), 0)
+
+		FROM novela n
+		WHERE %s
+		ORDER BY %s
+		LIMIT %s OFFSET %s`, 
+		whereSQL, orderBy, ph(currentArgID), ph(currentArgID+1))
+
+	mainArgs := append([]interface{}{userID}, filterArgs...)
+	mainArgs = append(mainArgs, f.Limit, f.Offset)
+
+	rows, err := r.DB.QueryContext(ctx, query, mainArgs...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var novelas []db.Novela
+	for rows.Next() {
+		var n db.Novela
+		var authorsJSON, volumesJSON []byte
+		var userRating sql.NullInt32
+		
+		err := rows.Scan(
+			&n.ID, &n.Title, pq.Array(&n.AlternativeTitles), &n.Description, 
+			&n.Type, &n.AgeRating, &n.ReleaseDate, &n.Status, &n.Country, 
+			&n.TranslationStatus, &n.PosterURL, &n.Views, &n.Rating,
+			pq.Array(&n.Genres), pq.Array(&n.Categories),
+			&authorsJSON, &volumesJSON,
+			&n.Bookmark, &n.BookmarkCount, &n.HasLiked, &n.LikeCount,
+			&userRating, &n.RatingCount,
+		)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		if len(authorsJSON) > 0 { _ = json.Unmarshal(authorsJSON, &n.Authors) }
+		if len(volumesJSON) > 0 { _ = json.Unmarshal(volumesJSON, &n.Volumes) }
+		if n.Bookmark != nil { val := db.BookmarkCategory(*n.Bookmark); n.Bookmark = &val }
+		if userRating.Valid { n.UserRating = int(userRating.Int32) }
+		
+		novelas = append(novelas, n)
+	}
+
+	countWhereParts := []string{"1=1"}
+	countArgID := 1
+	if f.Search != "" { countWhereParts = append(countWhereParts, fmt.Sprintf("(title ILIKE $%d OR $%d ILIKE ANY(alternative_titles))", countArgID, countArgID)); countArgID++ }
+	if len(f.Genres) > 0 { countWhereParts = append(countWhereParts, fmt.Sprintf(`EXISTS (SELECT 1 FROM novela_genres ng JOIN genres g ON ng.genre_id = g.id WHERE ng.novela_id = n.id AND g.name = ANY($%d))`, countArgID)); countArgID++ }
+	if len(f.Categories) > 0 { countWhereParts = append(countWhereParts, fmt.Sprintf(`EXISTS (SELECT 1 FROM novela_categories nc JOIN categories c ON nc.category_id = c.id WHERE nc.novela_id = n.id AND c.name = ANY($%d))`, countArgID)); countArgID++ }
+	if f.Type != "" { countWhereParts = append(countWhereParts, fmt.Sprintf("type = $%d", countArgID)); countArgID++ }
+	if f.Status != "" { countWhereParts = append(countWhereParts, fmt.Sprintf("status = $%d", countArgID)); countArgID++ }
+	
+	countWhereSQL := strings.Join(countWhereParts, " AND ")
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM novela n WHERE %s", countWhereSQL)
+
+	var total int
+	if err := r.DB.QueryRowContext(ctx, countQuery, filterArgs...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	return novelas, total, nil
 }

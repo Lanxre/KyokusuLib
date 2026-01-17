@@ -3,8 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -279,4 +281,60 @@ func (h *NovelaHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.SuccessOkEmpty(w)
+}
+
+func (h *NovelaHandler) GetNovelas(w http.ResponseWriter, r *http.Request) {
+	userID := 0
+    if val := r.Context().Value(middleware.UserIDKey); val != nil {
+        userID = val.(int)
+    }
+
+	query := r.URL.Query()
+
+	limit, err := strconv.Atoi(query.Get("limit"))
+	if err != nil || limit <= 0 {
+		limit = 20
+	}
+
+	offset, err := strconv.Atoi(query.Get("offset"))
+	if err != nil || offset < 0 {
+		offset = 0
+	}
+
+	var genres []string
+	if val := query.Get("genres"); val != "" {
+		genres = strings.Split(val, ",")
+	}
+
+    if len(query["genres"]) > 0 {
+        genres = query["genres"]
+    }
+
+	var categories []string
+	if val := query.Get("categories"); val != "" {
+		categories = strings.Split(val, ",")
+	}
+    if len(query["categories"]) > 0 {
+        categories = query["categories"]
+    }
+
+	filters := dto.NovelaFilters{
+		Limit:      limit,
+		Offset:     offset,
+		Search:     query.Get("search"),
+		Sort:       query.Get("sort"),
+		Type:       query.Get("type"),
+		Status:     query.Get("status"),
+		Genres:     genres,
+		Categories: categories,
+	}
+	
+	novelas, total, err := h.service.GetNovelas(r.Context(), userID, filters)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	w.Header().Set("X-Total-Count", fmt.Sprintf("%d", total))
+	response.JSON(w, http.StatusOK, novelas)
 }
