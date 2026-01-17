@@ -229,7 +229,7 @@ const {
                         </button>
                     </div>
                 </form>
-            </div>
+        </div>
     </main>
 </div>
 </template>

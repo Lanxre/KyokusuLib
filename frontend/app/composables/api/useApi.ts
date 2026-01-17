@@ -13,14 +13,29 @@ export function useApi<T>(
 	return useFetch(url, defu(options, defaults));
 }
 
-export function $api<T>(
-	url: string,
-	options: any = {},
-) {
+export async function $api<T>(url: string, options: any = {}): Promise<T> {
 	const defaults = {
 		baseURL: "/api",
 		headers: useRequestHeaders(["cookie"]),
 	};
 
-	return $fetch<T>(url, defu(options, defaults));
+	const params = defu(options, defaults);
+
+	try {
+		return await $fetch<T>(url, params);
+	} catch (err: any) {
+		const fetchError = err.data;
+
+		const errorMessage =
+			fetchError?.error || 
+			fetchError?.message || 
+			err.statusMessage || 
+			"Произошла непредвиденная ошибка";
+
+		const error = new Error(errorMessage);
+		
+		(error as any).statusCode = err.response?.status;
+
+		throw error;
+	}
 }

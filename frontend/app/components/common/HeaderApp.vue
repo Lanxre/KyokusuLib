@@ -17,6 +17,7 @@ import PersonIcon from "@/assets/images/special/user.png";
 import ColorPaletteIcon from "@/assets/images/special/color-palette.png";
 import BookIcon from "@/assets/images/special/open-book.png";
 import WritterIcon from "@/assets/images/special/writer.png";
+import TeamIcon from "@/assets/images/special/group-chat.png";
 
 import { useAuthStore } from "@/stores/auth";
 import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
@@ -136,7 +137,7 @@ const goToLogin = () => {
                    @mouseenter="isContentSubmenuOpen = true"
                    @mouseleave="isContentSubmenuOpen = false"
                  >
-                     <div v-if="hasPermission(KyokusuAppRole.MODERATOR)" class="flex justify-between gap-4 items-center rounded-full cursor-pointer px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors text-left w-full">
+                     <div v-if="isAuthenticated" class="flex justify-between gap-4 items-center rounded-full cursor-pointer px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors text-left w-full">
                        <span>Добавить контент</span>
                        <div class="flex items-center gap-2">
                             <img :src="ColorPaletteIcon" class="h-4 w-4 dark:brightness-0 dark:invert" />
@@ -148,14 +149,19 @@ const goToLogin = () => {
                        v-if="isContentSubmenuOpen" 
                        class="absolute top-0 left-full ml-2 w-48 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl py-2 px-2 z-[70]"
                      > 
-                       <NuxtLink to="/novela/add" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors w-full" @click="isUserDropdownOpen = false">
+                       <NuxtLink v-if="hasPermission(KyokusuAppRole.MODERATOR)" to="/novela/add" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors w-full" @click="isUserDropdownOpen = false">
                          <span>Новелла</span>
                          <img :src="BookIcon" class="h-4 w-4 dark:brightness-0 dark:invert" />
                        </NuxtLink>
            
-                       <NuxtLink to="/author/add" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors w-full" @click="isUserDropdownOpen = false">
+                       <NuxtLink v-if="hasPermission(KyokusuAppRole.MODERATOR)" to="/author/add" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors w-full" @click="isUserDropdownOpen = false">
                          <span>Автора</span>
                          <img :src="WritterIcon" class="h-4 w-4 dark:brightness-0 dark:invert" />
+                       </NuxtLink>
+
+                       <NuxtLink to="/team/add" class="flex justify-between gap-4 items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors w-full" @click="isUserDropdownOpen = false">
+                         <span>Команду</span>
+                         <img :src="TeamIcon" class="h-4 w-4 dark:brightness-0 dark:invert" />
                        </NuxtLink>
                      </div>
                    </Transition>
