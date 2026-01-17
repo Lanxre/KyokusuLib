@@ -1,12 +1,31 @@
 import { useApi, $api } from "~/composables/api/useApi";
 import type { NovelaDetails } from "@/types/backend/novela";
 import { useNotificationStore } from "~/stores/notification";
+import type { NovelsQueryParams } from "~/types/frontend/query/novela-query";
 
 export function useNovela() {
+	const novels = useState<NovelaDetails[]>("novels-data", () => []);
 	const novela = useState<NovelaDetails | null>("novela-data", () => null);
 	const { notify } = useNotificationStore();
 	const isLoading = useState("novela-loading", () => false);
 	const isUpdating = useState("novela-updating", () => false);
+
+	const fetchNovels = async (params: NovelsQueryParams) => {
+		isLoading.value = true;
+        try {
+            const { data, error } = await useApi<NovelaDetails[]>('/api/novela', {
+                params: params
+            });
+            
+            if (error.value) throw error.value;
+			novels.value = data.value!;
+            return data.value;
+        } catch (e) {
+            console.error(e);
+        } finally {
+            isLoading.value = false;
+        }
+	}
 
 	const fetchNovela = async (id: string | number) => {
 		isLoading.value = true;
@@ -46,9 +65,11 @@ export function useNovela() {
 
 	return {
 		novela,
+		novels,
 		isLoading,
 		isUpdating,
 		fetchNovela,
+		fetchNovels,
 		updateNovela,
 	};
 }

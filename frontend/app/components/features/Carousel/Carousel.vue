@@ -18,7 +18,7 @@ const { onMouseDown, onMouseLeaveOrUp, onMouseMove, stopAutoPlay } =
     <div
       ref="containerRef"
       class="
-        flex items-center gap-3 md:gap-6 overflow-x-auto 
+        flex justify-center items-center gap-3 md:gap-6 overflow-x-auto 
         snap-x snap-mandatory 
         scroll-smooth 
         scrollbar-hide 
