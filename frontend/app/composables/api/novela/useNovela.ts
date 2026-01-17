@@ -4,7 +4,6 @@ import { useNotificationStore } from "~/stores/notification";
 import type { NovelsQueryParams } from "~/types/frontend/query/novela-query";
 
 export function useNovela() {
-	const novels = useState<NovelaDetails[]>("novels-data", () => []);
 	const novela = useState<NovelaDetails | null>("novela-data", () => null);
 	const { notify } = useNotificationStore();
 	const isLoading = useState("novela-loading", () => false);
@@ -18,7 +17,6 @@ export function useNovela() {
             });
             
             if (error.value) throw error.value;
-			novels.value = data.value!;
             return data.value;
         } catch (e) {
             console.error(e);
@@ -65,7 +63,6 @@ export function useNovela() {
 
 	return {
 		novela,
-		novels,
 		isLoading,
 		isUpdating,
 		fetchNovela,
