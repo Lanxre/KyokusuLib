@@ -29,6 +29,7 @@ func main() {
 			repository.NewUserProfileRepository,
 			repository.NewAuthorRepository,
 			repository.NewNovelaRepository,
+			repository.NewTeamRepository,
 
 			service.NewAuthService,
 			service.NewUserService,
@@ -37,6 +38,7 @@ func main() {
 			service.NewSocialsService,
 			service.NewAuthorService,
 			service.NewNovelaService,
+			service.NewTeamService,
 			app.NewEmailService,
 
 			handlers.NewAuthHandler,
@@ -48,6 +50,7 @@ func main() {
 			handlers.NewAuthorHandler,
 			handlers.NewUserActivityHandler,
 			handlers.NewNovelaHandler,
+			handlers.NewTeamHandler,
 
 			app.AsRoute(func(h *handlers.HealthHandler) *routes.HealthRoutes { return &routes.HealthRoutes{Handler: h} }),
 			app.AsRoute(func(h *handlers.AuthHandler) *routes.AuthRoutes { return &routes.AuthRoutes{Handler: h} }),
@@ -64,6 +67,7 @@ func main() {
 				return &routes.UserActivityRoutes{Handler: h}
 			}),
 			app.AsRoute(func(h *handlers.NovelaHandler) *routes.NovelaRoutes { return &routes.NovelaRoutes{Handler: h} }),
+			app.AsRoute(func(h *handlers.TeamHandler) *routes.TeamRoutes { return &routes.TeamRoutes{Handler: h} }),
 
 			fx.Annotate(
 				app.NewMuxRouter,
