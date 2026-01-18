@@ -78,7 +78,7 @@ func (r *NovelaRepository) Create(ctx context.Context, n *db.Novela) error {
 
 	return tx.Commit()
 }
-func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db.Novela, error) {
+func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, userID int) (*db.Novela, error) {
 	n := &db.Novela{}
 
 	var (
@@ -101,7 +101,6 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 			n.translation_status, 
 			n.poster_url, 
 			n.views,
-			COALESCE((SELECT AVG(rating) FROM novela_ratings WHERE novela_id = n.id), 0),
 			
 			COALESCE((
 				SELECT array_agg(g.name) 
@@ -166,14 +165,12 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 			CASE
 				WHEN $2 > 0 THEN (SELECT rating FROM novela_ratings WHERE novela_id = n.id AND user_id = $2)
 				ELSE 0
-			END as user_rating,
-
-			COALESCE((SELECT COUNT(*) FROM novela_ratings WHERE novela_id = n.id), 0)
+			END as user_rating
 
 		FROM novela n
 		WHERE n.id = $1`
 
-	err := r.DB.QueryRowContext(ctx, query, id, userID).Scan(
+	err := tx.QueryRowContext(ctx, query, id, userID).Scan(
 		&n.ID,
 		&n.Title,
 		pq.Array(&n.AlternativeTitles),
@@ -186,7 +183,6 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 		&n.TranslationStatus,
 		&n.PosterURL,
 		&n.Views,
-		&n.Rating,
 		pq.Array(&n.Genres),
 		pq.Array(&n.Categories),
 		&authorsJSON,
@@ -196,7 +192,6 @@ func (r *NovelaRepository) GetFullByID(ctx context.Context, id, userID int) (*db
 		&n.HasLiked,
 		&n.LikeCount,
 		&userRating,
-		&n.RatingCount,
 	)
 
 	if err != nil {
@@ -427,55 +422,13 @@ func (r *NovelaRepository) GetChapterByID(ctx context.Context, chapterID int) (*
 	return ch, nil
 }
 
-func (r *NovelaRepository) SetBookmark(ctx context.Context, bookmark *db.Bookmark) error {
-	query := `
-		INSERT INTO user_novela_bookmarks (user_id, novela_id, category, updated_at) 
-		VALUES ($1, $2, $3, CURRENT_TIMESTAMP) 
-		ON CONFLICT (user_id, novela_id) 
-		DO UPDATE SET 
-			category = EXCLUDED.category, 
-			updated_at = CURRENT_TIMESTAMP`
-
-	_, err := r.DB.ExecContext(ctx, query, bookmark.UserID, bookmark.NovelaID, bookmark.Category)
-	return err
-}
-
-func (r *NovelaRepository) RemoveBookmark(ctx context.Context, userID, novelaID int) error {
-	query := `DELETE FROM user_novela_bookmarks WHERE user_id = $1 AND novela_id = $2`
-	_, err := r.DB.ExecContext(ctx, query, userID, novelaID)
-	return err
-}
-
-func (r *NovelaRepository) SetLike(ctx context.Context, novelaLike *db.NovelaLike) error {
-	query := `
-		INSERT INTO user_novela_likes (user_id, novela_id, has_liked, updated_at) 
-		VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
-		ON CONFLICT (user_id, novela_id) 
-		DO UPDATE SET
-			has_liked = EXCLUDED.has_liked,
-			updated_at = CURRENT_TIMESTAMP`
-	_, err := r.DB.ExecContext(ctx, query, novelaLike.UserID, novelaLike.NovelaID, novelaLike.HasLiked)
-	return err
-}
-
-func (r *NovelaRepository) SetRating(ctx context.Context, rating *db.NovelaRating) error {
-	query := `
-		INSERT INTO novela_ratings (user_id, novela_id, rating) 
-		VALUES ($1, $2, $3)
-		ON CONFLICT (user_id, novela_id) 
-		DO UPDATE SET
-			rating = EXCLUDED.rating`
-	_, err := r.DB.ExecContext(ctx, query, rating.UserID, rating.NovelaID, rating.Rating)
-	return err
-}
-
 func (r *NovelaRepository) UpdatePoster(ctx context.Context, id int, posterURL string) error {
 	query := `UPDATE novela SET poster_url = $2 WHERE id = $1`
 	_, err := r.DB.ExecContext(ctx, query, id, posterURL)
 	return err
 }
 
-func (r *NovelaRepository) GetNovelas(ctx context.Context, userID int, f dto.NovelaFilters) ([]db.Novela, int, error) {
+func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID int, f dto.NovelaFilters) ([]db.Novela, int, error) {
 	var filterArgs []interface{}
 	filterArgIDStart := 2 
 	
@@ -541,7 +494,6 @@ func (r *NovelaRepository) GetNovelas(ctx context.Context, userID int, f dto.Nov
 			COALESCE(n.alternative_titles, '{}')::text[],
 			n.description, n.type, n.age_rating, n.release_date, 
 			n.status, n.country, n.translation_status, n.poster_url, n.views,
-			COALESCE((SELECT AVG(rating) FROM novela_ratings WHERE novela_id = n.id), 0) as rating,
 
 			COALESCE((SELECT array_agg(g.name) FROM novela_genres ng JOIN genres g ON ng.genre_id = g.id WHERE ng.novela_id = n.id), '{}')::text[],
 			COALESCE((SELECT array_agg(c.name) FROM novela_categories nc JOIN categories c ON nc.category_id = c.id WHERE nc.novela_id = n.id), '{}')::text[],
@@ -580,10 +532,7 @@ func (r *NovelaRepository) GetNovelas(ctx context.Context, userID int, f dto.Nov
 			COALESCE((SELECT COUNT(*) FROM user_novela_bookmarks WHERE novela_id = n.id), 0),
 
 			CASE WHEN $1 > 0 THEN (SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $1) ELSE FALSE END,
-			COALESCE((SELECT COUNT(*) FROM user_novela_likes WHERE novela_id = n.id AND has_liked = TRUE), 0),
-
-			CASE WHEN $1 > 0 THEN (SELECT rating FROM novela_ratings WHERE novela_id = n.id AND user_id = $1) ELSE 0 END,
-			COALESCE((SELECT COUNT(*) FROM novela_ratings WHERE novela_id = n.id), 0)
+			COALESCE((SELECT COUNT(*) FROM user_novela_likes WHERE novela_id = n.id AND has_liked = TRUE), 0)
 
 		FROM novela n
 		WHERE %s
@@ -594,7 +543,7 @@ func (r *NovelaRepository) GetNovelas(ctx context.Context, userID int, f dto.Nov
 	mainArgs := append([]interface{}{userID}, filterArgs...)
 	mainArgs = append(mainArgs, f.Limit, f.Offset)
 
-	rows, err := r.DB.QueryContext(ctx, query, mainArgs...)
+	rows, err := tx.QueryContext(ctx, query, mainArgs...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -609,11 +558,10 @@ func (r *NovelaRepository) GetNovelas(ctx context.Context, userID int, f dto.Nov
 		err := rows.Scan(
 			&n.ID, &n.Title, pq.Array(&n.AlternativeTitles), &n.Description, 
 			&n.Type, &n.AgeRating, &n.ReleaseDate, &n.Status, &n.Country, 
-			&n.TranslationStatus, &n.PosterURL, &n.Views, &n.Rating,
+			&n.TranslationStatus, &n.PosterURL, &n.Views,
 			pq.Array(&n.Genres), pq.Array(&n.Categories),
 			&authorsJSON, &volumesJSON,
 			&n.Bookmark, &n.BookmarkCount, &n.HasLiked, &n.LikeCount,
-			&userRating, &n.RatingCount,
 		)
 		if err != nil {
 			return nil, 0, err
@@ -639,7 +587,7 @@ func (r *NovelaRepository) GetNovelas(ctx context.Context, userID int, f dto.Nov
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM novela n WHERE %s", countWhereSQL)
 
 	var total int
-	if err := r.DB.QueryRowContext(ctx, countQuery, filterArgs...).Scan(&total); err != nil {
+	if err := tx.QueryRowContext(ctx, countQuery, filterArgs...).Scan(&total); err != nil {
 		return nil, 0, err
 	}
 

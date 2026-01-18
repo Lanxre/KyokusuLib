@@ -17,8 +17,7 @@ type Novela struct {
 	PosterURL         string    `json:"poster_url"`
 	Country           string    `json:"country"`
 	Views             int       `json:"views"`
-	Rating            float64   `json:"rating"`
-
+	
 	
 	Genres     		[]string      		`json:"genres"`
 	Categories 		[]string      		`json:"categories"`
@@ -33,7 +32,6 @@ type Novela struct {
 	LikeCount     	int					`json:"like_count"`
 
 	UserRating      int 				`json:"user_rating"`
-	RatingCount     int 				`json:"rating_count"`
 }
 
 type NovelaAuthor struct {
@@ -72,4 +70,21 @@ type NovelaRating struct {
 	NovelaID int  `json:"novela_id"`
 	UserID   int  `json:"user_id"`
 	Rating   int  `json:"rating"`
+}
+
+type NovelaRatingSummary struct {
+	TotalCount    int
+	AverageRating float64
+	Distribution  map[int]int
+}
+
+type NovelaTotalRaing struct {
+	Total 	   int 			  `json:"total"`
+	TotalRaing float64		  `json:"total_rating"`
+	Rating []NovelaRatingItem `json:"rating"`
+}
+
+type NovelaRatingItem struct {
+	Value interface{} `json:"value"`
+	Count int		  `json:"count"`
 }

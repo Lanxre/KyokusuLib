@@ -15,6 +15,9 @@ import (
 
 type NovelaService struct {
 	Repo *repository.NovelaRepository
+	NovelaRatingRepo *repository.NovelaRatingRepository
+	NovelaBookmarkRepository *repository.NovelaBookmarkRepository
+	NovelaLikeRepository *repository.NovelaLikeRepository
 }
 
 func NewNovelaService(repo *repository.NovelaRepository) *NovelaService {
@@ -24,13 +27,33 @@ func NewNovelaService(repo *repository.NovelaRepository) *NovelaService {
 }
 
 func (s *NovelaService) GetNovelaById(ctx context.Context, id, userID int) (*dto.NovelaResponse, error) {
-	ranobe, err := s.Repo.GetFullByID(ctx, id, userID)
-	
+	tx, err := s.Repo.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	novela, err := s.Repo.GetFullByID(tx, ctx, id, userID)
+	if err != nil {
+		return nil, err
+	}
+	if novela == nil {
+		return nil, ErrNovelaNotFound
+	}
+
+	ratingData, err := s.NovelaRatingRepo.GetRating(tx, ctx, novela.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.novelaToDto(ranobe), nil
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	response := s.novelaToDto(novela)
+	response.RatingDetails = s.mapRatingToDto(ratingData)
+
+	return response, nil
 }
 
 func (s *NovelaService) UploadPoster(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
@@ -53,15 +76,15 @@ func (s *NovelaService) SetBookmark(context context.Context, userID int, req dto
 		Category: db.BookmarkCategory(req.Category),
 	}
 
-	return s.Repo.SetBookmark(context, dbBookmark)
+	return s.NovelaBookmarkRepository.SetBookmark(context, dbBookmark)
 }
 
 func (s *NovelaService) RemoveBookmark(ctx context.Context, userID, novelaID int) error {
-	return s.Repo.RemoveBookmark(ctx, userID, novelaID)
+	return s.NovelaBookmarkRepository.RemoveBookmark(ctx, userID, novelaID)
 }
 
 func (s *NovelaService) SetLike(ctx context.Context, userID int, req dto.UpdateLikeRequest) error {
-	return s.Repo.SetLike(ctx, &db.NovelaLike{
+	return s.NovelaLikeRepository.SetLike(ctx, &db.NovelaLike{
 		UserID:   userID,
 		NovelaID: req.NovelaID,
 		HasLiked: req.HasLiked,
@@ -69,7 +92,7 @@ func (s *NovelaService) SetLike(ctx context.Context, userID int, req dto.UpdateL
 }
 
 func (s *NovelaService) SetRating(ctx context.Context, userID int, req dto.UpdateRatingRequest) error {
-	return s.Repo.SetRating(ctx, &db.NovelaRating{
+	return s.NovelaRatingRepo.SetRating(ctx, &db.NovelaRating{
 		UserID:   userID,
 		NovelaID: req.NovelaID,
 		Rating:   req.Rating,
@@ -113,21 +136,38 @@ func (s *NovelaService) GetNovelas(ctx context.Context, userID int, filters dto.
 	if filters.Limit > 100 {
 		filters.Limit = 100
 	}
+
+	tx, err := s.Repo.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer tx.Rollback()
 	
-	dbNovelas, total, err := s.Repo.GetNovelas(ctx, userID, filters)
+	dbNovelas, total, err := s.Repo.GetNovelas(tx, ctx, userID, filters)
 	if err != nil {
 		return nil, 0, err
 	}
 
-    var response []dto.NovelaResponse
+    var ns []dto.NovelaResponse
     for _, novela := range dbNovelas {
-        dto := s.novelaToDto(&novela)
+		ratingData, err := s.NovelaRatingRepo.GetRating(tx, ctx, novela.ID)
+		if err != nil {
+			return nil, 0, err
+		}
+		
+		if err := tx.Commit(); err != nil {
+			return nil, 0, err
+		}
+		
+		dto := s.novelaToDto(&novela)
+		dto.RatingDetails = s.mapRatingToDto(ratingData)
+
         if dto != nil {
-            response = append(response, *dto)
+            ns = append(ns, *dto)
         }
     }
 
-	return response, total, nil
+	return ns, total, nil
 }
 
 func (s *NovelaService) novelaToDto(novela *db.Novela) *dto.NovelaResponse {
@@ -191,7 +231,6 @@ func (s *NovelaService) novelaToDto(novela *db.Novela) *dto.NovelaResponse {
 		PosterURL:         novela.PosterURL,
 		Country:           novela.Country,
 		Views:             novela.Views,
-		Rating:            novela.Rating,
 		Genres:            novela.Genres,
 		Categories:        novela.Categories,
 		Authors:           authors,
@@ -201,6 +240,26 @@ func (s *NovelaService) novelaToDto(novela *db.Novela) *dto.NovelaResponse {
 		HasLiked:          novela.HasLiked,
 		LikeCount:         novela.LikeCount,
 		UserRating:        novela.UserRating,
-		RatingCount:       novela.RatingCount,
+	}
+}
+
+func (s *NovelaService) mapRatingToDto(data *db.NovelaRatingSummary) dto.NovelaRatingCategory {
+	items := make([]dto.NCItem, 0, 10)
+	
+	for i := 10; i >= 1; i-- {
+		count := 0
+		if val, ok := data.Distribution[i]; ok {
+			count = val
+		}
+		items = append(items, dto.NCItem{
+			Value: i,
+			Count: count,
+		})
+	}
+
+	return dto.NovelaRatingCategory{
+		Total:        data.TotalCount,
+		ToatalRating: data.AverageRating,
+		NCItems:      items,
 	}
 }

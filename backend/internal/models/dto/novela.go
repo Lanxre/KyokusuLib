@@ -27,7 +27,6 @@ type NovelaResponse struct {
 	PosterURL         string    		`json:"poster_url"`
 	Country           string    		`json:"country"`
 	Views             int       		`json:"views"`
-	Rating            float64   		`json:"rating"`
 	Genres     		  []string      	`json:"genres"`
 	Categories 		  []string      	`json:"categories"`
 	Authors    		  []NovelaAuthor 	`json:"authors"`
@@ -37,7 +36,18 @@ type NovelaResponse struct {
 	HasLiked  		  bool				`json:"has_liked"`
 	LikeCount  		  int				`json:"like_count"`
 	UserRating  	  int				`json:"user_rating"`
-	RatingCount  	  int				`json:"rating_count"`
+	RatingDetails     NovelaRatingCategory `json:"rating_details"`
+}
+
+type NovelaRatingCategory struct {
+	Total        int       `json:"total"`
+	ToatalRating float64   `json:"total_rating"`
+	NCItems      []NCItem  `json:"nc_items"`
+}
+
+type NCItem struct {
+	Value int `json:"value"`
+	Count int `json:"count"`
 }
 
 type NovelaAuthor struct {

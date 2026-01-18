@@ -28,6 +28,8 @@ func main() {
 			repository.NewUserActivityRepository,
 			repository.NewUserProfileRepository,
 			repository.NewAuthorRepository,
+			repository.NewNovelaRatingRepository,
+			repository.NewNovelaBookmarkRepository,
 			repository.NewNovelaRepository,
 			repository.NewTeamRepository,
 
