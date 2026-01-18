@@ -29,7 +29,7 @@ defineProps<Props>();
             </h4>
             <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-tighter italic">
                 <span class="text-yellow-500 flex items-center gap-0.5">
-                    ★ {{roundTo(novela.rating, 1) || '0.0'}}
+                    ★ {{roundTo(novela.rating_details.total_rating, 1) || '0.0'}}
                 </span>
                 <span class="text-zinc-400 dark:text-zinc-500">{{ novela.type }}</span>
             </div>

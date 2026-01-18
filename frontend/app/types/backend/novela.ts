@@ -25,6 +25,17 @@ export interface NovelaAuthor {
 	role: string;
 }
 
+export interface NCItem {
+	value: number;
+	count: number; 
+}
+
+export interface NovelaRatingCategory {
+	total: number;
+	total_rating: number; 
+	nc_items: NCItem[];
+}
+
 export interface NovelaDetails {
 	id: number;
 	title: string;
@@ -36,7 +47,6 @@ export interface NovelaDetails {
 	status: string;
 	poster_url?: string;
 	translation_status: string;
-	rating: number;
 	views: number;
 	authors?: NovelaAuthor[];
 	genres: string[];
@@ -47,6 +57,6 @@ export interface NovelaDetails {
 	has_liked: boolean;
 	like_count: number;
 	user_rating: number;
-	rating_count: number;
+	rating_details: NovelaRatingCategory;
 	country: string;
 }

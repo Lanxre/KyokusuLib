@@ -119,8 +119,8 @@ const updateCountLike = async (has_liked: boolean) => {
 const updateRating = (rating: number) => {
     if (!novela.value) return;
 
-    const oldCount = novela.value.rating_count || 0;
-    const oldAverage = novela.value.rating || 0;
+    const oldCount = novela.value.rating_details.total || 0;
+    const oldAverage = novela.value.rating_details.total_rating || 0;
     const previousUserRating = novela.value.user_rating || 0;
 
     if (previousUserRating === rating) return;
@@ -136,8 +136,8 @@ const updateRating = (rating: number) => {
         newAverage = (oldSum - previousUserRating + rating) / oldCount;
     }
 
-    novela.value.rating_count = newCount;
-    novela.value.rating = roundTo(newAverage, 1);
+    novela.value.rating_details.total = newCount;
+    novela.value.rating_details.total_rating = roundTo(newAverage, 1);
     novela.value.user_rating = rating; 
 
     if (user?.id) {
@@ -255,8 +255,8 @@ const updatedNovela = (payload: NovelaDetails) => {
                                 <NovelaStats :novela="novela" />
                                 <NovelaRating 
                                     :novela-id="novela.id"
-                                    :rating="novela.rating" 
-                                    :count="novela.rating_count"
+                                    :rating="novela.rating_details.total_rating" 
+                                    :count="novela.rating_details.total"
                                     :user-rating="novela.user_rating || 1"
                                     @update:rated="updateRating"
                                 />

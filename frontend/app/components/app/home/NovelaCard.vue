@@ -23,7 +23,7 @@ defineProps<Props>();
             
             <div class="absolute top-2 left-2 flex flex-col gap-1">
                 <div class="bg-black/60 backdrop-blur-md text-white text-[10px] font-black px-2 py-0.5 rounded-lg border border-white/10 shadow-sm">
-                    ★ {{ roundTo(novela.rating, 1) || '0.0' }}
+                    ★ {{ roundTo(novela.rating_details.total_rating, 1) || '0.0' }}
                 </div>
             </div>
 
