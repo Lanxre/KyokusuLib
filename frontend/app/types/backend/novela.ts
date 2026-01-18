@@ -36,6 +36,16 @@ export interface NovelaRatingCategory {
 	nc_items: NCItem[];
 }
 
+export interface NovelaBookmarkCategory {
+	total: number;
+	nc_items: BookmarkNCItem[];
+}
+
+export interface BookmarkNCItem {
+    value: 'planned' | 'reading' | 'completed' | 'on_hold' | 'dropped';
+    count: number;
+}
+
 export interface NovelaDetails {
 	id: number;
 	title: string;
@@ -53,10 +63,10 @@ export interface NovelaDetails {
 	categories: string[];
 	volumes: NovelaVolume[];
 	bookmark?: string;
-	bookmark_count: number;
 	has_liked: boolean;
 	like_count: number;
 	user_rating: number;
 	rating_details: NovelaRatingCategory;
+	bookmark_details: NovelaBookmarkCategory;
 	country: string;
 }

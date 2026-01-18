@@ -70,7 +70,7 @@ const updateCountBookmarks = async (categoryId: number) => {
         }
         
 
-        novela.value.bookmark_count = (novela.value.bookmark_count || 0) + 1;
+        novela.value.bookmark_details.total = (novela.value.bookmark_details.total || 0) + 1;
     } else if (novela.value && categoryId === null && user?.id) {
         await createUserActivity({
             user_id: user.id,
@@ -82,7 +82,7 @@ const updateCountBookmarks = async (categoryId: number) => {
             }
         });
         bookmarkInitial.value = false;
-        novela.value.bookmark_count = (novela.value.bookmark_count || 0) - 1;
+        novela.value.bookmark_details.total = (novela.value.bookmark_details.total || 0) - 1;
     }
 }
 

@@ -14,10 +14,10 @@ import (
 )
 
 type NovelaService struct {
-	Repo *repository.NovelaRepository
-	NovelaRatingRepo *repository.NovelaRatingRepository
+	Repo                     *repository.NovelaRepository
+	NovelaRatingRepo         *repository.NovelaRatingRepository
 	NovelaBookmarkRepository *repository.NovelaBookmarkRepository
-	NovelaLikeRepository *repository.NovelaLikeRepository
+	NovelaLikeRepository     *repository.NovelaLikeRepository
 }
 
 func NewNovelaService(repo *repository.NovelaRepository) *NovelaService {
@@ -46,13 +46,18 @@ func (s *NovelaService) GetNovelaById(ctx context.Context, id, userID int) (*dto
 		return nil, err
 	}
 
+	bookmarkData, err := s.NovelaBookmarkRepository.GetBookmarkStats(tx, ctx, novela.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
 	response := s.novelaToDto(novela)
 	response.RatingDetails = s.mapRatingToDto(ratingData)
-
+	response.BookmarkDetails = s.mapBookmarkToDto(bookmarkData)
 	return response, nil
 }
 
@@ -142,30 +147,36 @@ func (s *NovelaService) GetNovelas(ctx context.Context, userID int, filters dto.
 		return nil, 0, err
 	}
 	defer tx.Rollback()
-	
+
 	dbNovelas, total, err := s.Repo.GetNovelas(tx, ctx, userID, filters)
 	if err != nil {
 		return nil, 0, err
 	}
 
-    var ns []dto.NovelaResponse
-    for _, novela := range dbNovelas {
+	var ns []dto.NovelaResponse
+	for _, novela := range dbNovelas {
 		ratingData, err := s.NovelaRatingRepo.GetRating(tx, ctx, novela.ID)
 		if err != nil {
 			return nil, 0, err
 		}
-		
+
+		bookmarkData, err := s.NovelaBookmarkRepository.GetBookmarkStats(tx, ctx, novela.ID)
+		if err != nil {
+			return nil, 0, err
+		}
+
 		if err := tx.Commit(); err != nil {
 			return nil, 0, err
 		}
-		
+
 		dto := s.novelaToDto(&novela)
 		dto.RatingDetails = s.mapRatingToDto(ratingData)
+		dto.BookmarkDetails = s.mapBookmarkToDto(bookmarkData)
 
-        if dto != nil {
-            ns = append(ns, *dto)
-        }
-    }
+		if dto != nil {
+			ns = append(ns, *dto)
+		}
+	}
 
 	return ns, total, nil
 }
@@ -235,8 +246,7 @@ func (s *NovelaService) novelaToDto(novela *db.Novela) *dto.NovelaResponse {
 		Categories:        novela.Categories,
 		Authors:           authors,
 		Volumes:           volumes,
-		Bookmark: 		   &bookmark,
-		BookmarkCount:     novela.BookmarkCount,
+		Bookmark:          &bookmark,
 		HasLiked:          novela.HasLiked,
 		LikeCount:         novela.LikeCount,
 		UserRating:        novela.UserRating,
@@ -244,14 +254,14 @@ func (s *NovelaService) novelaToDto(novela *db.Novela) *dto.NovelaResponse {
 }
 
 func (s *NovelaService) mapRatingToDto(data *db.NovelaRatingSummary) dto.NovelaRatingCategory {
-	items := make([]dto.NCItem, 0, 10)
-	
+	items := make([]dto.NCItems, 0, 10)
+
 	for i := 10; i >= 1; i-- {
 		count := 0
 		if val, ok := data.Distribution[i]; ok {
 			count = val
 		}
-		items = append(items, dto.NCItem{
+		items = append(items, dto.NCItems{
 			Value: i,
 			Count: count,
 		})
@@ -261,5 +271,30 @@ func (s *NovelaService) mapRatingToDto(data *db.NovelaRatingSummary) dto.NovelaR
 		Total:        data.TotalCount,
 		ToatalRating: data.AverageRating,
 		NCItems:      items,
+	}
+}
+
+func (s *NovelaService) mapBookmarkToDto(data *db.NovelaBookmarkSummary) dto.NovelaBookmarkCategory {
+	if data == nil {
+    	return dto.NovelaBookmarkCategory{NCItems: []dto.NCItems{}}
+	}
+	
+	items := make([]dto.NCItems, 0, len(db.BookmarkCategories))
+
+	for _, cat := range db.BookmarkCategories {
+		count := 0
+		if val, ok := data.Distribution[string(cat)]; ok {
+			count = val
+		}
+		
+		items = append(items, dto.NCItems{
+			Value: cat,
+			Count: count,
+		})
+	}
+
+	return dto.NovelaBookmarkCategory{
+		Total:   data.TotalCount,
+		NCItems: items,
 	}
 }

@@ -153,8 +153,6 @@ func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, user
 				ELSE NULL 
 			END as user_category,
 
-			COALESCE((SELECT COUNT(*) FROM user_novela_bookmarks WHERE novela_id = n.id), 0),
-
 			CASE
 				WHEN $2 > 0 THEN (SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $2)
 				ELSE FALSE
@@ -188,7 +186,6 @@ func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, user
 		&authorsJSON,
 		&volumesJSON,
 		&n.Bookmark,
-		&n.BookmarkCount,
 		&n.HasLiked,
 		&n.LikeCount,
 		&userRating,
@@ -529,7 +526,6 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 			), '[]'),
 			
 			CASE WHEN $1 > 0 THEN (SELECT category FROM user_novela_bookmarks WHERE novela_id = n.id AND user_id = $1) ELSE NULL END,
-			COALESCE((SELECT COUNT(*) FROM user_novela_bookmarks WHERE novela_id = n.id), 0),
 
 			CASE WHEN $1 > 0 THEN (SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $1) ELSE FALSE END,
 			COALESCE((SELECT COUNT(*) FROM user_novela_likes WHERE novela_id = n.id AND has_liked = TRUE), 0)
@@ -561,7 +557,7 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 			&n.TranslationStatus, &n.PosterURL, &n.Views,
 			pq.Array(&n.Genres), pq.Array(&n.Categories),
 			&authorsJSON, &volumesJSON,
-			&n.Bookmark, &n.BookmarkCount, &n.HasLiked, &n.LikeCount,
+			&n.Bookmark, &n.HasLiked, &n.LikeCount,
 		)
 		if err != nil {
 			return nil, 0, err

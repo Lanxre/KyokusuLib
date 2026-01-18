@@ -32,21 +32,26 @@ type NovelaResponse struct {
 	Authors    		  []NovelaAuthor 	`json:"authors"`
 	Volumes    		  []NovelaVolume 	`json:"volumes"`
 	Bookmark  		  *string			`json:"bookmark"`
-	BookmarkCount	  int				`json:"bookmark_count"`
 	HasLiked  		  bool				`json:"has_liked"`
 	LikeCount  		  int				`json:"like_count"`
 	UserRating  	  int				`json:"user_rating"`
 	RatingDetails     NovelaRatingCategory `json:"rating_details"`
+	BookmarkDetails   NovelaBookmarkCategory 	   `json:"bookmark_details"`
 }
 
 type NovelaRatingCategory struct {
 	Total        int       `json:"total"`
 	ToatalRating float64   `json:"total_rating"`
-	NCItems      []NCItem  `json:"nc_items"`
+	NCItems      []NCItems  `json:"nc_items"`
 }
 
-type NCItem struct {
-	Value int `json:"value"`
+type NovelaBookmarkCategory struct {
+	Total        int       `json:"total"`
+	NCItems      []NCItems  `json:"nc_items"`
+}
+
+type NCItems struct {
+	Value any `json:"value"`
 	Count int `json:"count"`
 }
 

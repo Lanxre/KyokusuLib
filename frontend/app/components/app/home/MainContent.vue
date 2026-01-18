@@ -34,7 +34,7 @@ const { data: novels } = await useAsyncData('novelas-home', () =>
 				</div>
 			</div>
 
-			<div class="flex flex-col items-center px-1">
+			<div class="flex flex-col items-center px-1" @click="() => navigateTo(`/novela/${item.id}`)">
 				<h3 class="cs-text text-center leading-md line-clamp-2 text-foreground text-[15px] leading-[1.15] font-semibold text-balance  dark:font-semibold group-hover/card:text-yellow-600 dark:group-hover/card:text-yellow-400 transition-colors">
 					{{ item.title }}
 				</h3>

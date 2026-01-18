@@ -10,6 +10,14 @@ const (
     CategoryDropped   BookmarkCategory = "dropped"
 )
 
+var BookmarkCategories = []BookmarkCategory{
+    CategoryPlanned,
+    CategoryReading,
+    CategoryCompleted,
+    CategoryOnHold,
+    CategoryDropped,
+}
+
 type Bookmark struct {
     UserID   int              `json:"user_id"`
     NovelaID int              `json:"novela_id"`

@@ -26,7 +26,6 @@ type Novela struct {
 	Volumes    		[]NovelaVolume 		`json:"volumes"`
 	
 	Bookmark      	*BookmarkCategory 	`json:"bookmark"`
-	BookmarkCount 	int 				`json:"bookmark_count"`
 	
 	HasLiked      	bool				`json:"has_liked"`
 	LikeCount     	int					`json:"like_count"`
@@ -87,4 +86,9 @@ type NovelaTotalRaing struct {
 type NovelaRatingItem struct {
 	Value interface{} `json:"value"`
 	Count int		  `json:"count"`
+}
+
+type NovelaBookmarkSummary struct {
+	TotalCount    int
+	Distribution  map[string]int
 }
