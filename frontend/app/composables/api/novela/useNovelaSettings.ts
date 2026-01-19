@@ -1,4 +1,5 @@
 import { reactive, ref } from "vue";
+import { YEAR_DEFAULT } from "~/constants/data";
 import type { NovelaDetails } from "~/types/backend/novela";
 
 export function useNovelaSettings(novela: NovelaDetails) {
@@ -12,7 +13,7 @@ export function useNovelaSettings(novela: NovelaDetails) {
         description: novela.description,
         type: novela.type,
         ageRating: novela.age_rating,
-        releaseYear: novela.release_date,
+        releaseYear: novela.release_date !== "" ? novela.release_date.split('-')[0]! : YEAR_DEFAULT,
         status: novela.status,
         translationStatus: novela.translation_status,
         country: novela.country,

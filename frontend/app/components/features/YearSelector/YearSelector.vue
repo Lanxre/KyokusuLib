@@ -60,7 +60,6 @@ onClickOutside(wrapperRef, () => {
 
 const displayValue = computed(() => {
 	if (!props.modelValue) return "";
-    console.log(props.modelValue);
 	return getStingYear(props.modelValue.toString());
 });
 </script>

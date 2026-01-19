@@ -54,7 +54,7 @@ const authorsOptions = computed(() => {
 const handleUpdate = async () => {
 	const payload = {
 		...form,
-        age_ratings: form.ageRating,
+        age_rating: form.ageRating,
         release_date: form.releaseYear,
         translation_status: form.translationStatus,
 		alternative_titles: typeof form.alternativeTitles === 'string' 
