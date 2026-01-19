@@ -33,6 +33,7 @@ const novelaId = computed(() => route.params.id as string);
 
 await useAsyncData(`novela-${novelaId.value}`, () => fetchNovela(novelaId.value));
 const bookmarkInitial = ref(Boolean(novela.value?.bookmark));
+const currentBookmarkCategory = ref(novela.value?.bookmark || null);
 const isOpenNovelaSettings = ref(false);
 
 const totalChapters = computed(() => {
@@ -47,33 +48,50 @@ const novelaInfo = computed(() => [
     { label: "Автор", value: novela.value?.authors?.[0]?.name },
 ]);
 
-const updateCountBookmarks = async (categoryId: number) => {
-    if (categoryId !== null && novela.value && user?.id) {
-        if (!bookmarkInitial.value) {
-            await createUserActivity({
-                user_id: user.id,
-                activity_type: ACTIVITY_TYPES.NOVELA_BOOKMARK,
-                target_id: novela.value.id,
-                metadata: {
-                    novela_title: novela.value.title,
-                    desc: 'Пользователь добавил сюжет в закладки'
-                }
-            });
-        } else {
-            await createUserActivity({
-                user_id: user.id,
-                activity_type: ACTIVITY_TYPES.NOVELA_BOOKMARK,
-                target_id: novela.value.id,
-                metadata: {
-                    novela_title: novela.value.title,
-                    desc: 'Пользователь обновил закладку сюжета',
-                }
-            });
-        }
-        
+const updateCountBookmarks = async (newCategory: string | null) => {
+    if (!novela.value || !user?.id) return;
 
-        novela.value.bookmark_details.total = (novela.value.bookmark_details.total || 0) + 1;
-    } else if (novela.value && categoryId === null && user?.id) {
+    const prevCategory = currentBookmarkCategory.value;
+
+    if (prevCategory === newCategory) return;
+
+    if (newCategory) {
+        const item = novela.value.bookmark_details.nc_items.find(i => i.value === newCategory);
+        if (item) item.count++;
+    }
+
+    if (prevCategory) {
+        const item = novela.value.bookmark_details.nc_items.find(i => i.value === prevCategory);
+        if (item) item.count--;
+    }
+
+    if (prevCategory === null && newCategory !== null) {
+        novela.value.bookmark_details.total++;
+        
+        await createUserActivity({
+            user_id: user.id,
+            activity_type: ACTIVITY_TYPES.NOVELA_BOOKMARK,
+            target_id: novela.value.id,
+            metadata: {
+                novela_title: novela.value.title,
+                desc: 'Пользователь добавил сюжет в закладки'
+            }
+        });
+    } 
+    else if (prevCategory !== null && newCategory !== null) {
+        await createUserActivity({
+            user_id: user.id,
+            activity_type: ACTIVITY_TYPES.NOVELA_BOOKMARK,
+            target_id: novela.value.id,
+            metadata: {
+                novela_title: novela.value.title,
+                desc: `Пользователь изменил категорию на "${newCategory}"`,
+            }
+        });
+    } 
+    else if (prevCategory !== null && newCategory === null) {
+        novela.value.bookmark_details.total--;
+        
         await createUserActivity({
             user_id: user.id,
             activity_type: ACTIVITY_TYPES.NOVELA_BOOKMARK_REMOVE,
@@ -83,10 +101,11 @@ const updateCountBookmarks = async (categoryId: number) => {
                 desc: 'Пользователь удалил сюжет из закладок'
             }
         });
-        bookmarkInitial.value = false;
-        novela.value.bookmark_details.total = (novela.value.bookmark_details.total || 0) - 1;
     }
-}
+
+    currentBookmarkCategory.value = newCategory;
+    bookmarkInitial.value = Boolean(newCategory);
+};
 
 const updateCountLike = async (has_liked: boolean) => {
     if (novela.value && has_liked) {
@@ -119,13 +138,21 @@ const updateCountLike = async (has_liked: boolean) => {
 }
 
 const updateRating = (rating: number) => {
-    if (!novela.value) return;
+    if (!novela.value) return;  
 
     const oldCount = novela.value.rating_details.total || 0;
     const oldAverage = novela.value.rating_details.total_rating || 0;
     const previousUserRating = novela.value.user_rating || 0;
 
     if (previousUserRating === rating) return;
+    
+    const item = novela.value.rating_details.nc_items.find(i => i.value === rating);
+    if (item) item.count++;
+    
+    if (previousUserRating !== 0) {
+        const item2 = novela.value.rating_details.nc_items.find(i => i.value === previousUserRating);
+        if (item2) item2.count--;
+    }
 
     let newCount = oldCount;
     let newAverage = oldAverage;
