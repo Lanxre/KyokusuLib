@@ -30,7 +30,7 @@ const { data: novels } = await useAsyncData('novelas-home', () =>
 				alt="cover" 
 				/>
 				<div class="absolute top-2 left-2 bg-white/90 text-black font-bold text-[10px] md:text-xs px-2 py-1 rounded backdrop-blur-sm shadow-sm">
-				★ {{ roundTo(item.rating, 1) }}
+				★ {{ roundTo(item.rating_details.total_rating, 1) }}
 				</div>
 			</div>
 

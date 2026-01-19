@@ -18,7 +18,7 @@ const formatNumber = (num: number) => {
 
 const stats = computed(() => [
 	{ label: "Просмотры", value: formatNumber(props.novela.views), icon: "eye" },
-	{ label: "В закладках", value: formatNumber(props.novela.bookmark_count), icon: "bookmark" },
+	{ label: "В закладках", value: formatNumber(props.novela.bookmark_details.total), icon: "bookmark" },
 	{
 		label: "Год",
 		value: getStingYear(props.novela.release_date),
@@ -45,7 +45,8 @@ const stats = computed(() => [
 				<path 
 				stroke-linecap="round" 
 				stroke-linejoin="round" 
-				stroke-width="2" 
+				stroke-width="2"
+			    fill="none"
 				d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
 				/>
 			</svg>
