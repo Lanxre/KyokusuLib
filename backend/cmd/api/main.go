@@ -30,6 +30,7 @@ func main() {
 			repository.NewAuthorRepository,
 			repository.NewNovelaRatingRepository,
 			repository.NewNovelaBookmarkRepository,
+			repository.NewNovelaLikeRepository,
 			repository.NewNovelaRepository,
 			repository.NewTeamRepository,
 

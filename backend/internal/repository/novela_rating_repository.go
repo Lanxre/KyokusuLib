@@ -30,8 +30,8 @@ func (r *NovelaRatingRepository) SetRating(ctx context.Context, rating *db.Novel
 
 func (r *NovelaRatingRepository) GetRating(tx *sql.Tx, ctx context.Context, novelaID int) (*db.NovelaRatingSummary, error) {
 	query := `
-		SELECT 
-			COUNT(*), 
+		SELECT
+		    SUM(count) AS total_count,
 			COALESCE(AVG(rating), 0),
 			jsonb_object_agg(rating, count)
 		FROM (

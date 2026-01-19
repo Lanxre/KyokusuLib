@@ -37,9 +37,9 @@ func (r *NovelaBookmarkRepository) RemoveBookmark(ctx context.Context, userID, n
 }
 
 func (r *NovelaBookmarkRepository) GetBookmarkStats(tx *sql.Tx, ctx context.Context, novelaID int) (*db.NovelaBookmarkSummary, error) {
-	// COALESCE(jsonb_object_agg(...), '{}') гарантирует, что мы не получим null в Go
 	query := `
-		SELECT 
+ 		SELECT
+	        SUM(count) AS total_count,
 			COALESCE(jsonb_object_agg(category, count), '{}'::jsonb)
 		FROM (
 			SELECT category, COUNT(*) as count 
@@ -52,6 +52,7 @@ func (r *NovelaBookmarkRepository) GetBookmarkStats(tx *sql.Tx, ctx context.Cont
 	var distJSON []byte
 
 	err := tx.QueryRowContext(ctx, query, novelaID).Scan(
+		&summary.TotalCount,
 		&distJSON,
 	)
 
@@ -65,10 +66,6 @@ func (r *NovelaBookmarkRepository) GetBookmarkStats(tx *sql.Tx, ctx context.Cont
 	summary.Distribution = make(map[string]int)
 	if len(distJSON) > 0 {
 		json.Unmarshal(distJSON, &summary.Distribution)
-	}
-
-	for cat := range summary.Distribution {
-		summary.TotalCount += summary.Distribution[cat]
 	}
 
 	return &summary, nil

@@ -20,9 +20,16 @@ type NovelaService struct {
 	NovelaLikeRepository     *repository.NovelaLikeRepository
 }
 
-func NewNovelaService(repo *repository.NovelaRepository) *NovelaService {
+func NewNovelaService(repo *repository.NovelaRepository,
+	novelaRatingRepo *repository.NovelaRatingRepository,
+	novelaBookmarkRepo *repository.NovelaBookmarkRepository,
+	novelaLikeRepo *repository.NovelaLikeRepository,
+) *NovelaService {
 	return &NovelaService{
 		Repo: repo,
+		NovelaRatingRepo: novelaRatingRepo,
+		NovelaBookmarkRepository: novelaBookmarkRepo,
+		NovelaLikeRepository: novelaLikeRepo,
 	}
 }
 
