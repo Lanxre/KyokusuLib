@@ -1,103 +1,121 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from "vue";
+import { onClickOutside } from "@vueuse/core";
 import { useProfile } from "@/composables/api/profile/useProfile";
 import { useUserTag } from "@/composables/api/profile/useUserTag";
 import type { UserTagDTO } from "@/types/backend/user";
-import { ref, onMounted, onUnmounted } from "vue";
 
-const props = defineProps<{
+interface Props {
 	modelValue: string;
 	tags: UserTagDTO[];
-}>();
+}
 
-const emit = defineEmits<(e: "update:modelValue", value: string) => void>();
+const props = defineProps<Props>();
+const emit = defineEmits(["update:modelValue"]);
 
 const { isSelfProfile } = useProfile();
 const { updateUserTag } = useUserTag();
+
 const isOpen = ref(false);
 const containerRef = ref<HTMLElement | null>(null);
 
-const toggleDropdown = async () => {
-	isOpen.value = !isOpen.value;
-};
+onClickOutside(containerRef, () => (isOpen.value = false));
 
 const selectTag = async (dto: UserTagDTO) => {
 	isOpen.value = false;
 	emit("update:modelValue", dto.tag);
-
 	await updateUserTag(dto);
 };
-
-const handleClickOutside = (event: MouseEvent) => {
-	if (
-		containerRef.value &&
-		!containerRef.value.contains(event.target as Node)
-	) {
-		isOpen.value = false;
-	}
-};
-
-onMounted(() => {
-	document.addEventListener("click", handleClickOutside);
-});
-
-onUnmounted(() => {
-	document.removeEventListener("click", handleClickOutside);
-});
 </script>
 
 <template>
-    <div class="relative" ref="containerRef">
-        <div 
-            @click="toggleDropdown"
-            class="flex items-center justify-center dark:bg-zinc-800 mt-2 px-3 py-0.5 h-8 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold cursor-pointer hover:border-zinc-500 transition-colors select-none text-sm"
+    <div class="relative inline-block mt-2" ref="containerRef">
+        <button 
+            @click="isSelfProfile ? (isOpen = !isOpen) : null"
+            type="button"
+            class="flex items-center gap-2 px-4 py-1.5 h-9 rounded-full border transition-all duration-300 select-none group"
+            :class="[
+                isSelfProfile 
+                    ? 'cursor-pointer bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-yellow-500/50 hover:shadow-lg hover:shadow-yellow-500/5' 
+                    : 'cursor-default bg-zinc-50 dark:bg-zinc-800/30 border-transparent text-zinc-500'
+            ]"
         >
-            <span>{{ modelValue || 'Выбрать тег' }}</span>
-            <svg
-                v-if="isSelfProfile"
-                class="w-3 h-3 ml-2 transition-transform duration-200"
-                :class="{ 'rotate-180': isOpen }"
-                fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-        </div>
+            <Icon 
+                name="ph:hash-bold" 
+                size="14" 
+                class="text-zinc-400 group-hover:text-yellow-500 transition-colors"
+            />
+            
+            <span class="text-sm font-bold tracking-tight text-zinc-700 dark:text-zinc-200">
+                {{ modelValue || 'Выбрать тег' }}
+            </span>
 
-        <!-- Выпадающий список -->
-        <Transition name="fade">
+            <Icon
+                v-if="isSelfProfile"
+                name="ph:caret-down-bold"
+                size="12"
+                class="text-zinc-400 transition-transform duration-300"
+                :class="{ 'rotate-180 text-yellow-500': isOpen }"
+            />
+        </button>
+
+        <!-- ВЫПАДАЮЩИЙ СПИСОК -->
+        <Transition name="dropdown">
             <div 
                 v-if="isOpen && isSelfProfile"
-                class="absolute left-0 mt-2 w-48 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl py-1 z-50 max-h-60 overflow-y-auto custom-scrollbar"
+                class="absolute left-0 mt-3 w-64 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl z-50 overflow-hidden shadow-black/20"
             >
-                
-                <div v-if="props.tags.length === 0" class="px-2 py-2 text-xs text-zinc-500 text-center">
-                    Нет тегов
+                <div class="px-4 py-3 border-b flex justify-center border-zinc-100 dark:border-zinc-800/50">
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Ваши доступные теги</p>
                 </div>
 
-                <template v-else>
-                    <div 
-                        v-for="tagItem in props.tags" 
-                        :key="tagItem.id"
-                        @click="selectTag(tagItem)"
-                        class="px-2 ml-2 mr-2 rounded-2xl text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer transition-colors"
-                        :class="{ 'bg-zinc-100 dark:bg-zinc-500/40 font-medium': tagItem.tag === modelValue }"
-                    >
-                        {{ tagItem.tag }}
+                <div class="max-h-64 overflow-y-auto custom-scrollbar p-1.5">
+                    <div v-if="tags.length === 0" class="py-8 text-center">
+                        <Icon name="ph:seal-question-light" size="32" class="text-zinc-300 dark:text-zinc-700 mb-2 mx-auto" />
+                        <p class="text-xs text-zinc-500">Список пуст</p>
                     </div>
-                </template>
+
+                    <div v-else class="space-y-1">
+                        <button 
+                            v-for="tagItem in tags" 
+                            :key="tagItem.id"
+                            @click="selectTag(tagItem)"
+                            class="w-full flex items-center cursor-pointer justify-center px-3 py-2.5 rounded-xl text-sm transition-all duration-200 group/item"
+                            :class="[
+                                tagItem.tag === modelValue 
+                                    ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 font-bold' 
+                                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'
+                            ]"
+                        >
+                            <div class="flex items-center gap-2">
+                                <span class="opacity-0 group-hover/item:opacity-100 transition-opacity text-yellow-500">#</span>
+                                <span class="mr-3">{{ tagItem.tag }}</span>
+                            </div>
+                            
+                            <Icon 
+                                v-if="tagItem.tag === modelValue" 
+                                name="ph:check-circle-fill" 
+                                size="16" 
+                            />
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-2 bg-zinc-50 dark:bg-zinc-800/40 border-t border-zinc-100 dark:border-zinc-800/50">
+                    <p class="text-[9px] text-center text-zinc-400">Теги выдаются за особые достижения</p>
+                </div>
             </div>
         </Transition>
     </div>
 </template>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+.dropdown-enter-active, .dropdown-leave-active {
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
 }
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(-5px);
+.dropdown-enter-from, .dropdown-leave-to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -107,10 +125,7 @@ onUnmounted(() => {
     background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #52525b;
-    border-radius: 2px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #71717a;
+    background: #3f3f46;
+    border-radius: 10px;
 }
 </style>
