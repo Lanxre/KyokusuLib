@@ -13,7 +13,7 @@ export default defineNuxtConfig({
 	},
 	devtools: { enabled: true },
 
-	modules: ["@pinia/nuxt", "@vueuse/nuxt", "@nuxtjs/color-mode"],
+	modules: ["@pinia/nuxt", "@vueuse/nuxt", "@nuxtjs/color-mode", "@nuxt/icon"],
 
 	routeRules: {
 		"/api/**": { proxy: "http://localhost:8080/api/**" },
@@ -24,6 +24,14 @@ export default defineNuxtConfig({
 		fallback: 'dark',
 		classSuffix: '',
 		storageKey: 'theme'
+	},
+
+	icon: {
+		clientBundle: {
+            scan: true,
+            includeCustomCollections: true,
+        },
+		serverBundle: 'local',
 	},
 
 	vite: {
