@@ -12,7 +12,6 @@ import UserExperiance from "@/components/features/UserExperience/UserExperience.
 import ModalWindow from "@/components/features/Modal/ModalWindow.vue";
 import ExperienceInfo from "./experience/ExperienceInfo.vue";
 
-import EditIcon from "@/assets/images/special/setting.png";
 import InfoIcon from "@/assets/images/special/info.png";
 
 const {
@@ -104,14 +103,14 @@ const { pending } = await useAsyncData('profile-init', async () => {
                                         class="flex justify-center cursor-pointer items-center h-8 w-8 mt-2 rounded-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
                                         @click="isModalOpen = true"
                                     >
-                                        <img :src="InfoIcon" alt="info" class="h-5 w-5 dark:invert opacity-60"/>
+                                        <Icon name="ph:info-bold" size="20" />
                                     </button>
                                 </div>
                             </div>
                         </div>
 
                         <NuxtLink to="/profile/settings" class="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-2.5 md:py-2 bg-zinc-400 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 rounded-xl md:rounded-lg text-sm font-medium transition-colors border border-zinc-300 dark:border-zinc-700">
-                            <img :src="EditIcon" class="w-4 h-4 dark:invert opacity-70"/>
+                            <Icon name="ph:gear-six-bold" size="18" />
                             <span>Редактировать</span>
                         </NuxtLink>
                     </div>

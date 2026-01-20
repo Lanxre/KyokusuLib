@@ -35,7 +35,7 @@ const { data: novels } = await useAsyncData('novelas-home', () =>
 			</div>
 
 			<div class="flex flex-col items-center px-1" @click="() => navigateTo(`/novela/${item.id}`)">
-				<h3 class="cs-text text-center leading-md line-clamp-2 text-foreground text-[15px] leading-[1.15] font-semibold text-balance  dark:font-semibold group-hover/card:text-yellow-600 dark:group-hover/card:text-yellow-400 transition-colors">
+				<h3 class="cs-text text-center leading-md line-clamp-2 text-black dark:text-white text-[15px] leading-[1.15] font-semibold text-balance  dark:font-semibold group-hover/card:text-yellow-600 dark:group-hover/card:text-yellow-400 transition-colors">
 					{{ item.title }}
 				</h3>
 				<span class="text-[10px] md:text-sm text-zinc-500 dark:text-zinc-400">
@@ -52,23 +52,24 @@ const { data: novels } = await useAsyncData('novelas-home', () =>
 		</template>
 	</Carousel>
 
-	<div class="container w-[1200px] mx-auto py-8">
+	<div class="w-full max-w-6xl mx-auto px-2 sm:px-4 py-6">
 		<NovelaColumns 
-            :new-items="Array(7).fill(novels[0]) || []" 
-            :popular-items="Array(7).fill(novels[0]) || []" 
-        />
+			:new-items="Array(7).fill(novels[0]) || []" 
+			:popular-items="Array(7).fill(novels[0]) || []" 
+		/>
 	</div>
 
-	<div class="container w-[1200px] mx-auto space-y-8">
+
+	<div class="w-full max-w-6xl mx-auto px-2 sm:px-4 py-6">
 		<NovelaShelf 
-            title="Популярное сейчас" 
-            :items="Array(6).fill(novels[0]) || []"
-        />
+			title="Популярное сейчас" 
+			:items="Array(5).fill(novels[0]) || []"
+		/>
 
 		<NovelaShelf 
-            title="Свежие главы" 
-            :items="Array(6).fill(novels[0]) || []"
-        />
+			title="Свежие главы" 
+			:items="Array(5).fill(novels[0]) || []"
+		/>
 	</div>
 
   </div>
