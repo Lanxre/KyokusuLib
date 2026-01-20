@@ -90,9 +90,7 @@ const changeRating = (delta: number) => {
           :disabled="selectedRating <= 1"
           class="w-12 h-12 flex items-center justify-center rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 disabled:opacity-30"
         >
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
+          <Icon name="ph:star-fill" class="text-yellow-500" size="12" />
         </button>
 
         <div class="text-center">
@@ -105,9 +103,7 @@ const changeRating = (delta: number) => {
           :disabled="selectedRating >= 10"
           class="w-12 h-12 flex items-center justify-center rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 disabled:opacity-30"
         >
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
+          <Icon name="ph:star-fill" class="text-yellow-500" size="12" />
         </button>
       </div>
 

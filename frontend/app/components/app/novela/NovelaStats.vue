@@ -9,7 +9,6 @@ const props = defineProps<{
 
 const formatNumber = (num: number) => {
 	if (!num) return 0;
-
 	return new Intl.NumberFormat("ru-RU", {
 		notation: "compact",
 		compactDisplay: "short",
@@ -17,42 +16,34 @@ const formatNumber = (num: number) => {
 };
 
 const stats = computed(() => [
-	{ label: "Просмотры", value: formatNumber(props.novela.views), icon: "eye" },
-	{ label: "В закладках", value: formatNumber(props.novela.bookmark_details.total), icon: "bookmark" },
-	{
-		label: "Год",
-		value: getStingYear(props.novela.release_date),
-		icon: "calendar",
-	},
-	{
-		label: "Кол-во лайков",
-		value: formatNumber(props.novela.like_count),
-		icon: "like",
-	}
+	{ label: "Просмотры", value: formatNumber(props.novela.views), icon: "ph:eye-bold" },
+	{ label: "В закладках", value: formatNumber(props.novela.bookmark_details.total), icon: "ph:bookmark-simple-bold" },
+	{ label: "Год", value: getStingYear(props.novela.release_date), icon: "ph:calendar-blank-bold" },
+	{ label: "Лайки", value: formatNumber(props.novela.like_count), icon: "ph:heart-bold" }
 ]);
 </script>
 
 <template>
-    <div class="flex flex-wrap gap-4 text-sm cursor-default">
-        <div v-for="stat in stats" :key="stat.label" class="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400">
-            <svg v-if="stat.icon === 'eye'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-            <svg v-else-if="stat.icon === 'bookmark'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-			<svg v-else-if="stat.icon === 'like'"
-				class="w-5 h-5 transition-all duration-300" 
-				viewBox="0 0 24 24" 
-				stroke="currentColor"
-			>
-				<path 
-				stroke-linecap="round" 
-				stroke-linejoin="round" 
-				stroke-width="2"
-			    fill="none"
-				d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
-				/>
-			</svg>
-            <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-            <span class="font-medium text-zinc-900 dark:text-zinc-200">{{ stat.value }}</span>
-            <span class="hidden sm:inline text-xs">{{ stat.label }}</span>
+    <div class="flex flex-wrap gap-5 text-sm cursor-default">
+        <div 
+            v-for="stat in stats" 
+            :key="stat.label" 
+            class="flex items-center gap-2 text-zinc-500 dark:text-zinc-100 group transition-colors hover:text-zinc-900 dark:hover:text-zinc-100"
+        >
+            <Icon 
+                :name="stat.icon" 
+                size="18" 
+                class="opacity-80 group-hover:opacity-100 transition-opacity" 
+            />
+            
+            <div class="flex items-baseline gap-1.5">
+                <span class="font-black text-zinc-900 dark:text-zinc-200">
+                    {{ stat.value }}
+                </span>
+                <span class="hidden sm:inline text-[10px] font-bold uppercase tracking-wider opacity-50">
+                    {{ stat.label }}
+                </span>
+            </div>
         </div>
     </div>
 </template>

@@ -45,21 +45,14 @@ const handleLikeClick = async () => {
           : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800'
       ]"
     >
-      <svg 
-        class="w-5 h-5 transition-all duration-300" 
-        :class="{ 'scale-110': modelValue, 'group-hover:scale-110': !loading }"
-        :fill="modelValue ? 'currentColor' : 'none'" 
-        viewBox="0 0 24 24" 
-        stroke="currentColor"
-      >
-        <path 
-          stroke-linecap="round" 
-          stroke-linejoin="round" 
-          stroke-width="2" 
-          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
-        />
-      </svg>
-      
+      <Icon 
+        :name="modelValue ? 'ph:heart-fill' : 'ph:heart-bold'" 
+        size="22" 
+        :class="[
+            'transition-all duration-300',
+            modelValue ? 'text-yellow-500 scale-110' : 'text-zinc-400'
+        ]" 
+      />
       <span>{{ modelValue ? 'Понравилось' : 'Лайк' }}</span>
       <div v-if="loading" class="ml-1 w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
     </button>

@@ -18,6 +18,7 @@ import { ACTIVITY_TYPES } from "~/constants/user-activity";
 import { KyokusuAppRole } from "~/types/enums/role-enum";
 import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
 import type { NovelaDetails } from "~/types/backend/novela";
+import { getBookmarkCategoryLabel, type BookmarkCategory } from "~/types/frontend/bookmarks";
 
 const route = useRoute();
 
@@ -48,7 +49,7 @@ const novelaInfo = computed(() => [
     { label: "Автор", value: novela.value?.authors?.[0]?.name },
 ]);
 
-const updateCountBookmarks = async (newCategory: string | null) => {
+const updateCountBookmarks = async (newCategory: BookmarkCategory | null) => {
     if (!novela.value || !user?.id) return;
 
     const prevCategory = currentBookmarkCategory.value;
@@ -85,7 +86,7 @@ const updateCountBookmarks = async (newCategory: string | null) => {
             target_id: novela.value.id,
             metadata: {
                 novela_title: novela.value.title,
-                desc: `Пользователь изменил категорию на "${newCategory}"`,
+                desc: `Пользователь изменил категорию на "${getBookmarkCategoryLabel(newCategory)}"`,
             }
         });
     } 
@@ -272,10 +273,7 @@ const toggleSection = (name: string) => {
                                             class="p-2 -m-4 cursor-pointer group outline-none"
                                             @click="isOpenNovelaSettings = true"
                                         >
-                                            <img 
-                                                :src="EditIcon" 
-                                                class="w-5 h-5 md:w-4 md:h-4 dark:invert opacity-60 group-hover:opacity-100 transition-opacity"
-                                            />
+                                            <Icon name="ph:gear" size="24" class="text-zinc-200 group-hover:text-zinc-400 transition-colors duration-300" />
                                         </button>
                                 </div>
 
