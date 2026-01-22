@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useBreakpoints, breakpointsTailwind } from "@vueuse/core"; // Импортируем VueUse
+import { useBreakpoints, breakpointsTailwind } from "@vueuse/core";
 import type { NovelaBookmarkCategory } from "@/types/backend/novela";
 
 const props = defineProps<{
@@ -70,7 +70,7 @@ const getPercentage = (count: number) => {
 							:key="item.value"
 							class="flex items-center gap-3 group/row"
 						>
-							<div class="flex items-center gap-2" :class="isMobile ? 'min-w-fit' : 'min-w-[110px]'">
+							<div class="flex items-center gap-2 min-w-fit sm:min-w-[110px]">
 								<Icon 
 									:name="statusConfig[item.value]?.icon || 'ph:bookmark-simple-bold'" 
 									size="16"
