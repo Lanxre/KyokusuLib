@@ -34,7 +34,7 @@ defineProps<Props>();
         </div>
 
         <div class="relative group/shelf">
-            <div class="flex gap-5 overflow-x-auto pb-6 px-2 snap-x scroll-smooth no-scrollbar">
+            <div class="flex max-h-[400px] gap-5 overflow-x-auto pb-6 px-2 snap-x scroll-smooth no-scrollbar">
                 <NovelaCard 
                     v-for="novela in items" 
                     :key="novela.id" 

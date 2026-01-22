@@ -16,7 +16,7 @@ export const NOVELA_STATUSES = [
 ]
 
 export const AGE_RATINGS = [
-  "16+", "18+", "R"
+  "0+", "6+", "12+", "16+", "18+"
 ];
 
 export const TRANSLATION_STATUSES = [

@@ -33,13 +33,15 @@ func (r *NovelaRepository) Create(ctx context.Context, n *db.Novela) error {
 			title, alternative_titles, description, type, age_rating, 
 			release_date, status, country, translation_status, poster_url, views
 		)
-		SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+		SELECT 
+            $1::text, $2::text[], $3::text, $4::text, $5::text, 
+            $6::timestamp, $7::text, $8::text, $9::text, $10::text, $11::int
 		WHERE NOT EXISTS (
 			SELECT 1 FROM novela 
-			WHERE title ILIKE $1 
-			   OR $1 ILIKE ANY(alternative_titles)
-			   OR title = ANY($2)
-			   OR alternative_titles && $2
+			WHERE title ILIKE $1::text 
+			   OR $1::text ILIKE ANY(alternative_titles)
+			   OR title = ANY($2::text[])
+			   OR alternative_titles && $2::text[]
 		)
 		RETURNING id`
 
@@ -80,7 +82,6 @@ func (r *NovelaRepository) Create(ctx context.Context, n *db.Novela) error {
 }
 func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, userID int) (*db.Novela, error) {
 	n := &db.Novela{}
-
 	var (
 		authorsJSON []byte
 		volumesJSON []byte
@@ -153,10 +154,7 @@ func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, user
 				ELSE NULL 
 			END as user_category,
 
-			CASE
-				WHEN $2 > 0 THEN (SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $2)
-				ELSE FALSE
-			END as has_liked,
+			COALESCE((SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $1), FALSE) as has_liked,
 
 			COALESCE((SELECT COUNT(*) FROM user_novela_likes WHERE novela_id = n.id AND has_liked = TRUE), 0),
 
@@ -192,6 +190,7 @@ func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, user
 	)
 
 	if err != nil {
+		fmt.Println(err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
@@ -426,120 +425,76 @@ func (r *NovelaRepository) UpdatePoster(ctx context.Context, id int, posterURL s
 }
 
 func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID int, f dto.NovelaFilters) ([]db.Novela, int, error) {
-	var filterArgs []interface{}
-	filterArgIDStart := 2 
-	
-	whereParts := []string{"1=1"}
-	
-	ph := func(idx int) string {
-		return fmt.Sprintf("$%d", idx)
-	}
+	var args []interface{}
+	where := []string{"1=1"}
+	argID := 1
 
-	currentArgID := filterArgIDStart
+	args = append(args, userID)
+	argID++
 
 	if f.Search != "" {
-		whereParts = append(whereParts, fmt.Sprintf("(title ILIKE %s OR %s ILIKE ANY(alternative_titles))", ph(currentArgID), ph(currentArgID)))
-		filterArgs = append(filterArgs, "%"+f.Search+"%")
-		currentArgID++
+		where = append(where, fmt.Sprintf("(n.title ILIKE $%d OR $%d ILIKE ANY(n.alternative_titles))", argID, argID))
+		args = append(args, "%"+f.Search+"%")
+		argID++
 	}
 
 	if len(f.Genres) > 0 {
-		whereParts = append(whereParts, fmt.Sprintf(`EXISTS (
+		where = append(where, fmt.Sprintf(`EXISTS (
 			SELECT 1 FROM novela_genres ng JOIN genres g ON ng.genre_id = g.id 
-			WHERE ng.novela_id = n.id AND g.name = ANY(%s)
-		)`, ph(currentArgID)))
-		filterArgs = append(filterArgs, pq.Array(f.Genres))
-		currentArgID++
+			WHERE ng.novela_id = n.id AND g.name = ANY($%d)
+		)`, argID))
+		args = append(args, pq.Array(f.Genres))
+		argID++
 	}
 
 	if len(f.Categories) > 0 {
-		whereParts = append(whereParts, fmt.Sprintf(`EXISTS (
+		where = append(where, fmt.Sprintf(`EXISTS (
 			SELECT 1 FROM novela_categories nc JOIN categories c ON nc.category_id = c.id 
-			WHERE nc.novela_id = n.id AND c.name = ANY(%s)
-		)`, ph(currentArgID)))
-		filterArgs = append(filterArgs, pq.Array(f.Categories))
-		currentArgID++
+			WHERE nc.novela_id = n.id AND c.name = ANY($%d)
+		)`, argID))
+		args = append(args, pq.Array(f.Categories))
+		argID++
 	}
 
 	if f.Type != "" {
-		whereParts = append(whereParts, fmt.Sprintf("type = %s", ph(currentArgID)))
-		filterArgs = append(filterArgs, f.Type)
-		currentArgID++
+		where = append(where, fmt.Sprintf("n.type = $%d", argID))
+		args = append(args, f.Type)
+		argID++
 	}
 
-	if f.Status != "" {
-		whereParts = append(whereParts, fmt.Sprintf("status = %s", ph(currentArgID)))
-		filterArgs = append(filterArgs, f.Status)
-		currentArgID++
-	}
-
-	whereSQL := strings.Join(whereParts, " AND ")
-
-	orderBy := "created_at DESC"
+	orderBy := "n.created_at DESC"
 	switch f.Sort {
-	case "popular":
-		orderBy = "views DESC"
-	case "rating":
-		orderBy = "(SELECT AVG(rating) FROM novela_ratings WHERE novela_id = n.id) DESC NULLS LAST"
-	case "old":
-		orderBy = "created_at ASC"
+	case dto.SortPopular:
+		orderBy = "avg_rating DESC NULLS LAST"
+	case dto.SortTrending:
+		orderBy = "n.views DESC"
+	case dto.SortUpdated:
+		orderBy = "last_chapter_at DESC NULLS LAST"
+	case dto.SortNew:
+		orderBy = "n.created_at DESC"
 	}
 
 	query := fmt.Sprintf(`
-		SELECT 
-			n.id, n.title, 
-			COALESCE(n.alternative_titles, '{}')::text[],
-			n.description, n.type, n.age_rating, n.release_date, 
-			n.status, n.country, n.translation_status, n.poster_url, n.views,
+    SELECT 
+        n.id, n.title, COALESCE(n.alternative_titles, '{}')::text[], n.type, n.status, n.poster_url, n.views,
+        COALESCE((SELECT array_agg(g.name) FROM novela_genres ng JOIN genres g ON ng.genre_id = g.id WHERE ng.novela_id = n.id), '{}')::text[],
+        COALESCE((SELECT array_agg(c.name) FROM novela_categories nc JOIN categories c ON nc.category_id = c.id WHERE nc.novela_id = n.id), '{}')::text[],
+        COALESCE((SELECT AVG(rating) FROM novela_ratings WHERE novela_id = n.id), 0) as avg_rating,
+        (SELECT MAX(created_at) FROM novela_chapters ch JOIN novela_volumes v ON ch.novela_volume_id = v.id WHERE v.novela_id = n.id) as last_chapter_at,
+        
+        -- Поля пользователя
+        (SELECT category FROM user_novela_bookmarks WHERE novela_id = n.id AND user_id = $1) as user_bookmark,
+        
+        COALESCE((SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $1), FALSE) as has_liked
 
-			COALESCE((SELECT array_agg(g.name) FROM novela_genres ng JOIN genres g ON ng.genre_id = g.id WHERE ng.novela_id = n.id), '{}')::text[],
-			COALESCE((SELECT array_agg(c.name) FROM novela_categories nc JOIN categories c ON nc.category_id = c.id WHERE nc.novela_id = n.id), '{}')::text[],
+    FROM novela n
+    WHERE %s
+    ORDER BY %s
+    LIMIT $%d OFFSET $%d`, 
+    strings.Join(where, " AND "), orderBy, argID, argID+1)
 
-			COALESCE((
-				SELECT json_agg(json_build_object('id', a.id, 'name', a.name, 'role', na.role))
-				FROM novela_authors na JOIN authors a ON na.author_id = a.id WHERE na.novela_id = n.id
-			), '[]'),
-
-			COALESCE((
-				SELECT json_agg(
-					json_build_object(
-						'id', v.id,
-						'title', v.title,
-						'number', v.volume_number,
-						'chapters', COALESCE((
-							SELECT json_agg(
-								json_build_object(
-									'id', ch.id,
-									'title', ch.title,
-									'number', ch.chapter_number,
-									'images', COALESCE((
-										SELECT json_agg(
-											json_build_object('id', img.id, 'image_url', img.image_url, 'caption', img.caption)
-											ORDER BY img.id
-										) FROM novela_chapter_images img WHERE img.chapter_id = ch.id
-									), '[]'::json)
-								) ORDER BY ch.chapter_number
-							) FROM novela_chapters ch WHERE ch.novela_volume_id = v.id
-						), '[]'::json)
-					) ORDER BY v.volume_number
-				) FROM novela_volumes v WHERE v.novela_id = n.id
-			), '[]'),
-			
-			CASE WHEN $1 > 0 THEN (SELECT category FROM user_novela_bookmarks WHERE novela_id = n.id AND user_id = $1) ELSE NULL END,
-
-			CASE WHEN $1 > 0 THEN (SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $1) ELSE FALSE END,
-			COALESCE((SELECT COUNT(*) FROM user_novela_likes WHERE novela_id = n.id AND has_liked = TRUE), 0)
-
-		FROM novela n
-		WHERE %s
-		ORDER BY %s
-		LIMIT %s OFFSET %s`, 
-		whereSQL, orderBy, ph(currentArgID), ph(currentArgID+1))
-
-	mainArgs := append([]interface{}{userID}, filterArgs...)
-	mainArgs = append(mainArgs, f.Limit, f.Offset)
-
-	rows, err := tx.QueryContext(ctx, query, mainArgs...)
+	finalArgs := append(args, f.Limit, f.Offset)
+	rows, err := tx.QueryContext(ctx, query, finalArgs...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -548,48 +503,36 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 	var novelas []db.Novela
 	for rows.Next() {
 		var n db.Novela
-		var authorsJSON, volumesJSON []byte
-		var userRating sql.NullInt32
-		
+		var lastChapterAt sql.NullTime
 		err := rows.Scan(
-			&n.ID, &n.Title, pq.Array(&n.AlternativeTitles), &n.Description, 
-			&n.Type, &n.AgeRating, &n.ReleaseDate, &n.Status, &n.Country, 
-			&n.TranslationStatus, &n.PosterURL, &n.Views,
-			pq.Array(&n.Genres), pq.Array(&n.Categories),
-			&authorsJSON, &volumesJSON,
-			&n.Bookmark, &n.HasLiked, &n.LikeCount,
+			&n.ID,
+			&n.Title,
+			pq.Array(&n.AlternativeTitles),
+			&n.Type,
+			&n.Status,
+			&n.PosterURL,
+			&n.Views,
+			pq.Array(&n.Genres),
+			pq.Array(&n.Categories),
+			&n.Rating,
+			&lastChapterAt,
+			&n.Bookmark,
+			&n.HasLiked,
 		)
 		if err != nil {
 			return nil, 0, err
 		}
-
-		if len(authorsJSON) > 0 { _ = json.Unmarshal(authorsJSON, &n.Authors) }
-		if len(volumesJSON) > 0 { _ = json.Unmarshal(volumesJSON, &n.Volumes) }
-		if n.Bookmark != nil { val := db.BookmarkCategory(*n.Bookmark); n.Bookmark = &val }
-		if userRating.Valid { n.UserRating = int(userRating.Int32) }
-		
 		novelas = append(novelas, n)
 	}
 
-	countWhereParts := []string{"1=1"}
-	countArgID := 1
-	if f.Search != "" { countWhereParts = append(countWhereParts, fmt.Sprintf("(title ILIKE $%d OR $%d ILIKE ANY(alternative_titles))", countArgID, countArgID)); countArgID++ }
-	if len(f.Genres) > 0 { countWhereParts = append(countWhereParts, fmt.Sprintf(`EXISTS (SELECT 1 FROM novela_genres ng JOIN genres g ON ng.genre_id = g.id WHERE ng.novela_id = n.id AND g.name = ANY($%d))`, countArgID)); countArgID++ }
-	if len(f.Categories) > 0 { countWhereParts = append(countWhereParts, fmt.Sprintf(`EXISTS (SELECT 1 FROM novela_categories nc JOIN categories c ON nc.category_id = c.id WHERE nc.novela_id = n.id AND c.name = ANY($%d))`, countArgID)); countArgID++ }
-	if f.Type != "" { countWhereParts = append(countWhereParts, fmt.Sprintf("type = $%d", countArgID)); countArgID++ }
-	if f.Status != "" { countWhereParts = append(countWhereParts, fmt.Sprintf("status = $%d", countArgID)); countArgID++ }
-	
-	countWhereSQL := strings.Join(countWhereParts, " AND ")
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM novela n WHERE %s", countWhereSQL)
-
 	var total int
-	if err := tx.QueryRowContext(ctx, countQuery, filterArgs...).Scan(&total); err != nil {
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM novela n WHERE %s", strings.Join(where, " AND "))
+	if err := tx.QueryRowContext(ctx, countQuery, args[1:]...).Scan(&total); err != nil {
 		return nil, 0, err
 	}
 
 	return novelas, total, nil
 }
-
 func (r *NovelaRepository) GetUserNovelaBookmarks(ctx context.Context, userID int, category db.BookmarkCategory) ([]db.UserNovelaBookmark, error) {
 	query := `
 		SELECT n.id, n.title, n.poster_url, n.type,

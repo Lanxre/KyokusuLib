@@ -17,7 +17,7 @@ defineProps<Props>();
         <div class="relative aspect-[2/3] rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 shadow-sm transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-yellow-500/10 group-hover:-translate-y-1.5 border border-transparent dark:group-hover:border-zinc-700">
             <img 
                 :src="staticImage(novela.poster_url || '')" 
-                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                class="w-full h-full transition-transform duration-700 group-hover:scale-110" 
                 :alt="novela.title" 
             />
             

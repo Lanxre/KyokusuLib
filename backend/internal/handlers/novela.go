@@ -31,37 +31,21 @@ func NewNovelaHandler(ranobeService *service.NovelaService, validator *validator
 }
 
 func (h *NovelaHandler) GetNovela(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	idStr, ok := vars["id"]
-	if !ok {
-		response.Error(w, http.StatusBadRequest, "ID is missing")
-		return
-	}
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
 
-	NovelaID, err := strconv.Atoi(idStr)
+	novela, err := h.service.GetNovelaById(r.Context(), id, userID)
 	if err != nil {
-		response.Error(w, http.StatusBadRequest, "Invalid ranobe ID format")
-		return
-	}
-
-	userID := 0
-    if val := r.Context().Value(middleware.UserIDKey); val != nil {
-        userID = val.(int)
-    }
-
-	novela, err := h.service.GetNovelaById(r.Context(), NovelaID, userID)
-	if err != nil {
+		if errors.Is(err, service.ErrNovelaNotFound) {
+			response.Error(w, http.StatusNotFound, err.Error())
+			return
+		}
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-
-	if novela == nil {
-		response.Error(w, http.StatusNotFound, "Novela not found")
-		return
-	}
-
 	response.JSON(w, http.StatusOK, novela)
 }
+
 
 func (h *NovelaHandler) CreateNovela(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
@@ -284,51 +268,31 @@ func (h *NovelaHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *NovelaHandler) GetNovelas(w http.ResponseWriter, r *http.Request) {
-	userID := 0
-    if val := r.Context().Value(middleware.UserIDKey); val != nil {
-        userID = val.(int)
-    }
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
+	q := r.URL.Query()
 
-	query := r.URL.Query()
-
-	limit, err := strconv.Atoi(query.Get("limit"))
-	if err != nil || limit <= 0 {
-		limit = 20
+	toInt := func(k string, d int) int {
+		v, err := strconv.Atoi(q.Get(k))
+		if err != nil { return d }
+		return v
 	}
 
-	offset, err := strconv.Atoi(query.Get("offset"))
-	if err != nil || offset < 0 {
-		offset = 0
+	parseCSV := func(k string) []string {
+		if v := q.Get(k); v != "" { return strings.Split(v, ",") }
+		return q[k]
 	}
-
-	var genres []string
-	if val := query.Get("genres"); val != "" {
-		genres = strings.Split(val, ",")
-	}
-
-    if len(query["genres"]) > 0 {
-        genres = query["genres"]
-    }
-
-	var categories []string
-	if val := query.Get("categories"); val != "" {
-		categories = strings.Split(val, ",")
-	}
-    if len(query["categories"]) > 0 {
-        categories = query["categories"]
-    }
 
 	filters := dto.NovelaFilters{
-		Limit:      limit,
-		Offset:     offset,
-		Search:     query.Get("search"),
-		Sort:       query.Get("sort"),
-		Type:       query.Get("type"),
-		Status:     query.Get("status"),
-		Genres:     genres,
-		Categories: categories,
+		Limit:      toInt("limit", 20),
+		Offset:     toInt("offset", 0),
+		Search:     q.Get("search"),
+		Sort:       dto.NovelaSort(q.Get("sort")),
+		Type:       q.Get("type"),
+		Status:     q.Get("status"),
+		Genres:     parseCSV("genres"),
+		Categories: parseCSV("categories"),
 	}
-	
+
 	novelas, total, err := h.service.GetNovelas(r.Context(), userID, filters)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())

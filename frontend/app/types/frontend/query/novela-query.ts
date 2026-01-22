@@ -4,4 +4,5 @@ export interface NovelsQueryParams {
     order_by?: string;
     order?: string;
     search?: string;
+    sort?: string;
 }

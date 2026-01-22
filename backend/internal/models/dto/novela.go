@@ -1,7 +1,17 @@
 package dto
 
+type NovelaSort string
+
+const (
+	SortNew      NovelaSort = "new"
+	SortPopular  NovelaSort = "popular"
+	SortRating   NovelaSort = "rating"
+	SortUpdated  NovelaSort = "updated"
+	SortTrending NovelaSort = "trending" 
+)
+
 type CreateNovelaDTO struct {
-	Title             string `validate:"required,min=2,max=255"`
+	Title             string `validate:"required,min=2,max=500"`
 	Description       string `validate:"required,max=5000"`
 	Type              string `validate:"required,oneof=Ранобе Веб-новелла Манга Манхва"`
 	AgeRating         string `validate:"required,oneof=0+ 6+ 12+ 16+ 18+"`
@@ -15,42 +25,41 @@ type CreateNovelaDTO struct {
 }
 
 type NovelaResponse struct {
-	ID                int       		`json:"id"`
-	Title             string    		`json:"title"`
-	AlternativeTitles []string  		`json:"alternative_titles"`
-	Description       string    		`json:"description"`
-	Type              string    		`json:"type"`
-	AgeRating         string    		`json:"age_rating"`
-	ReleaseDate       string 			`json:"release_date"`
-	Status            string    		`json:"status"`
-	TranslationStatus string    		`json:"translation_status"`
-	PosterURL         string    		`json:"poster_url"`
-	Country           string    		`json:"country"`
-	Views             int       		`json:"views"`
-	Genres     		  []string      	`json:"genres"`
-	Categories 		  []string      	`json:"categories"`
-	Authors    		  []NovelaAuthor 	`json:"authors"`
-	Volumes    		  []NovelaVolume 	`json:"volumes"`
-	Bookmark  		  *string			`json:"bookmark"`
-	HasLiked  		  bool				`json:"has_liked"`
-	LikeCount  		  int				`json:"like_count"`
-	UserRating  	  int				`json:"user_rating"`
-	RatingDetails     NovelaRatingCategory `json:"rating_details"`
-	BookmarkDetails   NovelaBookmarkCategory 	   `json:"bookmark_details"`
+	ID                int                    `json:"id"`
+	Title             string                 `json:"title"`
+	AlternativeTitles []string               `json:"alternative_titles"`
+	Description       string                 `json:"description"`
+	Type              string                 `json:"type"`
+	AgeRating         string                 `json:"age_rating"`
+	ReleaseDate       string                 `json:"release_date"`
+	Status            string                 `json:"status"`
+	TranslationStatus string                 `json:"translation_status"`
+	PosterURL         string                 `json:"poster_url"`
+	Country           string                 `json:"country"`
+	Views             int                    `json:"views"`
+	Genres            []string               `json:"genres"`
+	Categories        []string               `json:"categories"`
+	Authors           []NovelaAuthor         `json:"authors"`
+	Volumes           []NovelaVolume         `json:"volumes"`
+	Bookmark          *string                `json:"bookmark"`
+	HasLiked          bool                   `json:"has_liked"`
+	LikeCount         int                    `json:"like_count"`
+	UserRating        int                    `json:"user_rating"`
+	RatingDetails     NovelaRatingCategory   `json:"rating_details"`
+	BookmarkDetails   NovelaBookmarkCategory `json:"bookmark_details"`
 }
-
 type NovelaRatingCategory struct {
 	Total        int       `json:"total"`
-	ToatalRating float64   `json:"total_rating"`
-	NCItems      []NCItems  `json:"nc_items"`
+	TotalRating float64   `json:"total_rating"`
+	NCItems      []NCItem  `json:"nc_items"`
 }
 
 type NovelaBookmarkCategory struct {
 	Total        int       `json:"total"`
-	NCItems      []NCItems  `json:"nc_items"`
+	NCItems      []NCItem  `json:"nc_items"`
 }
 
-type NCItems struct {
+type NCItem struct {
 	Value any `json:"value"`
 	Count int `json:"count"`
 }
@@ -98,14 +107,14 @@ type UpdateNovelaRequest struct {
 }
 
 type NovelaFilters struct {
-	Limit      int
-	Offset     int
-	Search     string
-	Sort       string
-	Genres     []string
-	Categories []string
-	Type       string
-	Status     string
+	Search     string     `json:"search"`
+	Genres     []string   `json:"genres"`
+	Categories []string   `json:"categories"`
+	Type       string     `json:"type"`
+	Status     string     `json:"status"`
+	Sort       NovelaSort `json:"sort"`
+	Limit      int        `json:"limit"`
+	Offset     int        `json:"offset"`
 }
 
 type UserNovelaBookmark struct {

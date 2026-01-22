@@ -9,6 +9,23 @@ const { data: novels } = await useAsyncData('novelas-home', () =>
     fetchNovels({ limit: 10 })
 );
 
+const { data: newNovels } = await useAsyncData('novels-new', () => 
+  fetchNovels({ sort: 'new', limit: 7 })
+)
+
+const { data: popularNovels } = await useAsyncData('novels-popular', () => 
+  fetchNovels({ sort: 'popular', limit: 7 })
+)
+
+const { data: updatedNovels } = await useAsyncData('novels-updated', () => 
+  fetchNovels({ sort: 'updated', limit: 6 })
+);
+
+const { data: trendingNovels } = await useAsyncData('novels-trending', () => 
+  fetchNovels({ sort: 'trending', limit: 7 })
+);
+
+
 </script>
 
 <template>
@@ -35,12 +52,14 @@ const { data: novels } = await useAsyncData('novelas-home', () =>
 			</div>
 
 			<div class="flex flex-col items-center px-1" @click="() => navigateTo(`/novela/${item.id}`)">
-				<h3 class="cs-text text-center leading-md line-clamp-2 text-black dark:text-white text-[15px] leading-[1.15] font-semibold text-balance  dark:font-semibold group-hover/card:text-yellow-600 dark:group-hover/card:text-yellow-400 transition-colors">
+				<div class="flex flex-col gap-2 items-center h-[70px]">
+					<h3 class="cs-text text-center leading-md line-clamp-2 text-black dark:text-white text-[15px] leading-[1.15] font-semibold text-balance  dark:font-semibold group-hover/card:text-yellow-600 dark:group-hover/card:text-yellow-400 transition-colors">
 					{{ item.title }}
 				</h3>
 				<span class="text-[10px] md:text-sm text-zinc-500 dark:text-zinc-400">
 					{{ item.type }}
 				</span>
+				</div>
 				
 				<button 
 					class="mt-2 w-full py-1.5 md:py-2 cursor-pointer rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white text-xs md:text-sm font-medium transition-colors border border-zinc-200 dark:border-zinc-700"
@@ -54,21 +73,21 @@ const { data: novels } = await useAsyncData('novelas-home', () =>
 
 	<div class="w-full max-w-6xl mx-auto px-2 sm:px-4 py-6">
 		<NovelaColumns 
-			:new-items="Array(7).fill(novels[0]) || []" 
-			:popular-items="Array(7).fill(novels[0]) || []" 
+			:new-items="newNovels || []" 
+			:popular-items="popularNovels || []" 
 		/>
 	</div>
 
 
 	<div class="w-full max-w-6xl mx-auto px-2 sm:px-4 py-6">
 		<NovelaShelf 
-			title="Популярное сейчас" 
-			:items="Array(5).fill(novels[0]) || []"
+			title="Трендоваое" 
+			:items="trendingNovels || []"
 		/>
 
 		<NovelaShelf 
 			title="Свежие главы" 
-			:items="Array(5).fill(novels[0]) || []"
+			:items="updatedNovels || []"
 		/>
 	</div>
 

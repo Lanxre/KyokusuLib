@@ -18,19 +18,23 @@ type Novela struct {
 	Country           string    `json:"country"`
 	Views             int       `json:"views"`
 	
-	
-	Genres     		[]string      		`json:"genres"`
-	Categories 		[]string      		`json:"categories"`
-	Authors    		[]NovelaAuthor 		`json:"authors"`
-	
-	Volumes    		[]NovelaVolume 		`json:"volumes"`
-	
-	Bookmark      	*BookmarkCategory 	`json:"bookmark"`
-	
-	HasLiked      	bool				`json:"has_liked"`
-	LikeCount     	int					`json:"like_count"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
 
-	UserRating      int 				`json:"user_rating"`
+	Genres            []string       `json:"genres"`
+	Categories        []string       `json:"categories"`
+	Authors           []NovelaAuthor `json:"authors"`
+	Volumes           []NovelaVolume `json:"volumes"`
+
+	Rating            float64 `json:"rating"`
+	RatingCount       int     `json:"rating_count"`
+	UserRating        int     `json:"user_rating"`
+
+	Bookmark          *BookmarkCategory `json:"bookmark"`
+	BookmarkCount     int               `json:"bookmark_count"`
+
+	HasLiked          bool `json:"has_liked"`
+	LikeCount         int  `json:"like_count"`
 }
 
 type NovelaAuthor struct {
