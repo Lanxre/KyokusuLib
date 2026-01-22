@@ -589,3 +589,30 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 
 	return novelas, total, nil
 }
+
+func (r *NovelaRepository) GetUserNovelaBookmarks(ctx context.Context, userID int, category db.BookmarkCategory) ([]db.UserNovelaBookmark, error) {
+	query := `
+		SELECT n.id, n.title, n.poster_url, n.type,
+		       COALESCE((SELECT AVG(rating) FROM novela_ratings WHERE novela_id = n.id), 0) as rating
+		FROM novela n
+		JOIN user_novela_bookmarks b ON n.id = b.novela_id
+		WHERE b.user_id = $1 AND b.category = $2
+		ORDER BY b.updated_at DESC`
+
+	rows, err := r.DB.QueryContext(ctx, query, userID, category)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var novelas []db.UserNovelaBookmark
+	for rows.Next() {
+		var n db.UserNovelaBookmark
+		if err := rows.Scan(&n.ID, &n.Title, &n.PosterURL, &n.Type, &n.Rating); err != nil {
+			return nil, err
+		}
+		novelas = append(novelas, n)
+	}
+	
+	return novelas, nil
+}

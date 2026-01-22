@@ -107,3 +107,11 @@ type NovelaFilters struct {
 	Type       string
 	Status     string
 }
+
+type UserNovelaBookmark struct {
+	ID     		int    		`json:"id"`
+	Title  		string 		`json:"title"`
+	PosterURL 	string 		`json:"poster_url"`
+	Type 		string 		`json:"type"`
+	Rating     	float64     `json:"rating"`
+}

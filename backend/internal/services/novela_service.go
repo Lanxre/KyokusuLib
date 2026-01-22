@@ -188,6 +188,26 @@ func (s *NovelaService) GetNovelas(ctx context.Context, userID int, filters dto.
 	return ns, total, nil
 }
 
+func (s *NovelaService) GetUserNovelaBookmarks(ctx context.Context, userID int, category string) ([]dto.UserNovelaBookmark, error) {
+	novelas, err := s.Repo.GetUserNovelaBookmarks(ctx, userID, db.BookmarkCategory(category))
+	if err != nil {
+		return nil, errors.New("Invalid category type ")
+	}
+
+	var ns []dto.UserNovelaBookmark
+	for _, n := range novelas {
+		ns = append(ns, dto.UserNovelaBookmark{
+			ID:        n.ID,
+			Title:     n.Title,
+			PosterURL: n.PosterURL,
+			Type:      n.Type,
+			Rating:    n.Rating,
+		})
+	}
+
+	return ns, nil
+}
+
 func (s *NovelaService) novelaToDto(novela *db.Novela) *dto.NovelaResponse {
 	if novela == nil {
 		return nil

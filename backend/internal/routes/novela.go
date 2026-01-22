@@ -20,6 +20,8 @@ func (a *NovelaRoutes) Register(cfg *config.Config, r *mux.Router) {
 	novelaRouter.Handle("/novela/bookmark", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.SetBookmark), cfg.JWTSecret)).Methods("POST")
 	novelaRouter.Handle("/novela/bookmark/{id:[0-9]+}", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.RemoveBookmark), cfg.JWTSecret)).Methods("DELETE")
 
+	novelaRouter.Handle("/novela/bookmarks", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.GetUserNovelaBookmarks), cfg.JWTSecret)).Methods("GET")
+
 	novelaRouter.Handle("/novela/like", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.SetLike), cfg.JWTSecret)).Methods("POST")
 	novelaRouter.Handle("/novela/rating", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.SetRating), cfg.JWTSecret)).Methods("POST")
 }

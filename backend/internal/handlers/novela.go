@@ -338,3 +338,28 @@ func (h *NovelaHandler) GetNovelas(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Total-Count", fmt.Sprintf("%d", total))
 	response.JSON(w, http.StatusOK, novelas)
 }
+
+func (h *NovelaHandler) GetUserNovelaBookmarks(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusInternalServerError, "User not found")
+		return
+	}
+
+	query := r.URL.Query()
+
+	category := query.Get("category")
+	if category == "" {
+		response.Error(w, http.StatusBadRequest, "Missing category parameter")
+		return
+	}
+
+	novelas, err := h.service.GetUserNovelaBookmarks(r.Context(), userID, category)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.SuccessWithEntity(w, http.StatusOK, novelas)
+}
+
