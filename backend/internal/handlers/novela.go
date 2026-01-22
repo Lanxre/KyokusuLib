@@ -340,13 +340,19 @@ func (h *NovelaHandler) GetNovelas(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *NovelaHandler) GetUserNovelaBookmarks(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
-	if !ok {
-		response.Error(w, http.StatusInternalServerError, "User not found")
+	query := r.URL.Query()
+	
+	userID := query.Get("user_id")
+	if userID == "" {
+		response.Error(w, http.StatusBadRequest, "Missing user_id parameter")
 		return
 	}
 
-	query := r.URL.Query()
+	userIDInt, err := strconv.Atoi(userID)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid user_id format")
+		return
+	}
 
 	category := query.Get("category")
 	if category == "" {
@@ -354,7 +360,7 @@ func (h *NovelaHandler) GetUserNovelaBookmarks(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	novelas, err := h.service.GetUserNovelaBookmarks(r.Context(), userID, category)
+	novelas, err := h.service.GetUserNovelaBookmarks(r.Context(), userIDInt, category)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return

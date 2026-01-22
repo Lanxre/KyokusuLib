@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { staticImage } from "@/utils/str";
 import { useProfile } from "@/composables/api/profile/useProfile";
 import { useUserActivity } from "@/composables/api/profile/useUserActivity";
@@ -11,8 +11,7 @@ import TagSelector from "@/components/features/TagSelector/TagSelector.vue";
 import UserExperiance from "@/components/features/UserExperience/UserExperience.vue";
 import ModalWindow from "@/components/features/Modal/ModalWindow.vue";
 import ExperienceInfo from "./experience/ExperienceInfo.vue";
-
-import InfoIcon from "@/assets/images/special/info.png";
+import TabBookmarks from "./tabs/TabBookmarks.vue";
 
 const {
     profileData,
@@ -176,6 +175,9 @@ const { pending } = await useAsyncData('profile-init', async () => {
                         <transition name="fade" mode="out-in">
                             <div v-if="activeTab === 'overview'" :key="activeTab">
                                 <TabActivity :activities="activities" :isLoading="isLoadingActivities" />
+                            </div>
+                            <div v-else-if="activeTab === 'bookmarks'" :key="'bookmarks'">
+                                <TabBookmarks :userId="profileData!.id" />
                             </div>
                             <div v-else class="p-12 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-500 text-center">
                                 Здесь пока ничего нет

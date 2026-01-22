@@ -3,7 +3,6 @@ import { ref, computed, onMounted, watch } from "vue";
 import { staticImage } from "@/utils/str";
 import { useProfile } from "@/composables/api/profile/useProfile";
 import { useUserActivity } from "@/composables/api/profile/useUserActivity";
-import { useInterfaceSettings } from "@/composables/api/settings/useInterfaceSettings";
 import type { GetUserDto } from "@/types/backend/user";
 
 import Separator from "@/components/ui/Separator/Separtor.vue";
@@ -11,8 +10,7 @@ import TabActivity from "@/components/app/profile/activity/TabActivity.vue";
 import UserExperiance from "@/components/features/UserExperience/UserExperience.vue";
 import ModalWindow from "@/components/features/Modal/ModalWindow.vue";
 import ExperienceInfo from "./experience/ExperienceInfo.vue";
-
-import InfoIcon from "@/assets/images/special/info.png";
+import TabBookmarks from "./tabs/TabBookmarks.vue";
 
 const props = defineProps<{
 	profileData: GetUserDto | null;
@@ -106,7 +104,7 @@ const { status } = await useAsyncData(
                                         class="flex justify-center items-center cursor-pointer h-8 w-8 mt-2 rounded-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
                                         @click="isModalOpen = true"
                                     >
-                                        <img :src="InfoIcon" alt="info" class="h-5 w-5 dark:invert opacity-60"/>
+                                        <Icon name="ph:info-bold" size="20" />
                                     </button>
                                 </div>
                             </div>
@@ -174,6 +172,9 @@ const { status } = await useAsyncData(
                         <transition name="fade" mode="out-in">
                             <div v-if="activeTab === 'overview'" :key="activeTab">
                                 <TabActivity :activities="activities" :isLoading="isLoadingActivities" />
+                            </div>
+                            <div v-else-if="activeTab === 'bookmarks'" :key="'bookmarks'">
+                                <TabBookmarks :userId="profileData!.id" />
                             </div>
                             <div v-else class="p-12 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-500 text-center">
                                 Здесь пока ничего нет
