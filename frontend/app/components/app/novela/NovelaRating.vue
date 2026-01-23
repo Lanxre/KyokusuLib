@@ -42,10 +42,10 @@ const updateRating = (rating: number) => {
         <div class="flex flex-row gap-2 leading-none">
             <span class="text-3xl font-bold text-zinc-900 dark:text-white text-right" :style="{ color: starColor }">{{ roundTo(rating, 1) }}</span>
             <div class="flex flex-col">
-                <span class="text-[10px] text-zinc-400 uppercase">{{ count }} оценок</span>
+                <span class="text-[10px] text-white dark:text-zinc-400 uppercase">{{ count }} оценок</span>
                 <button 
                     class="flex items-end gap-1 text-xs font-bold 
-                    text-zinc-600 dark:text-white hover:text-yellow-600 
+                    text-white dark:text-zinc-400 hover:text-yellow-600 
                     dark:hover:text-yellow-400 cursor-pointer"
                     @click="handleOpenRating"
                 > 

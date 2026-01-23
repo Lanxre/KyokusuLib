@@ -44,7 +44,7 @@ const stats = computed(() => [
         <div 
             v-for="stat in stats" 
             :key="stat.label" 
-            class="flex items-center gap-2 text-zinc-500 dark:text-zinc-100 group transition-colors hover:text-zinc-900 dark:hover:text-zinc-100"
+            class="flex items-center gap-2 text-white dark:text-zinc-100 group transition-colors hover:text-zinc-900 dark:hover:text-zinc-100"
         >
             <Icon 
                 :name="stat.icon" 
@@ -53,7 +53,7 @@ const stats = computed(() => [
             />
             
             <div class="flex items-baseline gap-1.5">
-                <span class="font-black text-zinc-900 dark:text-zinc-200">
+                <span class="font-black text-white dark:text-zinc-200">
                     {{ stat.value }}
                 </span>
                 <span class="hidden sm:inline text-[10px] font-bold uppercase tracking-wider opacity-50">

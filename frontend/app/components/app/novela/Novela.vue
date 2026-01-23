@@ -15,7 +15,7 @@ import { useUserActivity } from "~/composables/api/profile/useUserActivity";
 import { ACTIVITY_TYPES } from "~/constants/user-activity";
 import { KyokusuAppRole } from "~/types/enums/role-enum";
 import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
-import type { NovelaAuthor, NovelaDetails } from "~/types/backend/novela";
+import type { NovelaDetails } from "~/types/backend/novela";
 import {
 	getBookmarkCategoryLabel,
 	type BookmarkCategory,
@@ -279,8 +279,8 @@ const toggleSection = (name: string) => {
                         <div class="md:mb-48">
                             <div class="flex flex-row">
                                 <div class="flex flex-col gap-3 mb-12">
-                                    <h1 class="text-4xl md:text-4xl shadow-text font-black tracking-tight leading-none">{{ novela.title }}</h1>
-                                    <h2 v-if="novela.alternative_titles?.length" class="text-lg md:text-xl text-zinc-500 dark:text-zinc-400 font-medium italic">
+                                    <h1 class="text-4xl md:text-4xl shadow-text text-white font-black tracking-tight leading-none">{{ novela.title }}</h1>
+                                    <h2 v-if="novela.alternative_titles?.length" class="text-lg md:text-xl text-zinc-300 dark:text-zinc-300/80 font-medium italic">
                                         {{ novela.alternative_titles.join(' • ') }}
                                     </h2>
                                 </div>

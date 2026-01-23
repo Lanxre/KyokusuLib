@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import HomeHero from "./HomeHero/HomeHero.vue";
 import Carousel from "@/components/features/Carousel/Carousel.vue";
 import NovelaShelf from "./NovelaShelf.vue";
 import NovelaColumns from "./NovelaColumns.vue";
@@ -42,7 +43,7 @@ const { data: trendingNovels } = await useAsyncData("novels-trending", () =>
 
 <template>
     <div class="min-h-screen flex flex-col bg-zinc-50 dark:bg-radial-[at_center] dark:from-zinc-800 dark:to-zinc-950 dark:to-90% transition-colors duration-300">
-    
+    <HomeHero/>
     <Carousel v-if="!!novels" :items="novels">
 		<template #card="{ item }">
 			<div class="flex flex-col gap-2 md:gap-3 w-[150px] md:w-[220px] group/card transition-opacity duration-300">
@@ -93,7 +94,7 @@ const { data: trendingNovels } = await useAsyncData("novels-trending", () =>
 
 	<div class="w-full max-w-6xl mx-auto px-2 sm:px-4 py-6">
 		<NovelaShelf 
-			title="Трендоваое" 
+			title="Трендовое" 
 			:items="trendingNovels || []"
 		/>
 
