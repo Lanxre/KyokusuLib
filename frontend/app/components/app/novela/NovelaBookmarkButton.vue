@@ -1,19 +1,20 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { onClickOutside } from '@vueuse/core';
-import { useBookmark } from '@/composables/api/novela/useBookmark';
-import { useAuthStore } from '#imports';
-import AuthRequiredModal from '~/components/common/AuthRequiredModal.vue';
+import { ref, computed } from "vue";
+import { onClickOutside } from "@vueuse/core";
+import { useBookmark } from "@/composables/api/novela/useBookmark";
+import { useAuthStore } from "#imports";
+import AuthRequiredModal from "~/components/common/AuthRequiredModal.vue";
 
 interface Props {
-  modelValue: string | undefined;
-  novelaId: number;
+	modelValue: string | undefined;
+	novelaId: number;
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(["update:modelValue"]);
 
-const { setBookmark, removeBookmark, loading, bookmarkCategories } = useBookmark();
+const { setBookmark, removeBookmark, loading, bookmarkCategories } =
+	useBookmark();
 const { isAuthenticated } = useAuthStore();
 
 const isPopoverOpen = ref(false);
@@ -21,37 +22,40 @@ const isModalOpen = ref(false);
 const containerRef = ref(null);
 
 onClickOutside(containerRef, () => {
-  isPopoverOpen.value = false;
+	isPopoverOpen.value = false;
 });
 
 const currentLabel = computed(() => {
-  if (!props.modelValue) return 'В закладки';
-  return bookmarkCategories.find(c => c.id === props.modelValue)?.label || 'В закладки';
+	if (!props.modelValue) return "В закладки";
+	return (
+		bookmarkCategories.find((c) => c.id === props.modelValue)?.label ||
+		"В закладки"
+	);
 });
 
 const handleSelect = async (categoryId: string) => {
-  if (!isAuthenticated) {
-    isModalOpen.value = true;
-    return;
-  }
-  
-  try {
-    await setBookmark(props.novelaId, categoryId as any);
-    emit('update:modelValue', categoryId);
-    isPopoverOpen.value = false;
-  } catch (e) {
-    console.error(e);
-  }
+	if (!isAuthenticated) {
+		isModalOpen.value = true;
+		return;
+	}
+
+	try {
+		await setBookmark(props.novelaId, categoryId as any);
+		emit("update:modelValue", categoryId);
+		isPopoverOpen.value = false;
+	} catch (e) {
+		console.error(e);
+	}
 };
 
 const handleRemove = async () => {
-  try {
-    await removeBookmark(props.novelaId);
-    emit('update:modelValue', null);
-    isPopoverOpen.value = false;
-  } catch (e) {
-    console.error(e);
-  }
+	try {
+		await removeBookmark(props.novelaId);
+		emit("update:modelValue", null);
+		isPopoverOpen.value = false;
+	} catch (e) {
+		console.error(e);
+	}
 };
 </script>
 

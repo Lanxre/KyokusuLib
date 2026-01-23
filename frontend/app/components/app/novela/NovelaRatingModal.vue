@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useNovelaRating } from '@/composables/api/novela/useNovelaRating';
-import ModalWindow from '~/components/features/Modal/ModalWindow.vue';
-import { useNotificationStore } from '@/stores/notification'; 
+import { ref } from "vue";
+import { useNovelaRating } from "@/composables/api/novela/useNovelaRating";
+import ModalWindow from "~/components/features/Modal/ModalWindow.vue";
+import { useNotificationStore } from "@/stores/notification";
 
 interface Props {
-  modelValue: boolean;
-  novelaId: number;
-  initialRating?: number;
+	modelValue: boolean;
+	novelaId: number;
+	initialRating?: number;
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(['update:modelValue', 'rated']);
+const emit = defineEmits(["update:modelValue", "rated"]);
 
 const { setNovelaRating, loading } = useNovelaRating();
 const { notify } = useNotificationStore();
@@ -20,30 +20,29 @@ const selectedRating = ref(props.initialRating || 10);
 const ratings = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 const handleRatingSubmit = async () => {
-  try {
-    await setNovelaRating({ 
-      novela_id: props.novelaId, 
-      rating: selectedRating.value 
-    });
-    emit('rated', selectedRating.value);
-    emit('update:modelValue', false);
+	try {
+		await setNovelaRating({
+			novela_id: props.novelaId,
+			rating: selectedRating.value,
+		});
+		emit("rated", selectedRating.value);
+		emit("update:modelValue", false);
 
-    notify({
-      title: 'Успех',
-      content: 'Спасибо за оценку!',
-      type: 'success',
-    });
-
-  } catch (e) {
-    console.error(e);
-  }
+		notify({
+			title: "Успех",
+			content: "Спасибо за оценку!",
+			type: "success",
+		});
+	} catch (e) {
+		console.error(e);
+	}
 };
 
 const changeRating = (delta: number) => {
-  const newVal = selectedRating.value + delta;
-  if (newVal >= 1 && newVal <= 10) {
-    selectedRating.value = newVal;
-  }
+	const newVal = selectedRating.value + delta;
+	if (newVal >= 1 && newVal <= 10) {
+		selectedRating.value = newVal;
+	}
 };
 </script>
 

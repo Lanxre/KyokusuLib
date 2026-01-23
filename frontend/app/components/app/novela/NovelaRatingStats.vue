@@ -7,7 +7,7 @@ const props = defineProps<{
 	isExpanded: boolean;
 }>();
 
-const emit = defineEmits(['toggle']);
+const emit = defineEmits(["toggle"]);
 
 const maxCount = computed(() => {
 	if (!props.ratingDetails.nc_items?.length) return 0;

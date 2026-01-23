@@ -1,4 +1,4 @@
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
 	app: {
@@ -7,8 +7,8 @@ export default defineNuxtConfig({
 			charset: "utf-8",
 			viewport: "width=device-width, initial-scale=1",
 			link: [
-				{ rel: 'icon', type: 'image/svg+xml', href: '/images/KLibIcon.svg' }
-			]
+				{ rel: "icon", type: "image/svg+xml", href: "/images/KLibIcon.svg" },
+			],
 		},
 	},
 	devtools: { enabled: true },
@@ -20,24 +20,22 @@ export default defineNuxtConfig({
 	},
 
 	colorMode: {
-		preference: 'dark',
-		fallback: 'dark',
-		classSuffix: '',
-		storageKey: 'theme'
+		preference: "dark",
+		fallback: "dark",
+		classSuffix: "",
+		storageKey: "theme",
 	},
 
 	icon: {
 		clientBundle: {
-            scan: true,
-            includeCustomCollections: true,
-        },
-		serverBundle: 'local',
+			scan: true,
+			includeCustomCollections: true,
+		},
+		serverBundle: "local",
 	},
 
 	vite: {
-		plugins: [
-			tailwindcss(),
-		],
+		plugins: [tailwindcss()],
 	},
 
 	css: ["~/assets/css/global.css"],
@@ -54,7 +52,7 @@ export default defineNuxtConfig({
 
 	runtimeConfig: {
 		public: {
-			apiBase: process.env.NUXT_PUBLIC_API_BASE || "http://localhost:8080",
+			apiBase: import.meta.env.NUXT_PUBLIC_API_BASE || "http://localhost:8080",
 		},
 	},
 

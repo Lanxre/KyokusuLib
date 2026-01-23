@@ -10,18 +10,18 @@ const activityStore = useActivityStore();
 const { syncSettingWithBackend } = useInterfaceSettings();
 
 if (import.meta.client) {
-  activityStore.initActivityTracking();
+	activityStore.initActivityTracking();
 }
 
 onMounted(async () => {
-  if (authStore.isAuthenticated) {
-    await syncSettingWithBackend();
-  }
+	if (authStore.isAuthenticated) {
+		await syncSettingWithBackend();
+	}
 
-  setTimeout(() => {
-    const loader = document.getElementById("app-loading-style");
-    if (loader) loader.remove();
-  }, 100);
+	setTimeout(() => {
+		const loader = document.getElementById("app-loading-style");
+		if (loader) loader.remove();
+	}, 100);
 });
 </script>
 

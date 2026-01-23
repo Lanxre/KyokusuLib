@@ -11,19 +11,19 @@ export function useNovela() {
 
 	const fetchNovels = async (params: NovelsQueryParams) => {
 		isLoading.value = true;
-        try {
-            const { data, error } = await useApi<NovelaDetails[]>('/api/novela', {
-                params: params
-            });
-            
-            if (error.value) throw error.value;
-            return data.value;
-        } catch (e) {
-            console.error(e);
-        } finally {
-            isLoading.value = false;
-        }
-	}
+		try {
+			const { data, error } = await useApi<NovelaDetails[]>("/api/novela", {
+				params: params,
+			});
+
+			if (error.value) throw error.value;
+			return data.value;
+		} catch (e) {
+			console.error(e);
+		} finally {
+			isLoading.value = false;
+		}
+	};
 
 	const fetchNovela = async (id: string | number) => {
 		isLoading.value = true;
@@ -55,7 +55,6 @@ export function useNovela() {
 				title: "Новела обновлена",
 				content: "Новела успешно обновлена",
 			});
-
 		} finally {
 			isUpdating.value = false;
 		}

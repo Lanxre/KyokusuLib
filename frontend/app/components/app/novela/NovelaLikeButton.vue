@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useNovelaLike } from '@/composables/api/novela/useNovelaLike';
-import { useAuthStore } from '@/stores/auth';
-import AuthRequiredModal from '@/components/common/AuthRequiredModal.vue';
+import { ref } from "vue";
+import { useNovelaLike } from "@/composables/api/novela/useNovelaLike";
+import { useAuthStore } from "@/stores/auth";
+import AuthRequiredModal from "@/components/common/AuthRequiredModal.vue";
 
 interface Props {
-  modelValue: boolean;
-  novelaId: number;
+	modelValue: boolean;
+	novelaId: number;
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(["update:modelValue"]);
 
 const { setNovelaLike, loading } = useNovelaLike();
 const authStore = useAuthStore();
@@ -18,17 +18,20 @@ const authStore = useAuthStore();
 const isAuthModalOpen = ref(false);
 
 const handleLikeClick = async () => {
-  if (!authStore.isAuthenticated) {
-    isAuthModalOpen.value = true;
-    return;
-  }
+	if (!authStore.isAuthenticated) {
+		isAuthModalOpen.value = true;
+		return;
+	}
 
-  try {
-    await setNovelaLike({ novela_id: props.novelaId, has_liked: !props.modelValue });
-    emit('update:modelValue', !props.modelValue);
-  } catch (e) {
-    console.error("Ошибка при установке лайка:", e);
-  }
+	try {
+		await setNovelaLike({
+			novela_id: props.novelaId,
+			has_liked: !props.modelValue,
+		});
+		emit("update:modelValue", !props.modelValue);
+	} catch (e) {
+		console.error("Ошибка при установке лайка:", e);
+	}
 };
 </script>
 

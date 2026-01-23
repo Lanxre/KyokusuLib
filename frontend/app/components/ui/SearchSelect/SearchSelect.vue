@@ -20,14 +20,16 @@ const wrapperRef = ref<HTMLElement | null>(null);
 const searchInputRef = ref<HTMLInputElement | null>(null);
 
 const normalizedOptions = computed(() => {
-	return props.selects.map(item => 
-		typeof item === 'string' ? { id: item, label: item } : item
+	return props.selects.map((item) =>
+		typeof item === "string" ? { id: item, label: item } : item,
 	);
 });
 
 const currentLabel = computed(() => {
-	const found = normalizedOptions.value.find(opt => opt.id === props.modelValue);
-	return found ? found.label : '';
+	const found = normalizedOptions.value.find(
+		(opt) => opt.id === props.modelValue,
+	);
+	return found ? found.label : "";
 });
 
 const filteredSearchItems = computed(() => {

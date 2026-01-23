@@ -1,35 +1,35 @@
 <script setup lang="ts">
-import HeaderApp from '@/components/common/HeaderApp.vue';
-import FooterApp from '@/components/common/FooterApp.vue';
+import HeaderApp from "@/components/common/HeaderApp.vue";
+import FooterApp from "@/components/common/FooterApp.vue";
 import BaseInput from "@/components/ui/BaseInput/BaseInput.vue";
 import SearchSelect from "@/components/ui/SearchSelect/SearchSelect.vue";
 import BaseRichTextEditor from "@/components/ui/BaseRichTextEditor/BaseRichTextEditor.vue";
 import YearSelect from "@/components/features/YearSelector/YearSelector.vue";
-import BaseMultiSelect from '@/components/ui/BaseMultiSelect/BaseMultiSelect.vue';
-import UploadIcon from "@/assets/images/special/add.png"; 
+import BaseMultiSelect from "@/components/ui/BaseMultiSelect/BaseMultiSelect.vue";
+import UploadIcon from "@/assets/images/special/add.png";
 
 import { useNovelaForm } from "@/composables/api/forms/useNovelaForm";
 
-import { 
-    NOVELA_TYPES, 
-    AGE_RATINGS, 
-    NOVELA_STATUSES,
-    NOVELA_GENRES,
-    TRANSLATION_STATUSES, 
-    NOVELA_CATEGORIES,
-    COUNTRIES_LIST
-} from '@/constants/data'; 
+import {
+	NOVELA_TYPES,
+	AGE_RATINGS,
+	NOVELA_STATUSES,
+	NOVELA_GENRES,
+	TRANSLATION_STATUSES,
+	NOVELA_CATEGORIES,
+	COUNTRIES_LIST,
+} from "@/constants/data";
 
 const {
-    form,
-    errors,
-    isLoading,
-    fileInput,
-    previewUrl,
-    handleImageClick,
-    handleImageChange,
-    removeImage,
-    submit
+	form,
+	errors,
+	isLoading,
+	fileInput,
+	previewUrl,
+	handleImageClick,
+	handleImageChange,
+	removeImage,
+	submit,
 } = useNovelaForm();
 </script>
 

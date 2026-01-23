@@ -9,16 +9,17 @@ import NovelaSettings from "./NovelaSettings.vue";
 import NovelaRatingStats from "./NovelaRatingStats.vue";
 import NovelaBookmarkStats from "./NovelaBookmarkStats.vue";
 
-import EditIcon from "@/assets/images/special/setting.png";
-
 import NovelaBookmarkButton from "./NovelaBookmarkButton.vue";
 import NovelaLikeButton from "./NovelaLikeButton.vue";
 import { useUserActivity } from "~/composables/api/profile/useUserActivity";
 import { ACTIVITY_TYPES } from "~/constants/user-activity";
 import { KyokusuAppRole } from "~/types/enums/role-enum";
 import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
-import type { NovelaDetails } from "~/types/backend/novela";
-import { getBookmarkCategoryLabel, type BookmarkCategory } from "~/types/frontend/bookmarks";
+import type { NovelaAuthor, NovelaDetails } from "~/types/backend/novela";
+import {
+	getBookmarkCategoryLabel,
+	type BookmarkCategory,
+} from "~/types/frontend/bookmarks";
 
 const route = useRoute();
 
@@ -27,175 +28,183 @@ const { novela, fetchNovela } = useNovela();
 const { createUserActivity } = useUserActivity();
 const { hasPermission } = useRolePermissions();
 
-
 const activeTab = ref<"about" | "chapters">("about");
 
 const novelaId = computed(() => route.params.id as string);
 
-await useAsyncData(`novela-${novelaId.value}`, () => fetchNovela(novelaId.value));
+await useAsyncData(`novela-${novelaId.value}`, () =>
+	fetchNovela(novelaId.value),
+);
 const bookmarkInitial = ref(Boolean(novela.value?.bookmark));
 const currentBookmarkCategory = ref(novela.value?.bookmark || null);
 const isOpenNovelaSettings = ref(false);
 
 const totalChapters = computed(() => {
-    if (!novela.value) return 0;
-    return novela.value.volumes.reduce((acc, v) => acc + (v.chapters?.length || 0), 0);
+	if (!novela.value) return 0;
+	return novela.value.volumes.reduce(
+		(acc, v) => acc + (v.chapters?.length || 0),
+		0,
+	);
 });
 
 const novelaInfo = computed(() => [
-    { label: "Статус", value: novela.value?.status },
-    { label: "Перевод", value: novela.value?.translation_status },
-    { label: "Страна", value: novela.value?.country },
-    { label: "Автор", value: novela.value?.authors?.[0]?.name },
+	{ label: "Статус", value: novela.value?.status },
+	{ label: "Перевод", value: novela.value?.translation_status },
+	{ label: "Страна", value: novela.value?.country }
 ]);
 
 const updateCountBookmarks = async (newCategory: BookmarkCategory | null) => {
-    if (!novela.value || !user?.id) return;
+	if (!novela.value || !user?.id) return;
 
-    const prevCategory = currentBookmarkCategory.value;
+	const prevCategory = currentBookmarkCategory.value;
 
-    if (prevCategory === newCategory) return;
+	if (prevCategory === newCategory) return;
 
-    if (newCategory) {
-        const item = novela.value.bookmark_details.nc_items.find(i => i.value === newCategory);
-        if (item) item.count++;
-    }
+	if (newCategory) {
+		const item = novela.value.bookmark_details.nc_items.find(
+			(i) => i.value === newCategory,
+		);
+		if (item) item.count++;
+	}
 
-    if (prevCategory) {
-        const item = novela.value.bookmark_details.nc_items.find(i => i.value === prevCategory);
-        if (item) item.count--;
-    }
+	if (prevCategory) {
+		const item = novela.value.bookmark_details.nc_items.find(
+			(i) => i.value === prevCategory,
+		);
+		if (item) item.count--;
+	}
 
-    if (prevCategory === null && newCategory !== null) {
-        novela.value.bookmark_details.total++;
-        
-        await createUserActivity({
-            user_id: user.id,
-            activity_type: ACTIVITY_TYPES.NOVELA_BOOKMARK,
-            target_id: novela.value.id,
-            metadata: {
-                novela_title: novela.value.title,
-                desc: 'Пользователь добавил сюжет в закладки'
-            }
-        });
-    } 
-    else if (prevCategory !== null && newCategory !== null) {
-        await createUserActivity({
-            user_id: user.id,
-            activity_type: ACTIVITY_TYPES.NOVELA_BOOKMARK,
-            target_id: novela.value.id,
-            metadata: {
-                novela_title: novela.value.title,
-                desc: `Пользователь изменил категорию на "${getBookmarkCategoryLabel(newCategory)}"`,
-            }
-        });
-    } 
-    else if (prevCategory !== null && newCategory === null) {
-        novela.value.bookmark_details.total--;
-        
-        await createUserActivity({
-            user_id: user.id,
-            activity_type: ACTIVITY_TYPES.NOVELA_BOOKMARK_REMOVE,
-            target_id: novela.value.id,
-            metadata: {
-                novela_title: novela.value.title,
-                desc: 'Пользователь удалил сюжет из закладок'
-            }
-        });
-    }
+	if (prevCategory === null && newCategory !== null) {
+		novela.value.bookmark_details.total++;
 
-    currentBookmarkCategory.value = newCategory;
-    bookmarkInitial.value = Boolean(newCategory);
+		await createUserActivity({
+			user_id: user.id,
+			activity_type: ACTIVITY_TYPES.NOVELA_BOOKMARK,
+			target_id: novela.value.id,
+			metadata: {
+				novela_title: novela.value.title,
+				desc: "Пользователь добавил сюжет в закладки",
+			},
+		});
+	} else if (prevCategory !== null && newCategory !== null) {
+		await createUserActivity({
+			user_id: user.id,
+			activity_type: ACTIVITY_TYPES.NOVELA_BOOKMARK,
+			target_id: novela.value.id,
+			metadata: {
+				novela_title: novela.value.title,
+				desc: `Пользователь изменил категорию на "${getBookmarkCategoryLabel(newCategory)}"`,
+			},
+		});
+	} else if (prevCategory !== null && newCategory === null) {
+		novela.value.bookmark_details.total--;
+
+		await createUserActivity({
+			user_id: user.id,
+			activity_type: ACTIVITY_TYPES.NOVELA_BOOKMARK_REMOVE,
+			target_id: novela.value.id,
+			metadata: {
+				novela_title: novela.value.title,
+				desc: "Пользователь удалил сюжет из закладок",
+			},
+		});
+	}
+
+	currentBookmarkCategory.value = newCategory;
+	bookmarkInitial.value = Boolean(newCategory);
 };
 
 const updateCountLike = async (has_liked: boolean) => {
-    if (novela.value && has_liked) {
-        if (user?.id) {
-            await createUserActivity({
-                user_id: user.id,
-                activity_type: ACTIVITY_TYPES.USER_NOVELA_LIKE,
-                target_id: novela.value.id,
-                metadata: {
-                    name: novela.value.title,
-                    desc: 'Пользователь поставил лайк сюжету'
-                }
-            })
-        }
-        novela.value.like_count = (novela.value.like_count || 0) + 1;
-    } else if (novela.value && !has_liked) {
-        if (user?.id) {
-            await createUserActivity({
-                user_id: user.id,
-                activity_type: ACTIVITY_TYPES.USER_NOVELA_LIKE_REMOVE,
-                target_id: novela.value.id,
-                metadata: {
-                    name: novela.value.title,
-                    desc: 'Пользователь убрал лайк'
-                }
-            })
-        }
-        novela.value.like_count = (novela.value.like_count || 0) - 1;
-    }
-}
+	if (novela.value && has_liked) {
+		if (user?.id) {
+			await createUserActivity({
+				user_id: user.id,
+				activity_type: ACTIVITY_TYPES.USER_NOVELA_LIKE,
+				target_id: novela.value.id,
+				metadata: {
+					name: novela.value.title,
+					desc: "Пользователь поставил лайк сюжету",
+				},
+			});
+		}
+		novela.value.like_count = (novela.value.like_count || 0) + 1;
+	} else if (novela.value && !has_liked) {
+		if (user?.id) {
+			await createUserActivity({
+				user_id: user.id,
+				activity_type: ACTIVITY_TYPES.USER_NOVELA_LIKE_REMOVE,
+				target_id: novela.value.id,
+				metadata: {
+					name: novela.value.title,
+					desc: "Пользователь убрал лайк",
+				},
+			});
+		}
+		novela.value.like_count = (novela.value.like_count || 0) - 1;
+	}
+};
 
 const updateRating = (rating: number) => {
-    if (!novela.value) return;  
+	if (!novela.value) return;
 
-    const oldCount = novela.value.rating_details.total || 0;
-    const oldAverage = novela.value.rating_details.total_rating || 0;
-    const previousUserRating = novela.value.user_rating || 0;
+	const oldCount = novela.value.rating_details.total || 0;
+	const oldAverage = novela.value.rating_details.total_rating || 0;
+	const previousUserRating = novela.value.user_rating || 0;
 
-    if (previousUserRating === rating) return;
-    
-    const item = novela.value.rating_details.nc_items.find(i => i.value === rating);
-    if (item) item.count++;
-    
-    if (previousUserRating !== 0) {
-        const item2 = novela.value.rating_details.nc_items.find(i => i.value === previousUserRating);
-        if (item2) item2.count--;
-    }
+	if (previousUserRating === rating) return;
 
-    let newCount = oldCount;
-    let newAverage = oldAverage;
+	const item = novela.value.rating_details.nc_items.find(
+		(i) => i.value === rating,
+	);
+	if (item) item.count++;
 
-    if (previousUserRating === 0) {
-        newCount = oldCount + 1;
-        newAverage = ((oldAverage * oldCount) + rating) / newCount;
-    } else {
-        const oldSum = oldAverage * oldCount;
-        newAverage = (oldSum - previousUserRating + rating) / oldCount;
-    }
+	if (previousUserRating !== 0) {
+		const item2 = novela.value.rating_details.nc_items.find(
+			(i) => i.value === previousUserRating,
+		);
+		if (item2) item2.count--;
+	}
 
-    novela.value.rating_details.total = newCount;
-    novela.value.rating_details.total_rating = roundTo(newAverage, 1);
-    novela.value.user_rating = rating; 
+	let newCount = oldCount;
+	let newAverage = oldAverage;
 
-    if (user?.id) {
-        createUserActivity({
-            user_id: user.id,
-            activity_type: ACTIVITY_TYPES.USER_NOVELA_RATING,
-            target_id: novela.value.id,
-            metadata: {
-                name: novela.value.title,
-                rating: rating,
-                desc: 'Пользователь оценил произведение'
-            }
-        });
-    }
-}
+	if (previousUserRating === 0) {
+		newCount = oldCount + 1;
+		newAverage = (oldAverage * oldCount + rating) / newCount;
+	} else {
+		const oldSum = oldAverage * oldCount;
+		newAverage = (oldSum - previousUserRating + rating) / oldCount;
+	}
+
+	novela.value.rating_details.total = newCount;
+	novela.value.rating_details.total_rating = roundTo(newAverage, 1);
+	novela.value.user_rating = rating;
+
+	if (user?.id) {
+		createUserActivity({
+			user_id: user.id,
+			activity_type: ACTIVITY_TYPES.USER_NOVELA_RATING,
+			target_id: novela.value.id,
+			metadata: {
+				name: novela.value.title,
+				rating: rating,
+				desc: "Пользователь оценил произведение",
+			},
+		});
+	}
+};
 
 const updatedNovela = (payload: NovelaDetails) => {
-    if (novela.value) {
-        Object.assign(novela.value, payload);
-    }
-}
+	if (novela.value !== null) {
+		Object.assign(novela.value, payload);
+	}
+};
 
 const openedSection = ref<string | null>(null);
 
 const toggleSection = (name: string) => {
-    openedSection.value = openedSection.value === name ? null : name;
+	openedSection.value = openedSection.value === name ? null : name;
 };
-
 </script>
 
 <template>
@@ -241,14 +250,24 @@ const toggleSection = (name: string) => {
                         </div>
 
                         <div class="hidden md:flex flex-col gap-4 bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl backdrop-blur-sm">
-                            <div v-for="info in novelaInfo" :key="info.label" class="flex justify-between items-center text-sm">
-                                <span class="text-zinc-500">{{ info.label }}</span>
-                                <span :class="['font-semibold cursor-default', info.value ? 'text-zinc-900 dark:text-zinc-200' : 'text-zinc-500']">
-                                    {{ info.value || '—' }}
-                                </span>
+                            <div v-for="info in novelaInfo" :key="info.label">
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-zinc-500">{{ info.label }}</span>
+                                    <span :class="['font-semibold cursor-default', info.value ? 'text-zinc-900 dark:text-zinc-200' : 'text-zinc-500']">
+                                        {{ info.value || '—' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-start text-sm"> 
+                                    <span class="text-zinc-500">{{ novela.authors?.length ? 'Авторы' : 'Автор' }}</span>
+                                    <div :class="['font-semibold cursor-default', !!novela.authors ? 'text-zinc-900 dark:text-zinc-200' : 'text-zinc-500']" class="flex flex-col items-end gap-2">
+                                        <span v-for="author in novela.authors" :key="author.id">
+                                            {{ author.name }}
+                                        </span>
+                                    </div>
                             </div>
                             <div class="h-px bg-zinc-200 dark:bg-zinc-800 my-1"></div>
-                            <div class="flex flex-wrap gap-2">
+                            <div class="flex justify-center flex-wrap gap-2">
                                 <span v-for="genre in novela.genres" :key="genre" class="px-3 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[11px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer transition-colors">
                                     {{ genre }}
                                 </span>
@@ -312,6 +331,14 @@ const toggleSection = (name: string) => {
                             <div v-for="info in novelaInfo" :key="info.label" class="flex justify-between text-sm">
                                 <span class="text-zinc-500">{{ info.label }}</span>
                                 <span class="font-bold">{{ info.value || '—' }}</span>
+                            </div>
+                            <div class="flex justify-between items-start text-sm"> 
+                                    <span class="text-zinc-500">{{ novela.authors?.length ? 'Авторы' : 'Автор' }}</span>
+                                    <div :class="['font-semibold cursor-default', !!novela.authors ? 'text-zinc-900 dark:text-zinc-200' : 'text-zinc-500']" class="flex flex-col items-end gap-2">
+                                        <span v-for="author in novela.authors" :key="author.id">
+                                            {{ author.name }}
+                                        </span>
+                                    </div>
                             </div>
                             <div class="flex flex-wrap gap-2">
                                 <span v-for="genre in novela.genres" :key="genre" class="px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-zinc-500">

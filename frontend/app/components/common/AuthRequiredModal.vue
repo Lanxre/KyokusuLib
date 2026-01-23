@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import ModalWindow from "@/components/features/Modal/ModalWindow.vue";
 interface Props {
-  modelValue: boolean;
-  actionText?: string;
+	modelValue: boolean;
+	actionText?: string;
 }
 
 defineProps<Props>();
-defineEmits(['update:modelValue']);
+defineEmits(["update:modelValue"]);
 </script>
 
 <template>

@@ -1,8 +1,7 @@
 <script setup lang="ts">
-
 interface Props {
-    label: string
-    for?: string
+	label: string;
+	for?: string;
 }
 
 const props = defineProps<Props>();

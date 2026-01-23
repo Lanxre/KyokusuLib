@@ -5,15 +5,15 @@ import NovelaRatingModal from "./NovelaRatingModal.vue";
 import AuthRequiredModal from "~/components/common/AuthRequiredModal.vue";
 
 const props = defineProps<{
-    novelaId: number;
+	novelaId: number;
 	rating: number;
-    userRating: number;
+	userRating: number;
 	count: number;
 }>();
 
 const { isAuthenticated } = useAuthStore();
 
-const emit = defineEmits(['update:rated',]);
+const emit = defineEmits(["update:rated"]);
 
 const isRatingModalOpen = ref(false);
 const isAuthModalOpen = ref(false);
@@ -25,17 +25,16 @@ const starColor = computed(() => {
 });
 
 const handleOpenRating = () => {
-  if (!isAuthenticated) {
-    isAuthModalOpen.value = true;
-    return;
-  }
-  isRatingModalOpen.value = !isRatingModalOpen.value;
+	if (!isAuthenticated) {
+		isAuthModalOpen.value = true;
+		return;
+	}
+	isRatingModalOpen.value = !isRatingModalOpen.value;
 };
 
 const updateRating = (rating: number) => {
-    emit('update:rated', rating);  
+	emit("update:rated", rating);
 };
-
 </script>
 
 <template>

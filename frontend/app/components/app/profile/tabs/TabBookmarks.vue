@@ -7,9 +7,14 @@ import { useBookmark } from "~/composables/api/novela/useBookmark";
 
 const props = defineProps<{ userId: number }>();
 
-const activeCategory = ref<BookmarkCategory>('reading');
+const activeCategory = ref<BookmarkCategory>("reading");
 
-const { fetchUserBookmarkNovels, userBookmarkNovels, bookmarkCategories, loading} = useBookmark();
+const {
+	fetchUserBookmarkNovels,
+	userBookmarkNovels,
+	bookmarkCategories,
+	loading,
+} = useBookmark();
 
 const load = () => fetchUserBookmarkNovels(props.userId, activeCategory.value);
 

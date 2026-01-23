@@ -6,14 +6,14 @@ interface Props {
 	modelValue: boolean;
 	title?: string;
 	width?: string;
-    height?: string;
-    centerTitle?: boolean;
+	height?: string;
+	centerTitle?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
 	modelValue: false,
 	width: "max-w-lg",
-    centerTitle: false,
+	centerTitle: false,
 });
 
 const emit = defineEmits(["update:modelValue", "close"]);

@@ -8,17 +8,45 @@ const props = defineProps<{
 	isExpanded: boolean;
 }>();
 
-const emit = defineEmits(['toggle']);
+const emit = defineEmits(["toggle"]);
 
 const breakpoints = useBreakpoints(breakpointsTailwind);
-const isMobile = breakpoints.smaller('sm');
+const isMobile = breakpoints.smaller("sm");
 
-const statusConfig: Record<string, { label: string; bg: string; text: string; icon: string }> = {
-	reading: { label: "Читают", bg: "bg-emerald-500", text: "text-emerald-500", icon: "ph:book-open-bold" },
-	completed: { label: "Прочитано", bg: "bg-blue-500", text: "text-blue-500", icon: "ph:check-circle-bold" },
-	planned: { label: "В планах", bg: "bg-zinc-400", text: "text-zinc-400", icon: "ph:clock-bold" },
-	on_hold: { label: "Отложено", bg: "bg-amber-500", text: "text-amber-500", icon: "ph:pause-circle-bold" },
-	dropped: { label: "Брошено", bg: "bg-red-500", text: "text-red-500", icon: "ph:prohibit-bold" },
+const statusConfig: Record<
+	string,
+	{ label: string; bg: string; text: string; icon: string }
+> = {
+	reading: {
+		label: "Читают",
+		bg: "bg-emerald-500",
+		text: "text-emerald-500",
+		icon: "ph:book-open-bold",
+	},
+	completed: {
+		label: "Прочитано",
+		bg: "bg-blue-500",
+		text: "text-blue-500",
+		icon: "ph:check-circle-bold",
+	},
+	planned: {
+		label: "В планах",
+		bg: "bg-zinc-400",
+		text: "text-zinc-400",
+		icon: "ph:clock-bold",
+	},
+	on_hold: {
+		label: "Отложено",
+		bg: "bg-amber-500",
+		text: "text-amber-500",
+		icon: "ph:pause-circle-bold",
+	},
+	dropped: {
+		label: "Брошено",
+		bg: "bg-red-500",
+		text: "text-red-500",
+		icon: "ph:prohibit-bold",
+	},
 };
 
 const maxCount = computed(() => {

@@ -12,7 +12,8 @@ export const ACTIVITY_TYPES = {
 	DEFAULT: "default",
 } as const;
 
-export type UserActivityType = typeof ACTIVITY_TYPES[keyof typeof ACTIVITY_TYPES];
+export type UserActivityType =
+	(typeof ACTIVITY_TYPES)[keyof typeof ACTIVITY_TYPES];
 
 export const DEFAULT_CONFIG: ActivityUIConfig = {
 	icon: "activity",
@@ -21,7 +22,11 @@ export const DEFAULT_CONFIG: ActivityUIConfig = {
 	description: "Действие пользователя",
 };
 
-export const STRATEGIES: { [K in UserActivityType]?: (activity: Extract<UserActivity, { activity_type: K }>) => ActivityUIConfig } = {
+export const STRATEGIES: {
+	[K in UserActivityType]?: (
+		activity: Extract<UserActivity, { activity_type: K }>,
+	) => ActivityUIConfig;
+} = {
 	[ACTIVITY_TYPES.RANOBE_ADD]: (activity) => ({
 		icon: "book",
 		color: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
@@ -31,7 +36,8 @@ export const STRATEGIES: { [K in UserActivityType]?: (activity: Extract<UserActi
 
 	[ACTIVITY_TYPES.ACHIEVEMENT_EARNED]: (activity) => ({
 		icon: "trophy",
-		color: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
+		color:
+			"bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
 		title: "Получено достижение",
 		description: `${activity.metadata.name || "Достижение"} — ${activity.metadata.desc || ""}`,
 	}),
@@ -66,9 +72,9 @@ export const STRATEGIES: { [K in UserActivityType]?: (activity: Extract<UserActi
 
 	[ACTIVITY_TYPES.USER_NOVELA_RATING]: (activity) => ({
 		icon: "star",
-		color: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
+		color:
+			"bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
 		title: "Оценено",
 		description: `${activity.metadata.desc || "Без описания"}: "${activity.metadata.name || "Без названия"}" на ${activity.metadata.rating} баллов`,
 	}),
-
 };

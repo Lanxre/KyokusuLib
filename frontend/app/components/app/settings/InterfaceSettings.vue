@@ -3,10 +3,10 @@ import ThemeIcon from "@/assets/images/special/theme.png";
 import { useInterfaceSettings } from "@/composables/api/settings/useInterfaceSettings";
 import BaseToggle from "@/components/ui/BaseToggle/BaseToggle.vue";
 
-const { isDarkTheme, isShowTag, syncSettingWithBackend } = useInterfaceSettings();
+const { isDarkTheme, isShowTag, syncSettingWithBackend } =
+	useInterfaceSettings();
 
-await useAsyncData('settings-sync', () => syncSettingWithBackend());
-
+await useAsyncData("settings-sync", () => syncSettingWithBackend());
 </script>
 
 <template>

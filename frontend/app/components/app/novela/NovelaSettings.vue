@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import ModalWindow from '~/components/features/Modal/ModalWindow.vue';
-import BaseInput from '~/components/ui/BaseInput/BaseInput.vue';
-import SearchSelect from '~/components/ui/SearchSelect/SearchSelect.vue';
-import BaseMultiSelect from '~/components/ui/BaseMultiSelect/BaseMultiSelect.vue';
-import BaseRichTextEditor from '~/components/ui/BaseRichTextEditor/BaseRichTextEditor.vue';
+import { computed } from "vue";
+import ModalWindow from "~/components/features/Modal/ModalWindow.vue";
+import BaseInput from "~/components/ui/BaseInput/BaseInput.vue";
+import SearchSelect from "~/components/ui/SearchSelect/SearchSelect.vue";
+import BaseMultiSelect from "~/components/ui/BaseMultiSelect/BaseMultiSelect.vue";
+import BaseRichTextEditor from "~/components/ui/BaseRichTextEditor/BaseRichTextEditor.vue";
 import YearSelect from "~/components/features/YearSelector/YearSelector.vue";
 import UploadIcon from "@/assets/images/special/add.png";
 
-import { useNovelaSettings } from '~/composables/api/novela/useNovelaSettings';
-import { useAuthors } from '~/composables/api/authors/useAuthors';
-import { useNovela } from '~/composables/api/novela/useNovela';
+import { useNovelaSettings } from "~/composables/api/novela/useNovelaSettings";
+import { useAuthors } from "~/composables/api/authors/useAuthors";
+import { useNovela } from "~/composables/api/novela/useNovela";
 import {
 	NOVELA_STATUSES,
 	TRANSLATION_STATUSES,
@@ -18,9 +18,9 @@ import {
 	AGE_RATINGS,
 	COUNTRIES_LIST,
 	NOVELA_GENRES,
-	NOVELA_CATEGORIES
-} from '~/constants/data';
-import type { NovelaDetails } from '~/types/backend/novela';
+	NOVELA_CATEGORIES,
+} from "~/constants/data";
+import type { NovelaDetails } from "~/types/backend/novela";
 
 interface Props {
 	modelValue: boolean;
@@ -28,7 +28,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(['update:modelValue', 'updated']);
+const emit = defineEmits(["update:modelValue", "updated"]);
 
 const { updateNovela, isUpdating } = useNovela();
 const { searchAuthors, foundAuthors, isSearching } = useAuthors();
@@ -39,32 +39,42 @@ const {
 	selectedFile,
 	handleImageClick,
 	handleImageChange,
-	removeImage
+	removeImage,
 } = useNovelaSettings(props.novela);
 
-const initialAuthors = props.novela.authors?.map(a => ({ id: a.id, label: a.name })) || [];
+const initialAuthors =
+	props.novela.authors?.map((a) => ({ id: a.id, label: a.name })) || [];
 
 const authorsOptions = computed(() => {
 	const map = new Map();
-	initialAuthors.forEach(a => map.set(a.id, a));
-	foundAuthors.value.forEach(a => map.set(a.id, a));
+	initialAuthors.forEach((a: any) => map.set(a.id, a));
+	foundAuthors.value.forEach((a) => map.set(a.id, a));
 	return Array.from(map.values());
 });
 
 const handleUpdate = async () => {
 	const payload = {
 		...form,
-        age_rating: form.ageRating,
-        release_date: form.releaseYear,
-        translation_status: form.translationStatus,
-		alternative_titles: typeof form.alternativeTitles === 'string' 
-            ? form.alternativeTitles.split('/').map(t => t.trim()).filter(Boolean)
-            : form.alternativeTitles
+        authors: form.authors.map((a: any) => a.id),
+		age_rating: form.ageRating,
+		release_date: form.releaseYear,
+		translation_status: form.translationStatus,
+		alternative_titles:
+			typeof form.alternativeTitles === "string"
+				? form.alternativeTitles
+						.split("/")
+						.map((t) => t.trim())
+						.filter(Boolean)
+				: form.alternativeTitles,
 	};
 
 	try {
 		await updateNovela(props.novela.id, payload, selectedFile.value);
-        emit('updated', payload);
+        const uiUpdatePayload = {
+			...payload,
+			authors: form.authors.map((a: any) => ({ id: a.id, name: a.label }))
+		};
+		emit("updated", uiUpdatePayload);
 	} catch (e) {
 		console.error(e);
 	}

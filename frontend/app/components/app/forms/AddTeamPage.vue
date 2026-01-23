@@ -18,7 +18,7 @@ const generateSlug = (val: string) => {
 	return val
 		.toLowerCase()
 		.trim()
-		.replace(/[^\w\s-]/g, "") 
+		.replace(/[^\w\s-]/g, "")
 		.replace(/[\s_]+/g, "_")
 		.replace(/^[-_]+|[-_]+$/g, "");
 };

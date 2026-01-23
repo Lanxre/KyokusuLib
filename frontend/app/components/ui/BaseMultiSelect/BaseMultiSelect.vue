@@ -26,16 +26,16 @@ const wrapperRef = ref<HTMLElement | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
 
 const normalizedOptions = computed(() => {
-	return props.options.map((opt) => 
-		typeof opt === "string" ? { id: opt, label: opt } : opt
+	return props.options.map((opt) =>
+		typeof opt === "string" ? { id: opt, label: opt } : opt,
 	);
 });
 
 const normalizedSelected = computed(() => {
 	return props.modelValue.map((val) => {
 		if (typeof val === "object" && val !== null) return val as Option;
-		
-		const found = normalizedOptions.value.find(opt => opt.id === val);
+
+		const found = normalizedOptions.value.find((opt) => opt.id === val);
 		return found || { id: val, label: String(val) };
 	});
 });
@@ -64,11 +64,12 @@ const closeDropdown = () => {
 };
 
 const selectOption = (option: Option) => {
-    const isObjectInModel = props.modelValue.length > 0 && typeof props.modelValue[0] === 'object';
-    const valueToAdd = isObjectInModel ? option : option.id;
-	emit("update:modelValue", [...props.modelValue, valueToAdd]);
-	searchQuery.value = "";
-	nextTick(() => inputRef.value?.focus());
+    if (props.modelValue.some(item => (typeof item === 'object' ? item.id : item) === option.id)) {
+        return;
+    }
+    emit("update:modelValue", [...props.modelValue, option]);
+    searchQuery.value = "";
+    nextTick(() => inputRef.value?.focus());
 };
 
 const removeOption = (index: number) => {
@@ -96,7 +97,9 @@ const handleClickOutside = (event: MouseEvent) => {
 };
 
 onMounted(() => document.addEventListener("mousedown", handleClickOutside));
-onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside));
+onUnmounted(() =>
+	document.removeEventListener("mousedown", handleClickOutside),
+);
 </script>
 
 <template>

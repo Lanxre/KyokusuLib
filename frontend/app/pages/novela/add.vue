@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AddNovelaPage from '~/components/app/forms/AddNovelaPage.vue';
+import AddNovelaPage from "~/components/app/forms/AddNovelaPage.vue";
 </script>
 
 <template>

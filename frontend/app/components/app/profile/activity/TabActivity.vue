@@ -31,29 +31,28 @@ const visibleActivities = computed(() => {
 });
 
 function navigateTo(path: string) {
-    router.push(path);
+	router.push(path);
 }
 
 function naviagateFromActivity(activity: UserActivity) {
-    switch (activity.activity_type) {
-        case ACTIVITY_TYPES.NOVELA_BOOKMARK:
-            navigateTo(`/novela/${activity.target_id}`)
-            break;
-        case ACTIVITY_TYPES.NOVELA_BOOKMARK_REMOVE:
-            navigateTo(`/novela/${activity.target_id}`)
-            break;
-        case ACTIVITY_TYPES.RANOBE_ADD:
-            navigateTo(`/ranobe/${activity.target_id}`)
-            break;
-        case ACTIVITY_TYPES.USER_NOVELA_LIKE:
-            navigateTo(`/novela/${activity.target_id}`)
-            break;
-        case ACTIVITY_TYPES.USER_NOVELA_LIKE_REMOVE:
-            navigateTo(`/novela/${activity.target_id}`)
-            break;
-    }
+	switch (activity.activity_type) {
+		case ACTIVITY_TYPES.NOVELA_BOOKMARK:
+			navigateTo(`/novela/${activity.target_id}`);
+			break;
+		case ACTIVITY_TYPES.NOVELA_BOOKMARK_REMOVE:
+			navigateTo(`/novela/${activity.target_id}`);
+			break;
+		case ACTIVITY_TYPES.RANOBE_ADD:
+			navigateTo(`/ranobe/${activity.target_id}`);
+			break;
+		case ACTIVITY_TYPES.USER_NOVELA_LIKE:
+			navigateTo(`/novela/${activity.target_id}`);
+			break;
+		case ACTIVITY_TYPES.USER_NOVELA_LIKE_REMOVE:
+			navigateTo(`/novela/${activity.target_id}`);
+			break;
+	}
 }
-
 </script>
 
 <template>

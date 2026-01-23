@@ -3,29 +3,41 @@ import Carousel from "@/components/features/Carousel/Carousel.vue";
 import NovelaShelf from "./NovelaShelf.vue";
 import NovelaColumns from "./NovelaColumns.vue";
 import { useNovela } from "~/composables/api/novela/useNovela";
+import {
+	NOVELA_FETCH_LIMIT,
+	NOVELA_FETCH_LIMIT_LAST_UPDATED,
+	NOVELA_FETCH_LIMIT_NEW,
+	NOVELA_FETCH_LIMIT_POPULAR,
+	NOVELA_FETCH_LIMIT_TRENDING,
+} from "~/constants/data";
+import { NovelaSort } from "~/types/frontend/query/novela-query";
 
 const { fetchNovels } = useNovela();
-const { data: novels } = await useAsyncData('novelas-home', () => 
-    fetchNovels({ limit: 10 })
+const { data: novels } = await useAsyncData("novelas-home", () =>
+	fetchNovels({ limit: NOVELA_FETCH_LIMIT }),
 );
 
-const { data: newNovels } = await useAsyncData('novels-new', () => 
-  fetchNovels({ sort: 'new', limit: 7 })
-)
-
-const { data: popularNovels } = await useAsyncData('novels-popular', () => 
-  fetchNovels({ sort: 'popular', limit: 7 })
-)
-
-const { data: updatedNovels } = await useAsyncData('novels-updated', () => 
-  fetchNovels({ sort: 'updated', limit: 6 })
+const { data: newNovels } = await useAsyncData("novels-new", () =>
+	fetchNovels({ sort: NovelaSort.New, limit: NOVELA_FETCH_LIMIT_NEW }),
 );
 
-const { data: trendingNovels } = await useAsyncData('novels-trending', () => 
-  fetchNovels({ sort: 'trending', limit: 7 })
+const { data: popularNovels } = await useAsyncData("novels-popular", () =>
+	fetchNovels({ sort: NovelaSort.Popular, limit: NOVELA_FETCH_LIMIT_POPULAR }),
 );
 
+const { data: updatedNovels } = await useAsyncData("novels-updated", () =>
+	fetchNovels({
+		sort: NovelaSort.Updated,
+		limit: NOVELA_FETCH_LIMIT_LAST_UPDATED,
+	}),
+);
 
+const { data: trendingNovels } = await useAsyncData("novels-trending", () =>
+	fetchNovels({
+		sort: NovelaSort.Trending,
+		limit: NOVELA_FETCH_LIMIT_TRENDING,
+	}),
+);
 </script>
 
 <template>

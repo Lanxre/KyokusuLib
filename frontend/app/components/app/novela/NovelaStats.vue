@@ -16,10 +16,26 @@ const formatNumber = (num: number) => {
 };
 
 const stats = computed(() => [
-	{ label: "Просмотры", value: formatNumber(props.novela.views), icon: "ph:eye-bold" },
-	{ label: "В закладках", value: formatNumber(props.novela.bookmark_details.total), icon: "ph:bookmark-simple-bold" },
-	{ label: "Год", value: getStingYear(props.novela.release_date), icon: "ph:calendar-blank-bold" },
-	{ label: "Лайки", value: formatNumber(props.novela.like_count), icon: "ph:heart-bold" }
+	{
+		label: "Просмотры",
+		value: formatNumber(props.novela.views),
+		icon: "ph:eye-bold",
+	},
+	{
+		label: "В закладках",
+		value: formatNumber(props.novela.bookmark_details.total),
+		icon: "ph:bookmark-simple-bold",
+	},
+	{
+		label: "Год",
+		value: getStingYear(props.novela.release_date),
+		icon: "ph:calendar-blank-bold",
+	},
+	{
+		label: "Лайки",
+		value: formatNumber(props.novela.like_count),
+		icon: "ph:heart-bold",
+	},
 ]);
 </script>
 

@@ -25,14 +25,22 @@ export interface NovelaAuthor {
 	role: string;
 }
 
+export interface NovelaAuthorDetails {
+	id: number;
+	name: string;
+	country: string;
+	metier: string;
+	bio: string;
+}
+
 export interface NCItem {
 	value: number;
-	count: number; 
+	count: number;
 }
 
 export interface NovelaRatingCategory {
 	total: number;
-	total_rating: number; 
+	total_rating: number;
 	nc_items: NCItem[];
 }
 
@@ -42,8 +50,8 @@ export interface NovelaBookmarkCategory {
 }
 
 export interface BookmarkNCItem {
-    value: 'planned' | 'reading' | 'completed' | 'on_hold' | 'dropped';
-    count: number;
+	value: "planned" | "reading" | "completed" | "on_hold" | "dropped";
+	count: number;
 }
 
 export interface NovelaDetails {

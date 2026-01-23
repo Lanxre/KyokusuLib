@@ -1,37 +1,76 @@
 export const COUNTRIES_LIST = [
-    "Япония", "Южная Корея", "Китай", "США", "Россия", 
-    "Великобритания", "Франция", "Германия", "Канада", "Австралия"
+	"Япония",
+	"Южная Корея",
+	"Китай",
+	"США",
+	"Россия",
+	"Великобритания",
+	"Франция",
+	"Германия",
+	"Канада",
+	"Австралия",
 ];
 
 export const METIER_LIST = [
-  "Автор", "Художник", "Сценарист", "Студия", "Издатель",
+	"Автор",
+	"Художник",
+	"Сценарист",
+	"Студия",
+	"Издатель",
 ];
 
-export const NOVELA_TYPES = [
-  "Ранобе", "Манга", "Манхва"
-];
+export const NOVELA_TYPES = ["Ранобе", "Манга", "Манхва"];
 
 export const NOVELA_STATUSES = [
-  "Анонс", "Завершено", "Заморожен", "Продолжается"
-]
-
-export const AGE_RATINGS = [
-  "0+", "6+", "12+", "16+", "18+"
+	"Анонс",
+	"Завершено",
+	"Заморожен",
+	"Продолжается",
 ];
 
+export const AGE_RATINGS = ["0+", "6+", "12+", "16+", "18+"];
+
 export const TRANSLATION_STATUSES = [
-  "Закончен", "Заморожено", "Продолжается", "Нет переводчика"
+	"Закончен",
+	"Заморожено",
+	"Продолжается",
+	"Нет переводчика",
 ];
 
 export const NOVELA_GENRES = [
-  "Фэнтези", "Фантастика", "Драма", "Комедия", "Спорт", "Детектив", "Романтика", "Приключения", "Мистика", "Психология"
+	"Фэнтези",
+	"Фантастика",
+	"Драма",
+	"Комедия",
+	"Спорт",
+	"Детектив",
+	"Романтика",
+	"Приключения",
+	"Мистика",
+	"Психология",
 ];
 
 export const NOVELA_CATEGORIES = [
-  "Алхимия", "Ангелы", "Демоны", "Герои", "Гильдии", "Геймеры", "ГГ имба", "ГГ женщина", "Выживание", "Дружба", 
-]
+	"Алхимия",
+	"Ангелы",
+	"Демоны",
+	"Герои",
+	"Гильдии",
+	"Геймеры",
+	"ГГ имба",
+	"ГГ женщина",
+	"Выживание",
+	"Дружба",
+];
 
 export const YEAR_MIN = 1900;
 export const YEAR_MAX = new Date().getFullYear() + 1;
-export const YEAR_DEFAULT = '2006';
+export const YEAR_DEFAULT = "2006";
 export const ACTIVITY_PAGE_SIZE = 3;
+
+// LIMIT FOR FETCH IN MAIN CONTENT
+export const NOVELA_FETCH_LIMIT = 10;
+export const NOVELA_FETCH_LIMIT_NEW = 7;
+export const NOVELA_FETCH_LIMIT_POPULAR = 7;
+export const NOVELA_FETCH_LIMIT_LAST_UPDATED = 7;
+export const NOVELA_FETCH_LIMIT_TRENDING = 7;

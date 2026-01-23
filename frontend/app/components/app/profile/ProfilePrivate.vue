@@ -10,7 +10,6 @@ const props = defineProps<{
 }>();
 
 const { userRoleColor, isLogin } = useProfile();
-
 </script>
 
 <template>

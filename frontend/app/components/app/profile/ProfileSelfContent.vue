@@ -14,13 +14,13 @@ import ExperienceInfo from "./experience/ExperienceInfo.vue";
 import TabBookmarks from "./tabs/TabBookmarks.vue";
 
 const {
-    profileData,
-    accountCreated,
-    profileTabs,
-    userRoleColor,
-    userGender,
-    lastLogin,
-    isLogin,
+	profileData,
+	accountCreated,
+	profileTabs,
+	userRoleColor,
+	userGender,
+	lastLogin,
+	isLogin,
 } = useProfile();
 
 const { activities, fetchActivities, isLoadingActivities } = useUserActivity();
@@ -28,12 +28,9 @@ const { isShowTag, syncSettingWithBackend } = useInterfaceSettings();
 const activeTab = ref("overview");
 const isModalOpen = ref(false);
 
-const { pending } = await useAsyncData('profile-init', async () => {
-    await Promise.all([
-        fetchActivities(),
-        syncSettingWithBackend()
-    ]);
-    return { success: true};
+const { pending } = await useAsyncData("profile-init", async () => {
+	await Promise.all([fetchActivities(), syncSettingWithBackend()]);
+	return { success: true };
 });
 </script>
 

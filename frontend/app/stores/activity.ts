@@ -40,11 +40,15 @@ export const useActivityStore = defineStore("activity", () => {
 		}
 	};
 
-	const { pause, resume } = useIntervalFn(() => {
-		if (isUserActive.value) {
-			sendHeartbeat();
-		}
-	}, 30000, { immediate: false });
+	const { pause, resume } = useIntervalFn(
+		() => {
+			if (isUserActive.value) {
+				sendHeartbeat();
+			}
+		},
+		30000,
+		{ immediate: false },
+	);
 
 	const initActivityTracking = () => {
 		if (import.meta.server) return;

@@ -27,13 +27,13 @@ export async function $api<T>(url: string, options: any = {}): Promise<T> {
 		const fetchError = err.data;
 
 		const errorMessage =
-			fetchError?.error || 
-			fetchError?.message || 
-			err.statusMessage || 
+			fetchError?.error ||
+			fetchError?.message ||
+			err.statusMessage ||
 			"Произошла непредвиденная ошибка";
 
 		const error = new Error(errorMessage);
-		
+
 		(error as any).statusCode = err.response?.status;
 
 		throw error;

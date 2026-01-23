@@ -2,23 +2,22 @@
 import BaseInput from "@/components/ui/BaseInput/BaseInput.vue";
 import SearchSelect from "@/components/ui/SearchSelect/SearchSelect.vue";
 import BaseRichTextEditor from "@/components/ui/BaseRichTextEditor/BaseRichTextEditor.vue";
-import UploadIcon from "@/assets/images/special/add.png"; 
+import UploadIcon from "@/assets/images/special/add.png";
 
 import { useAuthorForm } from "@/composables/api/forms/useAuthorForm";
-import { COUNTRIES_LIST, METIER_LIST } from '@/constants/data';
+import { COUNTRIES_LIST, METIER_LIST } from "@/constants/data";
 
 const {
-    form,
-    errors,
-    isLoading,
-    fileInput,
-    previewUrl,
-    handleImageClick,
-    handleImageChange,
-    removeImage,
-    submit
+	form,
+	errors,
+	isLoading,
+	fileInput,
+	previewUrl,
+	handleImageClick,
+	handleImageChange,
+	removeImage,
+	submit,
 } = useAuthorForm();
-
 </script>
 
 <template>

@@ -18,7 +18,8 @@ const isUserDropdownOpen = ref(false);
 const isContentSubmenuOpen = ref(false);
 const userDropdownRef = ref(null);
 
-const toggleMobileMenu = () => (isMobileMenuOpen.value = !isMobileMenuOpen.value);
+const toggleMobileMenu = () =>
+	(isMobileMenuOpen.value = !isMobileMenuOpen.value);
 const closeMobileMenu = () => (isMobileMenuOpen.value = false);
 
 onClickOutside(userDropdownRef, () => {

@@ -12,12 +12,13 @@ if (!/^\d+$/.test(userIdParam)) {
 }
 
 const userId = Number(userIdParam);
-const { profileData, isSelfProfile, isPublicAccount, init, profileError } = useProfile();
+const { profileData, isSelfProfile, isPublicAccount, init, profileError } =
+	useProfile();
 
 const { status } = await useAsyncData(
-	`profile-data-${userId}`, 
+	`profile-data-${userId}`,
 	() => init(userId),
-	{ watch: [() => route.params.id] }
+	{ watch: [() => route.params.id] },
 );
 
 if (profileError.value) {
@@ -25,7 +26,8 @@ if (profileError.value) {
 }
 
 useSeoMeta({
-	title: () => profileData.value?.name ? `${profileData.value.name} - Профиль` : "Профиль",
+	title: () =>
+		profileData.value?.name ? `${profileData.value.name} - Профиль` : "Профиль",
 	ogTitle: () => profileData.value?.name,
 	ogImage: () => profileData.value?.picture,
 });
