@@ -14,6 +14,7 @@ defineEmits(["update:modelValue"]);
     :model-value="modelValue" 
     @update:model-value="$emit('update:modelValue', $event)"
     title="Требуется авторизация" 
+    :center-title="true"
     width="w-full max-w-md"
   >
     <div class="space-y-4 py-2 text-center">

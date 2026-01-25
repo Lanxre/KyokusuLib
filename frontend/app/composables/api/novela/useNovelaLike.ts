@@ -1,5 +1,5 @@
 import { $api } from "@/composables/api/useApi";
-import type { NovelaLikeRequest } from "~/types/frontend/novela-like";
+import type { NovelaLikeRequest } from "~/types/frontend/novela/novela-like";
 
 export function useNovelaLike() {
 	const loading = ref(false);

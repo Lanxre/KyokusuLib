@@ -37,3 +37,7 @@ type AuthorRoutes struct {
 type UserActivityRoutes struct {
 	Handler *handlers.UserActivityHandler
 }
+
+type CommentRoutes struct {
+	Handler *handlers.CommentHandler
+}

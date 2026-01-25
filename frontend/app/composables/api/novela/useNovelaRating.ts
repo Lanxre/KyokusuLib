@@ -1,5 +1,5 @@
 import { $api } from "@/composables/api/useApi";
-import type { NovelaRatingRequest } from "~/types/frontend/novela-rating";
+import type { NovelaRatingRequest } from "~/types/frontend/novela/novela-rating";
 
 export function useNovelaRating() {
 	const loading = ref(false);

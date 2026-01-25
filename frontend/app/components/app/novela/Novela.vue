@@ -8,6 +8,7 @@ import ChapterList from "./ChapterList.vue";
 import NovelaSettings from "./NovelaSettings.vue";
 import NovelaRatingStats from "./NovelaRatingStats.vue";
 import NovelaBookmarkStats from "./NovelaBookmarkStats.vue";
+import NovelaComments from "./NovelaComments.vue";
 
 import NovelaBookmarkButton from "./NovelaBookmarkButton.vue";
 import NovelaLikeButton from "./NovelaLikeButton.vue";
@@ -16,10 +17,12 @@ import { ACTIVITY_TYPES } from "~/constants/user-activity";
 import { KyokusuAppRole } from "~/types/enums/role-enum";
 import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
 import type { NovelaDetails } from "~/types/backend/novela";
+
 import {
 	getBookmarkCategoryLabel,
 	type BookmarkCategory,
 } from "~/types/frontend/bookmarks";
+import { convToRu, NOVELA_ACTIVE_TABS, NovelaActiveTabsEnum, type NovelaActiveTabs } from "~/types/frontend/novela/novela-active-tabs";
 
 const route = useRoute();
 
@@ -28,7 +31,7 @@ const { novela, fetchNovela } = useNovela();
 const { createUserActivity } = useUserActivity();
 const { hasPermission } = useRolePermissions();
 
-const activeTab = ref<"about" | "chapters">("about");
+const activeTab = ref<NovelaActiveTabs>(NovelaActiveTabsEnum.ABOUT);
 
 const novelaId = computed(() => route.params.id as string);
 
@@ -349,21 +352,21 @@ const toggleSection = (name: string) => {
 
                         <div class="flex gap-8 border-b border-zinc-200 dark:border-zinc-800 mb-8">
                             <button 
-                                v-for="tab in ['about', 'chapters']" 
+                                v-for="tab in NOVELA_ACTIVE_TABS" 
                                 :key="tab"
-                                @click="activeTab = tab as any"
                                 class="pb-4 text-lg font-bold transition-all relative cursor-pointer capitalize"
                                 :class="activeTab === tab ? 'text-zinc-900 dark:text-white' : 'text-zinc-400'"
+                                @click="activeTab = tab as any"
                             >
-                                {{ tab === 'about' ? 'Описание' : 'Главы' }}
-                                <span v-if="tab === 'chapters'" class="ml-2 text-xs opacity-50">{{ totalChapters }}</span>
+                                {{ convToRu(tab) }}
+                                <span v-if="tab === NovelaActiveTabsEnum.CHAPTERS" class="ml-2 text-xs opacity-50">{{ totalChapters }}</span>
                                 <div v-if="activeTab === tab" class="absolute bottom-0 left-0 w-full h-1 bg-yellow-500 rounded-t-full"></div>
                             </button>
                         </div>
 
                         <div class="min-h-75">
                             <transition name="fade" mode="out-in">
-                                <div v-if="activeTab === 'about'" key="about" class="space-y-10">
+                                <div v-if="activeTab === NovelaActiveTabsEnum.ABOUT" :key="NovelaActiveTabsEnum.ABOUT" class="space-y-10">
                                     <div class="prose dark:prose-invert max-w-none text-zinc-700 dark:text-zinc-300 leading-relaxed text-base md:text-lg whitespace-pre-line" v-html="novela.description"></div>
                                     
                                     <div v-if="novela.categories?.length">
@@ -375,8 +378,11 @@ const toggleSection = (name: string) => {
                                         </div>
                                     </div>
                                 </div>
-                                <div v-else key="chapters">
+                                <div v-else-if="activeTab === NovelaActiveTabsEnum.CHAPTERS" :key="NovelaActiveTabsEnum.CHAPTERS">
                                     <ChapterList :volumes="novela.volumes" />
+                                </div>
+                                <div v-else-if="activeTab === NovelaActiveTabsEnum.COMMENTS" :key="NovelaActiveTabsEnum.COMMENTS">
+                                    <NovelaComments :novela-id="novela.id"/>
                                 </div>
                             </transition>
                         </div>

@@ -78,3 +78,19 @@ export interface NovelaDetails {
 	bookmark_details: NovelaBookmarkCategory;
 	country: string;
 }
+
+interface NovelaCommentUserResponse {
+	id: number;
+	name: string;
+	picture: string;
+}
+
+export interface NovelaCommentResponse {
+	id : number;
+	parent_id: number;
+	content: string;
+	created_at: string;
+	user: NovelaCommentUserResponse
+	replies: NovelaCommentResponse[]
+}
+

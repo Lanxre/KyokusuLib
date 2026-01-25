@@ -31,6 +31,7 @@ func main() {
 			repository.NewNovelaRatingRepository,
 			repository.NewNovelaBookmarkRepository,
 			repository.NewNovelaLikeRepository,
+			repository.NewCommentsRepository,
 			repository.NewNovelaRepository,
 			repository.NewTeamRepository,
 
@@ -41,6 +42,7 @@ func main() {
 			service.NewSocialsService,
 			service.NewAuthorService,
 			service.NewNovelaService,
+			service.NewCommentService,
 			service.NewTeamService,
 			app.NewEmailService,
 
@@ -53,6 +55,7 @@ func main() {
 			handlers.NewAuthorHandler,
 			handlers.NewUserActivityHandler,
 			handlers.NewNovelaHandler,
+			handlers.NewCommentHandler,
 			handlers.NewTeamHandler,
 
 			app.AsRoute(func(h *handlers.HealthHandler) *routes.HealthRoutes { return &routes.HealthRoutes{Handler: h} }),
@@ -71,6 +74,7 @@ func main() {
 			}),
 			app.AsRoute(func(h *handlers.NovelaHandler) *routes.NovelaRoutes { return &routes.NovelaRoutes{Handler: h} }),
 			app.AsRoute(func(h *handlers.TeamHandler) *routes.TeamRoutes { return &routes.TeamRoutes{Handler: h} }),
+			app.AsRoute(func(h *handlers.CommentHandler) *routes.CommentRoutes { return &routes.CommentRoutes{Handler: h} }),
 
 			fx.Annotate(
 				app.NewMuxRouter,
