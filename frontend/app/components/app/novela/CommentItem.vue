@@ -9,10 +9,11 @@ interface Props {
 	comment: NovelaCommentResponse;
 	isReply?: boolean;
     userId?: number;
+    
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(["reply"]);
+const emit = defineEmits(["reply", "delete"]);
 
 const isExpanded = ref(false);
 const totalReplyCount = computed(() => {
@@ -44,9 +45,13 @@ const totalReplyCount = computed(() => {
                 </div>
                 <div class="flex">
                     <BaseToolTip v-if="comment.user.id === props.userId" text="Удалить комментарий" position="top">
-                        <Icon name="ph:trash-bold" size="18" class="cursor-pointer text-red-700 hover:text-red-800 transition-colors" />
-                    </BaseToolTip>
-                    
+                        <Icon 
+                            name="ph:trash-bold" 
+                            size="18" 
+                            class="cursor-pointer text-red-700 hover:text-red-800 transition-colors"
+                            @click="emit('delete', comment.id)"
+                        />
+                    </BaseToolTip>       
                 </div>
             </div>
             

@@ -61,3 +61,25 @@ func (h *CommentHandler) GetNovelaComments(w http.ResponseWriter, r *http.Reques
 	}
 	response.JSON(w, http.StatusOK, comments)
 }
+
+func (h *CommentHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusInternalServerError, "User not found")
+		return
+	}
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid comment ID format")
+		return
+	}
+
+	err = h.service.DeleteComment(r.Context(), id, userID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	response.SuccessOkEmpty(w)
+}

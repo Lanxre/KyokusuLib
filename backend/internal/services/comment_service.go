@@ -56,3 +56,7 @@ func (s *CommentService) GetNovelaComments(ctx context.Context, novelaID int) ([
 func (s *CommentService) CreateComment(ctx context.Context, userID int, req *dto.CreateCommentRequest) (int, error) {
 	return s.repo.CreateComment(ctx, userID, req)
 }
+
+func (s *CommentService) DeleteComment(ctx context.Context, commentID, userID int) error {
+	return s.repo.DeleteComment(ctx, commentID, userID)
+}

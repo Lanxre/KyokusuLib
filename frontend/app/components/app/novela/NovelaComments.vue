@@ -11,7 +11,7 @@ const props = defineProps<{ novelaId: number }>();
 
 const { user, isAuthenticated } = useAuthStore();
 const { notify } = useNotificationStore();
-const { comments, fetchComments, addComment, isLoading } = useNovelaComments();
+const { comments, fetchComments, addComment, deleteComment, isLoading } = useNovelaComments();
 
 const isAuthModalOpen = ref(false);
 const commentText = ref("");
@@ -58,6 +58,21 @@ const handleSend = async () => {
 		console.error(e);
 	}
 };
+
+const handleDelete = async (commentId: number) => {
+    try {
+        await deleteComment(commentId);
+        notify({
+            title: "Успех",
+            content: "Комментарий успешно удален",
+            type: "success",
+        })
+        comments.value = comments.value.filter(comment => comment.id !== commentId);
+    } catch (e) {
+        console.error(e);
+    }
+};
+
 </script>
 
 <template>
@@ -113,6 +128,7 @@ const handleSend = async () => {
                     :comment="comment"
                     :user-id="user?.id || 0"
                     @reply="onReplyRequest"
+                    @delete="handleDelete"
                 />
             </TransitionGroup>
         </div>

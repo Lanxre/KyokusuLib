@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+
 	"github.com/lanxre/kyokusulib/internal/models/db"
 	"github.com/lanxre/kyokusulib/internal/models/dto"
 )
@@ -46,4 +47,10 @@ func (r *CommentsRepository) CreateComment(ctx context.Context, userID int, req 
 	var id int
 	err := r.DB.QueryRowContext(ctx, query, req.NovelaID, userID, req.ParentID, req.Content).Scan(&id)
 	return id, err
+}
+
+func (r *CommentsRepository) DeleteComment(ctx context.Context, commentID, userID int) error {
+	query := `DELETE FROM novela_comments WHERE id = $1 AND user_id = $2`
+	_, err := r.DB.ExecContext(ctx, query, commentID, userID)
+	return err
 }

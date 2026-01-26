@@ -21,5 +21,11 @@ export function useNovelaComments() {
         });
     };
 
-    return { comments, isLoading, fetchComments, addComment };
+    const deleteComment = async (commentId: number) => {
+        return await $api(`/api/novela/comments/${commentId}`, {
+            method: 'DELETE'
+        });
+    };
+
+    return { comments, isLoading, fetchComments, addComment, deleteComment };
 }
