@@ -83,3 +83,31 @@ func (h *CommentHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 
 	response.SuccessOkEmpty(w)
 }
+
+func (h *CommentHandler) UpdateComment(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusInternalServerError, "User not found")
+		return
+	}
+
+	var comment dto.UpdateCommentRequest
+	err := json.NewDecoder(r.Body).Decode(&comment)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid comment ID format")
+		return
+	}
+
+	err = h.service.UpdateComment(r.Context(), id, userID, &comment)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.SuccessOkEmpty(w)
+}

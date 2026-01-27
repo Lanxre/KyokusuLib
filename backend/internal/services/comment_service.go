@@ -60,3 +60,7 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, req *dto
 func (s *CommentService) DeleteComment(ctx context.Context, commentID, userID int) error {
 	return s.repo.DeleteComment(ctx, commentID, userID)
 }
+
+func (s *CommentService) UpdateComment(ctx context.Context, commentID, userID int, req *dto.UpdateCommentRequest) error {
+	return s.repo.UpdateComment(ctx, commentID, userID, req)
+}

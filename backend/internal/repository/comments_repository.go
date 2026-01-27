@@ -54,3 +54,9 @@ func (r *CommentsRepository) DeleteComment(ctx context.Context, commentID, userI
 	_, err := r.DB.ExecContext(ctx, query, commentID, userID)
 	return err
 }
+
+func (r *CommentsRepository) UpdateComment(ctx context.Context, commentID, userID int, req *dto.UpdateCommentRequest) error {
+	query := `UPDATE novela_comments SET content = $1, updated_at = $2 WHERE id = $3 AND user_id = $4`
+	_, err := r.DB.ExecContext(ctx, query, req.Content, req.UpdatedAt, commentID, userID)
+	return err
+}

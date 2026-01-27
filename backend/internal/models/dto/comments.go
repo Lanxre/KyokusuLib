@@ -20,3 +20,8 @@ type CreateCommentRequest struct {
 	ParentID *int   `json:"parent_id"`
 	Content  string `json:"content" validate:"required,min=1,max=5000"`
 }
+
+type UpdateCommentRequest struct {
+	Content   string `json:"content" validate:"required,min=1,max=5000"`
+	UpdatedAt string `json:"updated_at" validate:"required"`
+}

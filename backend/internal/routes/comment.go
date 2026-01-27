@@ -12,4 +12,5 @@ func (h *CommentRoutes) Register(cfg *config.Config, r *mux.Router) {
 	api.HandleFunc("/comments", middleware.AuthMiddleware(h.Handler.CreateComment, cfg.JWTSecret)).Methods("POST")
 	api.HandleFunc("/comments/{id:[0-9]+}", middleware.DefaultMiddleware(h.Handler.GetNovelaComments, cfg.JWTSecret)).Methods("GET")
 	api.HandleFunc("/comments/{id:[0-9]+}", middleware.AuthMiddleware(h.Handler.DeleteComment, cfg.JWTSecret)).Methods("DELETE")
+	api.HandleFunc("/comments/{id:[0-9]+}", middleware.AuthMiddleware(h.Handler.UpdateComment, cfg.JWTSecret)).Methods("PUT")
 }
