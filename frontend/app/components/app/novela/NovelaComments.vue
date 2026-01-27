@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useNovelaComments } from "@/composables/api/novela/useNovelaComments";
 import { useAuthStore } from "@/stores/auth";
+import { useNotificationStore } from "@/stores/notification";
 import CommentItem from "./CommentItem.vue";
 import AuthRequiredModal from "~/components/common/AuthRequiredModal.vue";
 import BaseRichTextEditor from "~/components/ui/BaseRichTextEditor/BaseRichTextEditor.vue";
@@ -11,108 +12,146 @@ const props = defineProps<{ novelaId: number }>();
 
 const { user, isAuthenticated } = useAuthStore();
 const { notify } = useNotificationStore();
-const { comments, fetchComments, addComment, deleteComment, isLoading } = useNovelaComments();
+const { comments, fetchComments, addComment, deleteComment, updateComment, isLoading: apiLoading } = useNovelaComments();
 
 const isAuthModalOpen = ref(false);
 const commentText = ref("");
 const replyTo = ref<{ id: number; name: string } | null>(null);
+const editingComment = ref<{ id: number; content: string } | null>(null);
 
 const { status, refresh } = await useAsyncData(
-	`comments-${props.novelaId}`,
+	`comments-list-${props.novelaId}`,
 	() => fetchComments(props.novelaId),
-	{ 
-        lazy: true, 
-        server: true,
-        watch: [() => props.novelaId] 
-    }
+	{ watch: [() => props.novelaId] }
 );
 
-const onReplyRequest = (payload: { id: number; name: string }) => {
-    replyTo.value = payload;
-    document.getElementById('comment-editor-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+const isPending = computed(() => status.value === 'pending' || apiLoading.value);
+
+const scrolltoEditor = () => {
+    nextTick(() => {
+        document.getElementById('comment-editor-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
 };
 
-const handleSend = async () => {
+const onReplyRequest = (payload: { id: number; name: string }) => {
+    editingComment.value = null; // Сбрасываем редактирование
+    replyTo.value = payload;
+    scrolltoEditor();
+};
+
+const onUpdateRequest = (comment: { id: number; content: string }) => {
+    replyTo.value = null; // Сбрасываем ответ
+    editingComment.value = comment;
+    commentText.value = comment.content;
+    scrolltoEditor();
+};
+
+const resetForm = () => {
+    editingComment.value = null;
+    replyTo.value = null;
+    commentText.value = "";
+};
+
+const handleAction = async () => {
     if (!isAuthenticated) {
         isAuthModalOpen.value = true;
         return;
     }
-	if (!commentText.value.trim() || isLoading.value) return;
+
+	if (!commentText.value.trim() || isPending.value) return;
 
 	try {
-		await addComment({
-			novela_id: props.novelaId,
-			content: commentText.value,
-			parent_id: replyTo.value?.id || null,
-		});
+        if (editingComment.value) {
+            await updateComment(editingComment.value.id, commentText.value);
+            notify({ title: "Успех", content: "Комментарий обновлен", type: "success" });
+        } else {
+            await addComment({
+                novela_id: props.novelaId,
+                content: commentText.value,
+                parent_id: replyTo.value?.id || null,
+            });
+            notify({ title: "Успех", content: "Комментарий опубликован", type: "success" });
+        }
 		
-		commentText.value = "";
-		replyTo.value = null;
-        notify({
-            title: "Успех",
-            content: "Комментарий успешно отправлен",
-            type: "success",
-        })
+		resetForm();
 		await refresh(); 
-	} catch (e) {
-		console.error(e);
+	} catch (e: any) {
+		notify({ title: "Ошибка", content: e.message, type: "error" });
 	}
 };
 
 const handleDelete = async (commentId: number) => {
+    if (!confirm("Вы уверены, что хотите удалить комментарий?")) return;
+    
     try {
         await deleteComment(commentId);
-        notify({
-            title: "Успех",
-            content: "Комментарий успешно удален",
-            type: "success",
-        })
-        comments.value = comments.value.filter(comment => comment.id !== commentId);
-    } catch (e) {
-        console.error(e);
+        comments.value = comments.value.filter(c => c.id !== commentId);
+        notify({ title: "Удалено", content: "Комментарий успешно удален", type: "success" });
+    } catch (e: any) {
+        notify({ title: "Ошибка", content: e.message, type: "error" });
     }
 };
-
 </script>
 
 <template>
-    <div class="space-y-12">
+    <div class="space-y-10">
         <section id="comment-editor-section" class="space-y-4">
-            <div v-if="replyTo" class="flex items-center justify-between bg-yellow-500/10 p-3 rounded-2xl border border-yellow-500/20">
-                <span class="text-[10px] font-black text-yellow-600 uppercase tracking-widest">Ответ для: {{ replyTo.name }}</span>
-                <button @click="replyTo = null" class="cursor-pointer text-yellow-600 hover:rotate-90 transition-transform">
-                    <Icon name="ph:x-bold" size="14" />
-                </button>
-            </div>
+            <Transition name="fade" mode="out-in">
+                <div v-if="replyTo || editingComment" 
+                    class="flex items-center justify-between p-3 rounded-2xl border transition-all"
+                    :class="editingComment ? 'bg-blue-500/10 border-blue-500/20' : 'bg-yellow-500/10 border-yellow-500/20'"
+                >
+                    <div class="flex items-center gap-2">
+                        <Icon :name="editingComment ? 'ph:pencil-line-bold' : 'ph:arrows-out-line-horizontal-bold'" 
+                              :class="editingComment ? 'text-blue-500' : 'text-yellow-600'" />
+                        <span class="text-[10px] font-black uppercase tracking-widest"
+                              :class="editingComment ? 'text-blue-500' : 'text-yellow-600'">
+                            {{ editingComment ? 'Редактирование' : `Ответ: ${replyTo?.name}` }}
+                        </span>
+                    </div>
+                    
+                    <button @click="resetForm" class="cursor-pointer hover:rotate-90 transition-transform p-1">
+                        <Icon name="ph:x-bold" size="14" :class="editingComment ? 'text-blue-500' : 'text-yellow-600'" />
+                    </button>
+                </div>
+            </Transition>
             
             <BaseRichTextEditor
-                id="comment-editor" 
+                id="comment-editor"
                 v-model="commentText"
-                placeholder="Ваше мнение..."
-                :disabled="isLoading"
+                placeholder="Ваше мнение о произведении..."
+                :disabled="isPending"
                 :maxLength="NOVELA_MAX_COMMENT_LENGTH"
             />
             
-            <div class="flex justify-end">
+            <div class="flex justify-end gap-3">
                 <button 
-                    @click="handleSend"
-                    :disabled="!commentText.trim() || isLoading"
-                    class="px-10 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-black cursor-pointer rounded-2xl text-xs uppercase tracking-widest disabled:opacity-50 flex items-center gap-3 transition-all"
+                    v-if="editingComment || replyTo"
+                    @click="resetForm"
+                    class="px-6 py-3 text-zinc-400 font-bold text-xs uppercase tracking-widest hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer"
                 >
-                    <Icon v-if="isLoading" name="ph:circle-notch-bold" class="animate-spin" />
-                    Отправить
+                    Отмена
+                </button>
+                <button 
+                    @click="handleAction"
+                    :disabled="!commentText.trim() || isPending"
+                    class="px-10 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-black rounded-2xl text-xs uppercase tracking-widest active:scale-95 transition-all flex items-center gap-3 disabled:opacity-50 shadow-xl shadow-zinc-500/10 cursor-pointer"
+                >
+                    <Icon v-if="isPending" name="ph:circle-notch-bold" class="animate-spin" />
+                    {{ editingComment ? 'Сохранить' : 'Отправить' }}
                 </button>
             </div>
         </section>
 
-        <div class="relative min-h-[200px]">
-            <div v-if="status === 'pending' && !comments.length" class="py-10 flex justify-center">
-                <Icon name="ph:circle-notch-bold" size="32" class="animate-spin text-zinc-300" />
+        <div class="relative min-h-[300px]">
+            <div v-if="status === 'pending' && !comments.length" class="py-20 flex justify-center">
+                <Icon name="ph:circle-notch-bold" size="48" class="animate-spin text-zinc-300" />
             </div>
 
-            <div v-else-if="!comments.length" class="py-20 flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[3rem] text-zinc-400">
-                <Icon name="ph:chat-circle-dots-light" size="48" class="opacity-20 mb-4" />
-                <p class="font-bold uppercase tracking-[0.2em] text-[10px]">Комментариев пока нет</p>
+            <div v-else-if="!comments.length" class="py-24 flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[3rem] text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10">
+                <Icon name="ph:chat-circle-dots-light" size="64" class="opacity-20 mb-4" />
+                <p class="font-bold uppercase tracking-[0.2em] text-[10px]">Здесь пока нет обсуждений</p>
+                <p class="text-xs opacity-60 mt-1">Будьте первым, кто поделится мыслями</p>
             </div>
 
             <TransitionGroup 
@@ -128,16 +167,21 @@ const handleDelete = async (commentId: number) => {
                     :comment="comment"
                     :user-id="user?.id || 0"
                     @reply="onReplyRequest"
+                    @update="onUpdateRequest"
                     @delete="handleDelete"
                 />
             </TransitionGroup>
         </div>
 
-        <AuthRequiredModal v-model="isAuthModalOpen" action-text="оставлять комментарии" />
+        <AuthRequiredModal v-model="isAuthModalOpen" action-text="управлять комментариями" />
     </div>
 </template>
 
 <style scoped>
-.list-enter-active, .list-leave-active { transition: all 0.5s ease; }
-.list-enter-from, .list-leave-to { opacity: 0; transform: translateY(20px); }
+.list-enter-active, .list-leave-active { transition: all 0.4s ease; }
+.list-enter-from { opacity: 0; transform: translateY(30px); }
+.list-leave-to { opacity: 0; transform: scale(0.95); }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

@@ -40,10 +40,8 @@ const posClasses = {
     @mouseenter="show" 
     @mouseleave="hide"
   >
-    <!-- Триггер (вложенный элемент) -->
     <slot />
 
-    <!-- Сам тултип -->
     <Transition name="tooltip">
       <div 
         v-if="isVisible && text"
@@ -53,7 +51,6 @@ const posClasses = {
         <div class="bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-2xl border border-white/10 dark:border-black/5 antialiased">
           {{ text }}
           
-          <!-- Стрелочка -->
           <div 
             class="absolute w-2 h-2 bg-inherit rotate-45 border-inherit"
             :class="{

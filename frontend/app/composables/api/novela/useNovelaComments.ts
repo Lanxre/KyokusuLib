@@ -27,5 +27,12 @@ export function useNovelaComments() {
         });
     };
 
-    return { comments, isLoading, fetchComments, addComment, deleteComment };
+    const updateComment = async (commentId: number, content: string) => {
+        return await $api(`/api/novela/comments/${commentId}`, {
+            method: 'PUT',
+            body: { content, updated_at: new Date().toISOString() }
+        });
+    };
+
+    return { comments, isLoading, fetchComments, addComment, deleteComment, updateComment };
 }
