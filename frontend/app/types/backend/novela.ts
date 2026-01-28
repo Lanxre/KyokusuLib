@@ -90,7 +90,9 @@ export interface NovelaCommentResponse {
 	parent_id: number;
 	content: string;
 	created_at: string;
-	user: NovelaCommentUserResponse
-	replies: NovelaCommentResponse[]
+	has_like: boolean | null;
+	like_count: number;
+	user: NovelaCommentUserResponse;
+	replies: NovelaCommentResponse[];
 }
 

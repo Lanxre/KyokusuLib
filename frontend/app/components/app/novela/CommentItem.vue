@@ -12,7 +12,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(["reply", "delete", "update"]);
+const emit = defineEmits(["reply", "delete", "update", "like", "unset-like"]);
 
 const isExpanded = ref(false);
 
@@ -22,6 +22,15 @@ const totalReplyCount = computed(() => {
     
 	return getCount(props.comment.replies || []);
 });
+
+const handleLike = () => {
+    if (!props.comment.has_like) {
+        emit('like', props.comment.id);
+    } else {
+        emit('unset-like', props.comment.id);
+    }
+} 
+
 </script>
 
 <template>
@@ -46,23 +55,41 @@ const totalReplyCount = computed(() => {
                     </span>
                 </div>
 
-                <div v-if="comment.user.id === userId" class="flex flex-row gap-3">
-                    <BaseToolTip text="Редактировать" position="left">
-                        <Icon 
-                            name="ph:pencil-bold" 
-                            size="16" 
-                            class="cursor-pointer text-zinc-400 hover:text-blue-500 transition-colors"
-                            @click="emit('update', { id: comment.id, content: comment.content })"
-                        />
-                    </BaseToolTip> 
-                    <BaseToolTip text="Удалить" position="left">
-                        <Icon 
-                            name="ph:trash-bold" 
-                            size="16" 
-                            class="cursor-pointer text-zinc-400 hover:text-red-500 transition-colors"
-                            @click="emit('delete', comment.id)"
-                        />
-                    </BaseToolTip>
+                <div class="flex flex-row gap-3">
+                    <div v-if="comment.user.id === userId" class="flex flex-row gap-3">
+                        <BaseToolTip text="Редактировать" position="left">
+                            <Icon 
+                                name="ph:pencil-bold" 
+                                size="16" 
+                                class="cursor-pointer text-zinc-400 hover:text-blue-500 transition-colors"
+                                @click="emit('update', { id: comment.id, content: comment.content })"
+                            />
+                        </BaseToolTip> 
+                        <BaseToolTip text="Удалить" position="left">
+                            <Icon 
+                                name="ph:trash-bold" 
+                                size="16" 
+                                class="cursor-pointer text-zinc-400 hover:text-red-500 transition-colors"
+                                @click="emit('delete', comment.id)"
+                            />
+                        </BaseToolTip>
+                    </div>
+                    <div class="flex flex-row gap-3">
+                        <div class="flex flex-row justify-center gap-1">
+                            <BaseToolTip text="Лайк" position="left">
+                                <Icon 
+                                    :name="comment.has_like ? 'ph:heart-fill' : 'ph:heart-straight-bold'" 
+                                    size="16" 
+                                    :class="[
+                                        'transition-all duration-300 cursor-pointer',
+                                        comment.has_like ? 'text-yellow-500 scale-110' : 'text-zinc-400'
+                                    ]"
+                                    @click="handleLike"
+                                />
+                            </BaseToolTip>
+                            <span class="text-[10px] font-bold text-zinc-400 cursor-default mt-0.5"> {{ comment.like_count }} </span>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -102,6 +129,8 @@ const totalReplyCount = computed(() => {
                             @reply="(val) => emit('reply', val)"
                             @delete="(id) => emit('delete', id)"
                             @update="(payload) => emit('update', payload)"
+                            @like="(id) => emit('like', id)"
+                            @unset-like="(id) => emit('unset-like', id)"
                         />
                     </div>
                 </div>

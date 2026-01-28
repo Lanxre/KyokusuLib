@@ -34,5 +34,26 @@ export function useNovelaComments() {
         });
     };
 
-    return { comments, isLoading, fetchComments, addComment, deleteComment, updateComment };
+    const setCommentLike = async (commentId: number) => {
+        return await $api(`/api/novela/comments/like/${commentId}`, {
+            method: 'POST'
+        });
+    };
+
+    const unsetCommentLike = async (commentId: number) => {
+        return await $api(`/api/novela/comments/unlike/${commentId}`, {
+            method: 'POST'
+        });
+    };
+
+    return { 
+        comments, 
+        isLoading, 
+        fetchComments, 
+        addComment, 
+        deleteComment, 
+        updateComment,
+        setCommentLike,
+        unsetCommentLike
+    };
 }

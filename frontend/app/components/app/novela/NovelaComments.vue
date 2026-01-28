@@ -12,7 +12,16 @@ const props = defineProps<{ novelaId: number }>();
 
 const { user, isAuthenticated } = useAuthStore();
 const { notify } = useNotificationStore();
-const { comments, fetchComments, addComment, deleteComment, updateComment, isLoading: apiLoading } = useNovelaComments();
+const { 
+    comments, 
+    fetchComments, 
+    addComment, 
+    deleteComment, 
+    updateComment, 
+    setCommentLike,
+    unsetCommentLike,
+    isLoading: apiLoading 
+} = useNovelaComments();
 
 const isAuthModalOpen = ref(false);
 const commentText = ref("");
@@ -91,6 +100,49 @@ const handleDelete = async (commentId: number) => {
         notify({ title: "Ошибка", content: e.message, type: "error" });
     }
 };
+
+const handleLike = async (commentId: number) => {
+    if (!isAuthenticated) {
+        isAuthModalOpen.value = true;
+        return;
+    }
+
+    try {
+        await setCommentLike(commentId);
+        comments.value = comments.value.map(c => {
+            if (c.id === commentId) {
+                c.like_count++
+                c.has_like = true
+            };
+            return c;
+        });
+    }
+    catch (e: any) {
+        notify({ title: "Ошибка", content: e.message, type: "error" });
+    }
+}
+
+const handleUnsetLike = async (commentId: number) => {
+    if (!isAuthenticated) {
+        isAuthModalOpen.value = true;
+        return;
+    }
+
+    try {
+        await unsetCommentLike(commentId);
+        comments.value = comments.value.map(c => {
+            if (c.id === commentId) {
+                c.like_count--
+                c.has_like = null
+            };
+            return c;
+        });
+    }
+    catch (e: any) {
+        notify({ title: "Ошибка", content: e.message, type: "error" });
+    }
+}
+
 </script>
 
 <template>
@@ -169,11 +221,13 @@ const handleDelete = async (commentId: number) => {
                     @reply="onReplyRequest"
                     @update="onUpdateRequest"
                     @delete="handleDelete"
+                    @like="handleLike"
+                    @unset-like="handleUnsetLike"
                 />
             </TransitionGroup>
         </div>
 
-        <AuthRequiredModal v-model="isAuthModalOpen" action-text="управлять комментариями" />
+        <AuthRequiredModal v-model="isAuthModalOpen" action-text="взаимодействовать с комментариями" />
     </div>
 </template>
 
