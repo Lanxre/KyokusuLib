@@ -16,8 +16,8 @@ func NewCommentService(repo *repository.CommentsRepository) *CommentService {
 	return &CommentService{repo: *repo}
 }
 
-func (s *CommentService) GetNovelaComments(ctx context.Context, novelaID int) ([]*dto.CommentResponse, error) {
-	raw, err := s.repo.GetCommentsByNovelaID(ctx, novelaID)
+func (s *CommentService) GetNovelaComments(ctx context.Context, novelaID, userID int) ([]*dto.CommentResponse, error) {
+	raw, err := s.repo.GetCommentsByNovelaID(ctx, novelaID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -29,6 +29,8 @@ func (s *CommentService) GetNovelaComments(ctx context.Context, novelaID int) ([
 			ParentID:  c.ParentID,
 			Content:   c.Content,
 			CreatedAt: c.CreatedAt.Format(time.RFC3339),
+			LikeCount: c.LikeCount,
+			HasLike:   c.HasLike,
 			User:      dto.CommentUserAuthor{ID: c.UserID, Name: c.UserName, Picture: c.UserImage},
 			Replies:   []*dto.CommentResponse{},
 		}
@@ -63,4 +65,12 @@ func (s *CommentService) DeleteComment(ctx context.Context, commentID, userID in
 
 func (s *CommentService) UpdateComment(ctx context.Context, commentID, userID int, req *dto.UpdateCommentRequest) error {
 	return s.repo.UpdateComment(ctx, commentID, userID, req)
+}
+
+func (s *CommentService) SetCommentLike(ctx context.Context, commentID, userID int) error {
+	return s.repo.SetCommentLike(ctx, commentID, userID)
+}
+
+func (s *CommentService) DeleteCommentLike(ctx context.Context, commentID, userID int) error {
+	return s.repo.DeleteCommentLike(ctx, commentID, userID)
 }

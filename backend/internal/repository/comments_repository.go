@@ -16,16 +16,26 @@ func NewCommentsRepository(db *sql.DB) *CommentsRepository {
 	return &CommentsRepository{DB: db}
 }
 
-func (r *CommentsRepository) GetCommentsByNovelaID(ctx context.Context, novelaID int) ([]db.NovelaComment, error) {
+func (r *CommentsRepository) GetCommentsByNovelaID(ctx context.Context, novelaID, userID int) ([]db.NovelaComment, error) {
 	query := `
-		SELECT c.id, c.parent_id, c.content, c.created_at, u.id as user_id, up.name as user_name, up.picture as user_image
+		SELECT 
+			c.id,
+			c.parent_id,
+			c.content,
+			c.created_at,
+			u.id          AS user_id,
+			up.name       AS user_name,
+			up.picture    AS user_image,
+			COUNT(cl.user_id) AS like_count,
+			BOOL_OR(cl.user_id = $2) AS has_like
 		FROM novela_comments c
 		JOIN users u ON c.user_id = u.id
 		LEFT JOIN user_profiles up ON u.id = up.user_id
+		LEFT JOIN like_comments cl ON cl.comment_id = c.id
 		WHERE c.novela_id = $1
-		ORDER BY c.created_at DESC`
+		GROUP BY c.id, u.id, up.name, up.picture`
 
-	rows, err := r.DB.QueryContext(ctx, query, novelaID)
+	rows, err := r.DB.QueryContext(ctx, query, novelaID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +44,17 @@ func (r *CommentsRepository) GetCommentsByNovelaID(ctx context.Context, novelaID
 	var comments []db.NovelaComment
 	for rows.Next() {
 		var c db.NovelaComment
-		if err := rows.Scan(&c.ID, &c.ParentID, &c.Content, &c.CreatedAt, &c.UserID, &c.UserName, &c.UserImage); err != nil {
+		if err := rows.Scan(
+			&c.ID, 
+			&c.ParentID, 
+			&c.Content, 
+			&c.CreatedAt, 
+			&c.UserID, 
+			&c.UserName, 
+			&c.UserImage,
+			&c.LikeCount,
+			&c.HasLike,
+		); err != nil {
 			return nil, err
 		}
 		comments = append(comments, c)
@@ -58,5 +78,17 @@ func (r *CommentsRepository) DeleteComment(ctx context.Context, commentID, userI
 func (r *CommentsRepository) UpdateComment(ctx context.Context, commentID, userID int, req *dto.UpdateCommentRequest) error {
 	query := `UPDATE novela_comments SET content = $1, updated_at = $2 WHERE id = $3 AND user_id = $4`
 	_, err := r.DB.ExecContext(ctx, query, req.Content, req.UpdatedAt, commentID, userID)
+	return err
+}
+
+func (r *CommentsRepository) SetCommentLike(ctx context.Context, commentID, userID int) error {
+	query := `INSERT INTO like_comments (comment_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`
+	_, err := r.DB.ExecContext(ctx, query, commentID, userID)
+	return err
+}
+
+func (r *CommentsRepository) DeleteCommentLike(ctx context.Context, commentID, userID int) error {
+	query := `DELETE FROM like_comments WHERE comment_id = $1 AND user_id = $2`
+	_, err := r.DB.ExecContext(ctx, query, commentID, userID)
 	return err
 }

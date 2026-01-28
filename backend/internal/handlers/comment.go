@@ -47,6 +47,12 @@ func (h *CommentHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *CommentHandler) GetNovelaComments(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+
+	if !ok {
+		userID = 0
+	}
+
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	
 	if err != nil {
@@ -54,7 +60,7 @@ func (h *CommentHandler) GetNovelaComments(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	comments, err := h.service.GetNovelaComments(r.Context(), id)
+	comments, err := h.service.GetNovelaComments(r.Context(), id, userID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
@@ -105,6 +111,48 @@ func (h *CommentHandler) UpdateComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.service.UpdateComment(r.Context(), id, userID, &comment)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.SuccessOkEmpty(w)
+}
+
+func (h *CommentHandler) LikeComment(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusInternalServerError, "User not found")
+		return
+	}
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid comment ID format")
+		return
+	}
+
+	err = h.service.SetCommentLike(r.Context(), id, userID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.SuccessOkEmpty(w)
+}
+
+func (h *CommentHandler) UnlikeComment(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusInternalServerError, "User not found")
+		return
+	}
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid comment ID format")
+		return
+	}
+
+	err = h.service.DeleteCommentLike(r.Context(), id, userID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return

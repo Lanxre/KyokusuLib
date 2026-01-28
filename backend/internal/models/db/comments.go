@@ -12,4 +12,6 @@ type NovelaComment struct {
 	UpdatedAt time.Time  `db:"updated_at"`
 	UserName  string     `db:"user_name"`
 	UserImage string     `db:"user_image"`
+	LikeCount int        `db:"like_count"`
+	HasLike   *bool       `db:"has_like"`
 }
