@@ -51,6 +51,19 @@ function naviagateFromActivity(activity: UserActivity) {
 		case ACTIVITY_TYPES.USER_NOVELA_LIKE_REMOVE:
 			navigateTo(`/novela/${activity.target_id}`);
 			break;
+        case ACTIVITY_TYPES.COMMENT_ADDED:
+            navigateTo(`/novela/${activity.target_id}`);
+            break;
+        case ACTIVITY_TYPES.COMMENT_REMOVE:
+            navigateTo(`/novela/${activity.target_id}`);
+            break;
+        case ACTIVITY_TYPES.COMMENT_UPDATE:
+            navigateTo(`/novela/${activity.target_id}`);
+            break;
+        case ACTIVITY_TYPES.COMMENT_LIKE:
+            navigateTo(`/novela/${activity.target_id}`);
+            break;
+        
 	}
 }
 </script>

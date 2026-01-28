@@ -26,6 +26,11 @@ export type RanobeAddMetadata = {
 	author: string;
 };
 
+export type CommentMetadata = {
+	novela_title: string;
+	desc: string;
+};
+
 interface BaseActivity {
 	id: number;
 	target_id: number;
@@ -72,6 +77,26 @@ interface UserNovelaRatingActivity extends BaseActivity {
 	metadata: UserNovelaRatingMetadata;
 }
 
+interface CommentActivity extends BaseActivity {
+	activity_type: typeof ACTIVITY_TYPES.COMMENT_ADDED;
+	metadata: CommentMetadata;
+}
+
+interface CommentRemoveActivity extends BaseActivity {
+	activity_type: typeof ACTIVITY_TYPES.COMMENT_REMOVE;
+	metadata: CommentMetadata;
+}
+
+interface CommentLikeActivity extends BaseActivity {
+	activity_type: typeof ACTIVITY_TYPES.COMMENT_LIKE;
+	metadata: CommentMetadata;
+}
+
+interface CommentUpdateActivity extends BaseActivity {
+	activity_type: typeof ACTIVITY_TYPES.COMMENT_UPDATE;
+	metadata: CommentMetadata;
+}
+
 interface CreateBookmarkActivity extends BaseCreateActivity {
 	activity_type: typeof ACTIVITY_TYPES.NOVELA_BOOKMARK;
 	metadata: BookmarkMetadata;
@@ -107,6 +132,26 @@ interface CreateUserNovelaRating extends BaseCreateActivity {
 	metadata: UserNovelaRatingMetadata;
 }
 
+interface CreateCommentActivity extends BaseCreateActivity {
+	activity_type: typeof ACTIVITY_TYPES.COMMENT_ADDED;
+	metadata: CommentMetadata;
+}
+
+interface CreateCommentRemoveActivity extends BaseCreateActivity {
+	activity_type: typeof ACTIVITY_TYPES.COMMENT_REMOVE;
+	metadata: CommentMetadata;
+}
+
+interface CreateCommentUpdateActivity extends BaseCreateActivity {
+	activity_type: typeof ACTIVITY_TYPES.COMMENT_UPDATE;
+	metadata: CommentMetadata;
+}
+
+interface CreateCommentLikeActivity extends BaseCreateActivity {
+	activity_type: typeof ACTIVITY_TYPES.COMMENT_LIKE;
+	metadata: CommentMetadata;
+}
+
 export type UserActivity =
 	| BookmarkActivity
 	| AchievementActivity
@@ -114,7 +159,11 @@ export type UserActivity =
 	| RemoveBookmarkActivity
 	| UserNovelaLikeActivity
 	| UserNovelaRemoveLikeActivity
-	| UserNovelaRatingActivity;
+	| UserNovelaRatingActivity
+	| CommentActivity
+	| CommentRemoveActivity
+	| CommentLikeActivity
+	| CommentUpdateActivity;
 
 export type CreateUserActivity =
 	| CreateBookmarkActivity
@@ -123,7 +172,11 @@ export type CreateUserActivity =
 	| CreateRemoveBookmarkActivity
 	| CreateUserNovelaLike
 	| CreateUserNovelaRemoveLike
-	| CreateUserNovelaRating;
+	| CreateUserNovelaRating
+	| CreateCommentActivity
+	| CreateCommentRemoveActivity
+	| CreateCommentLikeActivity
+	| CreateCommentUpdateActivity;
 
 export interface GetActivityResponse {
 	message: UserActivity[];

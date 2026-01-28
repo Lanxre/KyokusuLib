@@ -7,8 +7,10 @@ import CommentItem from "./CommentItem.vue";
 import AuthRequiredModal from "~/components/common/AuthRequiredModal.vue";
 import BaseRichTextEditor from "~/components/ui/BaseRichTextEditor/BaseRichTextEditor.vue";
 import { NOVELA_MAX_COMMENT_LENGTH } from "~/constants/data";
+import { useUserActivity } from "~/composables/api/profile/useUserActivity";
+import { ACTIVITY_TYPES } from "~/constants/user-activity";
 
-const props = defineProps<{ novelaId: number }>();
+const props = defineProps<{ novelaId: number, novelaTitle: string }>();
 
 const { user, isAuthenticated } = useAuthStore();
 const { notify } = useNotificationStore();
@@ -22,6 +24,8 @@ const {
     unsetCommentLike,
     isLoading: apiLoading 
 } = useNovelaComments();
+
+const { createUserActivity } = useUserActivity();
 
 const isAuthModalOpen = ref(false);
 const commentText = ref("");
@@ -43,13 +47,13 @@ const scrolltoEditor = () => {
 };
 
 const onReplyRequest = (payload: { id: number; name: string }) => {
-    editingComment.value = null; // Сбрасываем редактирование
+    editingComment.value = null;
     replyTo.value = payload;
     scrolltoEditor();
 };
 
 const onUpdateRequest = (comment: { id: number; content: string }) => {
-    replyTo.value = null; // Сбрасываем ответ
+    replyTo.value = null;
     editingComment.value = comment;
     commentText.value = comment.content;
     scrolltoEditor();
@@ -73,6 +77,16 @@ const handleAction = async () => {
         if (editingComment.value) {
             await updateComment(editingComment.value.id, commentText.value);
             notify({ title: "Успех", content: "Комментарий обновлен", type: "success" });
+            await createUserActivity({
+                user_id: user!.id,
+                activity_type: ACTIVITY_TYPES.COMMENT_UPDATE,
+                target_id: props.novelaId,
+                metadata: {
+                    novela_title: props.novelaTitle,
+                    desc: "Пользователь обновил комментарий",
+                },
+		    });
+
         } else {
             await addComment({
                 novela_id: props.novelaId,
@@ -80,6 +94,15 @@ const handleAction = async () => {
                 parent_id: replyTo.value?.id || null,
             });
             notify({ title: "Успех", content: "Комментарий опубликован", type: "success" });
+            await createUserActivity({
+                user_id: user!.id,
+                activity_type: ACTIVITY_TYPES.COMMENT_ADDED,
+                target_id: props.novelaId,
+                metadata: {
+                    novela_title: props.novelaTitle,
+                    desc: "Пользователь добавил комментарий",
+                },
+		    });
         }
 		
 		resetForm();
@@ -96,6 +119,15 @@ const handleDelete = async (commentId: number) => {
         await deleteComment(commentId);
         comments.value = comments.value.filter(c => c.id !== commentId);
         notify({ title: "Удалено", content: "Комментарий успешно удален", type: "success" });
+        await createUserActivity({
+			user_id: user!.id,
+			activity_type: ACTIVITY_TYPES.COMMENT_REMOVE,
+			target_id: props.novelaId,
+			metadata: {
+                novela_title: props.novelaTitle,
+				desc: "Пользователь удалил комментарий",
+			},
+		});
     } catch (e: any) {
         notify({ title: "Ошибка", content: e.message, type: "error" });
     }
@@ -116,6 +148,15 @@ const handleLike = async (commentId: number) => {
             };
             return c;
         });
+        await createUserActivity({
+			user_id: user!.id,
+			activity_type: ACTIVITY_TYPES.COMMENT_LIKE,
+			target_id: props.novelaId,
+			metadata: {
+                novela_title: props.novelaTitle,
+				desc: "Пользователь поставил лайк комментарию",
+			},
+		});
     }
     catch (e: any) {
         notify({ title: "Ошибка", content: e.message, type: "error" });

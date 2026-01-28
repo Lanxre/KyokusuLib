@@ -9,6 +9,10 @@ export const ACTIVITY_TYPES = {
 	USER_NOVELA_LIKE_REMOVE: "user_novela_like_remove",
 	USER_NOVELA_RATING: "user_novela_rating",
 	ACHIEVEMENT_EARNED: "achievement_earned",
+	COMMENT_ADDED: "comment_added",
+	COMMENT_REMOVE: "comment_remove",
+	COMMENT_UPDATE: "comment_update",
+	COMMENT_LIKE: "comment_like",
 	DEFAULT: "default",
 } as const;
 
@@ -76,5 +80,33 @@ export const STRATEGIES: {
 			"bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
 		title: "Оценено",
 		description: `${activity.metadata.desc || "Без описания"}: "${activity.metadata.name || "Без названия"}" на ${activity.metadata.rating} баллов`,
+	}),
+
+	[ACTIVITY_TYPES.COMMENT_ADDED]: (activity) => ({
+		icon: "comment",
+		color: "bg-cyan-100 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400",
+		title: "Добавлен комментарий",
+		description: `${activity.metadata.desc || "Без описания"} под: "${activity.metadata.novela_title || "Без названия"}"`,
+	}),
+
+	[ACTIVITY_TYPES.COMMENT_REMOVE]: (activity) => ({
+		icon: "comment",
+		color: "bg-cyan-100 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400",
+		title: "Удален комментарий",
+		description: `${activity.metadata.desc || "Без описания"} под: "${activity.metadata.novela_title || "Без названия"}"`,
+	}),
+
+	[ACTIVITY_TYPES.COMMENT_LIKE]: (activity) => ({
+		icon: "heart",
+		color: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
+		title: "Понравилось",
+		description: `${activity.metadata.desc || "Без описания"} под: "${activity.metadata.novela_title || "Без названия"}"`,
+	}),
+
+	[ACTIVITY_TYPES.COMMENT_UPDATE]: (activity) => ({
+		icon: "comment",
+		color: "bg-cyan-100 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400",
+		title: "Обновлен комментарий",
+		description: `${activity.metadata.desc || "Без описания"} под: "${activity.metadata.novela_title || "Без названия"}"`,
 	}),
 };

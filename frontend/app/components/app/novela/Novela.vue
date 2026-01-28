@@ -382,7 +382,7 @@ const toggleSection = (name: string) => {
                                     <ChapterList :volumes="novela.volumes" />
                                 </div>
                                 <div v-else-if="activeTab === NovelaActiveTabsEnum.COMMENTS" :key="NovelaActiveTabsEnum.COMMENTS">
-                                    <NovelaComments :novela-id="novela.id"/>
+                                    <NovelaComments :novela-id="novela.id" :novela-title="novela.title"/>
                                 </div>
                             </transition>
                         </div>
