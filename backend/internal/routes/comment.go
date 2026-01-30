@@ -8,6 +8,7 @@ import (
 
 func (h *CommentRoutes) Register(cfg *config.Config, r *mux.Router) {
 	api := r.PathPrefix("/api/novela").Subrouter()
+	userCommentRouter := r.PathPrefix("/api/user").Subrouter()
 
 	api.HandleFunc("/comments", middleware.AuthMiddleware(h.Handler.CreateComment, cfg.JWTSecret)).Methods("POST")
 	api.HandleFunc("/comments/{id:[0-9]+}", middleware.DefaultMiddleware(h.Handler.GetNovelaComments, cfg.JWTSecret)).Methods("GET")
@@ -18,4 +19,6 @@ func (h *CommentRoutes) Register(cfg *config.Config, r *mux.Router) {
 	api.HandleFunc("/comments/unlike/{id:[0-9]+}", middleware.AuthMiddleware(h.Handler.UnlikeComment, cfg.JWTSecret)).Methods("POST")
 
 	api.HandleFunc("/comments/{id:[0-9]+}/report", middleware.AuthMiddleware(h.Handler.CreateCommnetReport, cfg.JWTSecret)).Methods("POST")
+
+	userCommentRouter.HandleFunc("/{id:[0-9]+}/comments", middleware.AuthMiddleware(h.Handler.GetCommentsByUserID, cfg.JWTSecret)).Methods("GET")
 }

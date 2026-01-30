@@ -95,6 +95,21 @@ func (h *CommentHandler) GetNovelaComments(w http.ResponseWriter, r *http.Reques
 	response.JSON(w, http.StatusOK, comments)
 }
 
+func (h *CommentHandler) GetCommentsByUserID(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusInternalServerError, "User not found")
+		return
+	}
+
+	comments, err := h.service.GetCommentsByUserID(r.Context(), userID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.JSON(w, http.StatusOK, comments)
+}
+
 func (h *CommentHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
 	if !ok {

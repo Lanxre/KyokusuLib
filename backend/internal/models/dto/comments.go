@@ -27,3 +27,12 @@ type UpdateCommentRequest struct {
 	Content   string `json:"content" validate:"required,min=1,max=5000"`
 	UpdatedAt string `json:"updated_at" validate:"required"`
 }
+
+type ProfileUserCommentResponse struct {
+	ID        int 		`json:"id"`
+	NovelaID  int		`json:"novela_id"`
+	NovelaTitle string 	`json:"novela_title"`
+	Content   string 	`json:"content"`
+	CreatedAt string	`json:"created_at"`
+	UpdatedAt string 	`json:"updated_at"`
+}

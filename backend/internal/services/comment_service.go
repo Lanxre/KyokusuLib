@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/lanxre/kyokusulib/internal/models/db"
 	"github.com/lanxre/kyokusulib/internal/models/dto"
 	"github.com/lanxre/kyokusulib/internal/repository"
 )
@@ -77,4 +78,29 @@ func (s *CommentService) DeleteCommentLike(ctx context.Context, commentID, userI
 
 func (s *CommentService) CreateCommentReport(ctx context.Context, commentID, userID int, reason string) error {
 	return s.repo.CreateCommentReport(ctx, commentID, userID, reason)
+}
+
+func (s *CommentService) GetCommentsByUserID(ctx context.Context, userID int) ([]dto.ProfileUserCommentResponse, error) {
+	userComments, err := s.repo.GetCommentsByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	converted := s.mapToProfileUserCommentResponse(userComments)
+	return converted, nil
+}
+
+func (s *CommentService) mapToProfileUserCommentResponse(userComments []db.SelectNovelaComment) []dto.ProfileUserCommentResponse {
+	res := make([]dto.ProfileUserCommentResponse, 0)
+	for _, c := range userComments {
+		res = append(res, dto.ProfileUserCommentResponse{
+			ID: c.ID,
+			NovelaID: c.NovelaID,
+			NovelaTitle: c.NovelaTitle,
+			Content: c.Content,
+			CreatedAt: c.CreatedAt.Format(time.RFC3339),
+			UpdatedAt: c.UpdatedAt.Format(time.RFC3339),
+		})
+	}
+
+	return res
 }

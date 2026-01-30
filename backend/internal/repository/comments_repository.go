@@ -98,3 +98,27 @@ func (r *CommentsRepository) CreateCommentReport(ctx context.Context, commentID,
 	_, err := r.DB.ExecContext(ctx, query, commentID, userID, reason)
 	return err
 }
+
+func (r *CommentsRepository) GetCommentsByUserID(ctx context.Context, userID int) ([]db.SelectNovelaComment, error) {
+	query := `SELECT c.id, c.novela_id, n.title as novela_title, c.content, c.created_at, c.updated_at 
+			  FROM novela_comments c
+			  JOIN novela n ON c.novela_id = n.id
+			  WHERE c.user_id = $1 AND c.parent_id IS NULL
+			  ORDER BY c.created_at DESC`
+
+	rows, err := r.DB.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var comments []db.SelectNovelaComment
+	for rows.Next() {
+		var c db.SelectNovelaComment
+		if err := rows.Scan(&c.ID, &c.NovelaID, &c.NovelaTitle, &c.Content, &c.CreatedAt, &c.UpdatedAt); err != nil {
+			return nil, err
+		}
+		comments = append(comments, c)
+	}
+	return comments, nil
+}

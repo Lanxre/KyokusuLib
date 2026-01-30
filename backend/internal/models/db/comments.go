@@ -15,3 +15,12 @@ type NovelaComment struct {
 	LikeCount int        `db:"like_count"`
 	HasLike   *bool       `db:"has_like"`
 }
+
+type SelectNovelaComment struct {
+	ID        int
+	NovelaID  int
+	NovelaTitle string
+	Content   string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
