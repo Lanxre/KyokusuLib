@@ -22,6 +22,7 @@ const {
     updateComment, 
     setCommentLike,
     unsetCommentLike,
+    reportComment,
     isLoading: apiLoading 
 } = useNovelaComments();
 
@@ -184,6 +185,30 @@ const handleUnsetLike = async (commentId: number) => {
     }
 }
 
+const handleReport = async ({ commentId, reason }: { commentId: number, reason: string }) => {
+    if (!isAuthenticated) {
+        isAuthModalOpen.value = true;
+        return;
+    }
+
+    try {
+        await reportComment(commentId, reason);
+        notify({ title: "Жалоба отправлена", content: "Модераторы рассмотрят ваше обращение", type: "success" });
+        
+        await createUserActivity({
+            user_id: user!.id,
+            activity_type: ACTIVITY_TYPES.COMMENT_REPORT, 
+            target_id: props.novelaId,
+            metadata: {
+                novela_title: props.novelaTitle,
+                desc: `Пользователь пожаловался на комментарий (ID: ${commentId})`,
+            },
+        });
+    } catch (e: any) {
+        notify({ title: "Ошибка", content: e.message, type: "error" });
+    }
+};
+
 </script>
 
 <template>
@@ -264,6 +289,7 @@ const handleUnsetLike = async (commentId: number) => {
                     @delete="handleDelete"
                     @like="handleLike"
                     @unset-like="handleUnsetLike"
+                    @report="handleReport"
                 />
             </TransitionGroup>
         </div>

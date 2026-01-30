@@ -76,3 +76,12 @@ export const NOVELA_FETCH_LIMIT_LAST_UPDATED = 7;
 export const NOVELA_FETCH_LIMIT_TRENDING = 7;
 
 export const NOVELA_MAX_COMMENT_LENGTH = 5000;
+
+// COMMENTS
+export const REPORT_COMMNET_REASONS = [
+	{ id: "spam", label: "Спам и реклама" },
+    { id: "insult", label: "Оскорбления и агрессия" },
+    { id: "spoiler", label: "Спойлеры без маскировки" },
+    { id: "inappropriate", label: "Непристойный контент" },
+    { id: "other", label: "Другое" }
+];

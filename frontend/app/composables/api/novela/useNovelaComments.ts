@@ -46,6 +46,12 @@ export function useNovelaComments() {
         });
     };
 
+    const reportComment = async (commentId: number, reason: string) => {
+        return await $api(`/api/novela/comments/${commentId}/report?reason=${reason}`, {
+            method: 'POST'
+        });
+    };
+
     return { 
         comments, 
         isLoading, 
@@ -54,6 +60,7 @@ export function useNovelaComments() {
         deleteComment, 
         updateComment,
         setCommentLike,
-        unsetCommentLike
+        unsetCommentLike,
+        reportComment
     };
 }

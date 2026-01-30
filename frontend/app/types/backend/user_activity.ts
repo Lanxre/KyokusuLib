@@ -97,6 +97,12 @@ interface CommentUpdateActivity extends BaseActivity {
 	metadata: CommentMetadata;
 }
 
+interface CommentReportActivity extends BaseActivity {
+	activity_type: typeof ACTIVITY_TYPES.COMMENT_REPORT;
+	metadata: CommentMetadata;
+}
+
+// CREATE ACTIVITIES
 interface CreateBookmarkActivity extends BaseCreateActivity {
 	activity_type: typeof ACTIVITY_TYPES.NOVELA_BOOKMARK;
 	metadata: BookmarkMetadata;
@@ -152,6 +158,11 @@ interface CreateCommentLikeActivity extends BaseCreateActivity {
 	metadata: CommentMetadata;
 }
 
+interface CreateCommentReportActivity extends BaseCreateActivity {
+	activity_type: typeof ACTIVITY_TYPES.COMMENT_REPORT;
+	metadata: CommentMetadata;
+}
+
 export type UserActivity =
 	| BookmarkActivity
 	| AchievementActivity
@@ -163,7 +174,8 @@ export type UserActivity =
 	| CommentActivity
 	| CommentRemoveActivity
 	| CommentLikeActivity
-	| CommentUpdateActivity;
+	| CommentUpdateActivity
+	| CommentReportActivity;
 
 export type CreateUserActivity =
 	| CreateBookmarkActivity
@@ -176,7 +188,8 @@ export type CreateUserActivity =
 	| CreateCommentActivity
 	| CreateCommentRemoveActivity
 	| CreateCommentLikeActivity
-	| CreateCommentUpdateActivity;
+	| CreateCommentUpdateActivity
+	| CreateCommentReportActivity;
 
 export interface GetActivityResponse {
 	message: UserActivity[];

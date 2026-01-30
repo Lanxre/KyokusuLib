@@ -5,7 +5,7 @@ import ActivityIcon from "./ActivityIcon.vue";
 import type { UserActivity } from "@/types/backend/user_activity";
 import { useActivityConfig } from "@/composables/api/profile/useActivityConfig";
 import { ACTIVITY_PAGE_SIZE } from "@/constants/data";
-import { ACTIVITY_TYPES } from "~/constants/user-activity";
+import { naviagateFromActivity } from "~/constants/urls";
 
 interface Props {
 	activities: UserActivity[];
@@ -13,7 +13,6 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const router = useRouter();
 const { getActivityConfig } = useActivityConfig();
 
 const isExpanded = ref(false);
@@ -30,42 +29,7 @@ const visibleActivities = computed(() => {
 	return processedActivities.value.slice(0, ACTIVITY_PAGE_SIZE);
 });
 
-function navigateTo(path: string) {
-	router.push(path);
-}
 
-function naviagateFromActivity(activity: UserActivity) {
-	switch (activity.activity_type) {
-		case ACTIVITY_TYPES.NOVELA_BOOKMARK:
-			navigateTo(`/novela/${activity.target_id}`);
-			break;
-		case ACTIVITY_TYPES.NOVELA_BOOKMARK_REMOVE:
-			navigateTo(`/novela/${activity.target_id}`);
-			break;
-		case ACTIVITY_TYPES.RANOBE_ADD:
-			navigateTo(`/ranobe/${activity.target_id}`);
-			break;
-		case ACTIVITY_TYPES.USER_NOVELA_LIKE:
-			navigateTo(`/novela/${activity.target_id}`);
-			break;
-		case ACTIVITY_TYPES.USER_NOVELA_LIKE_REMOVE:
-			navigateTo(`/novela/${activity.target_id}`);
-			break;
-        case ACTIVITY_TYPES.COMMENT_ADDED:
-            navigateTo(`/novela/${activity.target_id}`);
-            break;
-        case ACTIVITY_TYPES.COMMENT_REMOVE:
-            navigateTo(`/novela/${activity.target_id}`);
-            break;
-        case ACTIVITY_TYPES.COMMENT_UPDATE:
-            navigateTo(`/novela/${activity.target_id}`);
-            break;
-        case ACTIVITY_TYPES.COMMENT_LIKE:
-            navigateTo(`/novela/${activity.target_id}`);
-            break;
-        
-	}
-}
 </script>
 
 <template>

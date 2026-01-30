@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import { staticImage } from "@/utils/str";
 import Separator from "@/components/ui/Separator/Separtor.vue";
 import { useProfile } from "@/composables/api/profile/useProfile";
@@ -38,7 +37,6 @@ const { userRoleColor, isLogin } = useProfile();
                     </div>
                     <div 
                         class="absolute bottom-2 right-2 w-5 h-5 border-4 border-white dark:border-zinc-900 rounded-full transition-colors duration-300"
-                        :title="isLogin ? 'Онлайн' : 'Оффлайн'"
                         :class="isLogin ? 'bg-green-500' : 'bg-red-500'"
                     ></div>
                 </div>

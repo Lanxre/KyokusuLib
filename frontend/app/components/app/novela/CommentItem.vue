@@ -4,6 +4,7 @@ import type { NovelaCommentResponse } from "@/types/backend/novela";
 import { staticImage } from "@/utils/str";
 import { parseDateToLocale } from "@/utils/date";
 import BaseToolTip from "~/components/ui/BaseToolTip/BaseToolTip.vue";
+import CommentReportMenu from "./CommentReportMenu.vue";
 
 interface Props {
 	comment: NovelaCommentResponse;
@@ -12,8 +13,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(["reply", "delete", "update", "like", "unset-like"]);
-
+const emit = defineEmits(["reply", "delete", "update", "like", "unset-like", "report"]);
+    
+const isReportMenuOpen = ref(false);
 const isExpanded = ref(false);
 
 const totalReplyCount = computed(() => {
@@ -29,7 +31,11 @@ const handleLike = () => {
     } else {
         emit('unset-like', props.comment.id);
     }
-} 
+};
+
+const onReportSubmit = (payload: any) => {
+    emit('report', payload);
+};
 
 </script>
 
@@ -89,6 +95,24 @@ const handleLike = () => {
                             </BaseToolTip>
                             <span class="text-[10px] font-bold text-zinc-400 cursor-default mt-0.5"> {{ comment.like_count }} </span>
                         </div>
+                        <div v-if="comment.user.id !== userId" class="flex flex-row justify-center gap-1">
+                            <BaseToolTip text="Пожаловаться" position="left">
+                                 <Icon 
+                                    name="ph:flag-bold" 
+                                    size="16" 
+                                    class="cursor-pointer transition-colors" 
+                                    :class="isReportMenuOpen ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'"
+                                    @click="isReportMenuOpen = !isReportMenuOpen"
+                                />
+
+                                <CommentReportMenu 
+                                    v-if="isReportMenuOpen" 
+                                    :comment-id="comment.id"
+                                    @close="isReportMenuOpen = false"
+                                    @submit="onReportSubmit"
+                                />
+                            </BaseToolTip>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -131,6 +155,7 @@ const handleLike = () => {
                             @update="(payload) => emit('update', payload)"
                             @like="(id) => emit('like', id)"
                             @unset-like="(id) => emit('unset-like', id)"
+                            @report="(val) => emit('report', val)"
                         />
                     </div>
                 </div>

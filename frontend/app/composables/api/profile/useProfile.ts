@@ -50,6 +50,7 @@ export function useProfile() {
 	const formatLastLogin = (last_login?: string | null) => {
 		if (!last_login) return "Неизвестно";
 		const date = new Date(last_login);
+		date.setHours(date.getHours() - 3);
 		const isToday = date.toDateString() === new Date().toDateString();
 		return isToday
 			? date.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })
@@ -101,7 +102,7 @@ export function useProfile() {
 				: "Неизвестно",
 		),
 		lastLogin: computed(() => formatLastLogin(profileData.value?.last_login)),
-		isLogin: computed(() => checkIsLogin(profileData.value?.last_login)),
+		isLogin: computed(() => profileData.value?.status === "online"),
 
 		getRoleColor,
 		getGenderText,

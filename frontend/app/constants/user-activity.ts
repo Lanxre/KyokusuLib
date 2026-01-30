@@ -13,6 +13,7 @@ export const ACTIVITY_TYPES = {
 	COMMENT_REMOVE: "comment_remove",
 	COMMENT_UPDATE: "comment_update",
 	COMMENT_LIKE: "comment_like",
+	COMMENT_REPORT: "comment_report",
 	DEFAULT: "default",
 } as const;
 
@@ -107,6 +108,13 @@ export const STRATEGIES: {
 		icon: "comment",
 		color: "bg-cyan-100 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400",
 		title: "Обновлен комментарий",
+		description: `${activity.metadata.desc || "Без описания"} под: "${activity.metadata.novela_title || "Без названия"}"`,
+	}),
+
+	[ACTIVITY_TYPES.COMMENT_REPORT]: (activity) => ({
+		icon: "flag",
+		color: "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400",
+		title: "Пожаловался",
 		description: `${activity.metadata.desc || "Без описания"} под: "${activity.metadata.novela_title || "Без названия"}"`,
 	}),
 };
