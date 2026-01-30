@@ -93,6 +93,7 @@ const { pending } = await useAsyncData("profile-init", async () => {
                                         :level="profileData.user_level.level" 
                                         :currentExp="profileData.user_level.experience" 
                                         :expToNextLevel="profileData.user_level.xp_needed_for_next"
+                                        :levelTitle="profileData.user_level.level_title"
                                     />
 
                                     <button 

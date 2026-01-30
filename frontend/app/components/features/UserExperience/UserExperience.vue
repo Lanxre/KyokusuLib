@@ -6,18 +6,22 @@ interface Props {
 	currentExp: number;
 	expToNextLevel: number;
 	level: number;
+    levelTitle: string;
 }
 
 const props = defineProps<Props>();
 
 const progress = computed(() => {
 	if (props.expToNextLevel === 0) return 0;
-	return Math.min(100, (props.currentExp / props.expToNextLevel) * 100);
+    const LEVEL_MAX_EXP = props.expToNextLevel + props.currentExp;
+
+	return LEVEL_MAX_EXP > 0 ? (props.currentExp / LEVEL_MAX_EXP) * 100 : 0;
 });
+
 </script>
 
 <template>
-    <BaseToolTip :text="`До следующего уровня: ${expToNextLevel - currentExp} XP`" position="top">
+    <BaseToolTip :text="`До следующего уровня: ${expToNextLevel} XP`" position="top">
         <div class="group flex items-center mt-1 gap-3 p-1 pl-1.5 pr-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 shadow-sm transition-all duration-300 hover:border-yellow-500/30 hover:shadow-lg hover:shadow-yellow-500/5 cursor-default h-10 w-full sm:w-auto min-w-[280px]">
             <div class="relative shrink-0 flex items-center justify-center w-6 h-6 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md">
                 <span class="text-[15px] font-black italic">{{ level }}</span>
@@ -27,7 +31,7 @@ const progress = computed(() => {
             <div class="flex-1 flex flex-col gap-1 min-w-0">
                 <div class="flex justify-between items-end leading-none">
                     <span class="text-[9px] font-black uppercase tracking-[0.2em] ml-[1px] text-zinc-400 group-hover:text-yellow-600 transition-colors">
-                        Уровень
+                        Уровень: {{ levelTitle }}
                     </span>
                     <span class="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 tabular-nums">
                         {{ Math.floor(progress) }}%
