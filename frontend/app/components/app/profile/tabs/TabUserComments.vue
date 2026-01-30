@@ -1,0 +1,62 @@
+<script setup lang="ts">
+
+import { parseDateToLocale } from "@/utils/date";
+import { useUserComments } from "~/composables/api/profile/useUserComments";
+
+const props = defineProps<{ userId: number }>();
+const { comments, fetchUserComments } = useUserComments();
+await useAsyncData(`user-comments-${props.userId}`, () => fetchUserComments(props.userId));
+</script>
+
+<template>
+  <div class="space-y-6">
+    <div v-if="!!comments.length" class="flex flex-col gap-4">
+      <div 
+        v-for="comment in comments" 
+        :key="comment.id"
+        class="group relative bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 transition-all hover:border-yellow-500/30 hover:shadow-lg hover:shadow-yellow-500/5"
+      >
+        <div class="flex items-center justify-between mb-3">
+          <NuxtLink 
+            :to="`/novela/${comment.novela_id}`"
+            class="flex items-center gap-2 group/link"
+          >
+            <div class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover/link:bg-yellow-500 transition-colors">
+              <Icon name="ph:book-open-bold" size="16" class="text-zinc-500 dark:text-zinc-400 group-hover/link:text-zinc-900" />
+            </div>
+            <span class="text-sm font-black text-zinc-900 dark:text-zinc-100 group-hover/link:text-yellow-600 transition-colors truncate max-w-[200px] sm:max-w-md">
+              {{ comment.novela_title }}
+            </span>
+          </NuxtLink>
+          
+          <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+            {{ comment.created_at < comment.updated_at ? `Изменено: ${parseDateToLocale(comment.updated_at)}` : parseDateToLocale(comment.created_at) }}
+          </span>
+        </div>
+
+        <div class="relative">
+          <Icon name="ph:quotes-fill" size="32" class="absolute -top-2 -left-2 text-zinc-100 dark:text-zinc-800 -z-10 opacity-50" />
+          <div 
+            class="text-[14px] ml-1 leading-relaxed text-zinc-600 dark:text-zinc-300 prose dark:prose-invert max-w-none line-clamp-3 group-hover:line-clamp-none transition-all antialiased"
+            v-html="comment.content"
+          ></div>
+        </div>
+
+        <div class="flex justify-end mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 opacity-0 group-hover:opacity-100 transition-opacity">
+          <NuxtLink 
+            :to="`/novela/${comment.novela_id}?tab=comments#comment-${comment.id}`"
+            class="text-[10px] font-black uppercase tracking-widest text-yellow-600 hover:text-yellow-500 flex items-center gap-1.5"
+          >
+            Перейти к обсуждению
+            <Icon name="ph:arrow-right-bold" />
+          </NuxtLink>
+        </div>
+      </div>
+    </div>
+
+    <div v-else class="py-24 flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[3rem] text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10">
+      <Icon name="ph:chat-teardrop-dots-light" size="64" class="opacity-20 mb-4" />
+      <p class="font-bold uppercase tracking-[0.2em] text-[10px]">История комментариев пуста</p>
+    </div>
+  </div>
+</template>

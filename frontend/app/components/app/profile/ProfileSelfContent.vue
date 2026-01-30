@@ -13,6 +13,7 @@ import ModalWindow from "@/components/features/Modal/ModalWindow.vue";
 import ExperienceInfo from "./experience/ExperienceInfo.vue";
 import UserTagId from "~/components/features/UserTagID/UserTagId.vue";
 import TabBookmarks from "./tabs/TabBookmarks.vue";
+import TabUserComments from "./tabs/TabUserComments.vue";
 
 const {
 	profileData,
@@ -176,6 +177,9 @@ const { pending } = await useAsyncData("profile-init", async () => {
                             </div>
                             <div v-else-if="activeTab === 'bookmarks'" :key="'bookmarks'">
                                 <TabBookmarks :userId="profileData!.id" />
+                            </div>
+                            <div v-else-if="activeTab === 'comments'" key="comments">
+                                <TabUserComments :userId="profileData!.id"/>
                             </div>
                             <div v-else class="p-12 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-500 text-center">
                                 Здесь пока ничего нет

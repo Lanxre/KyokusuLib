@@ -31,7 +31,7 @@ const { novela, fetchNovela } = useNovela();
 const { createUserActivity } = useUserActivity();
 const { hasPermission } = useRolePermissions();
 
-const activeTab = ref<NovelaActiveTabs>(NovelaActiveTabsEnum.ABOUT);
+const activeTab = ref<NovelaActiveTabs>(route.query.tab === NovelaActiveTabsEnum.COMMENTS ? NovelaActiveTabsEnum.COMMENTS : NovelaActiveTabsEnum.ABOUT);
 
 const novelaId = computed(() => route.params.id as string);
 
@@ -208,6 +208,11 @@ const openedSection = ref<string | null>(null);
 const toggleSection = (name: string) => {
 	openedSection.value = openedSection.value === name ? null : name;
 };
+
+
+watch(() => route.query.tab, (newTab) => {
+    if (newTab === NovelaActiveTabsEnum.COMMENTS) activeTab.value = NovelaActiveTabsEnum.COMMENTS;
+});
 </script>
 
 <template>
