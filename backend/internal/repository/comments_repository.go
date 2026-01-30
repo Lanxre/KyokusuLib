@@ -92,3 +92,9 @@ func (r *CommentsRepository) DeleteCommentLike(ctx context.Context, commentID, u
 	_, err := r.DB.ExecContext(ctx, query, commentID, userID)
 	return err
 }
+
+func (r *CommentsRepository) CreateCommentReport(ctx context.Context, commentID, userID int, reason string) error {
+	query := `INSERT INTO novela_comments_reports (comment_id, user_id, reason) VALUES ($1, $2, $3)`
+	_, err := r.DB.ExecContext(ctx, query, commentID, userID, reason)
+	return err
+}

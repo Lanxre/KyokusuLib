@@ -16,6 +16,33 @@ type CommentHandler struct {
 	service *service.CommentService
 }
 
+type CommentReportReason string
+
+const (
+    CommentReportReasonSpam        		CommentReportReason = "spam"
+    CommentReportReasonInsult  	   		CommentReportReason = "insult"
+    CommentReportReasoninappropriate    CommentReportReason = "inappropriate"
+    CommentReportReasonSpoiler     		CommentReportReason = "spoiler"
+    CommentReportReasonOther       		CommentReportReason = "other"
+)
+
+func (c CommentReportReason) String() string {
+	return string(c)
+}
+
+func (c CommentReportReason) IsValid() bool {
+	switch c {
+	case CommentReportReasonSpam, 
+		 CommentReportReasonInsult,
+		 CommentReportReasoninappropriate,
+		 CommentReportReasonSpoiler,
+		 CommentReportReasonOther:
+		return true
+	default:
+		return false
+	}
+}
+
 func NewCommentHandler(service *service.CommentService) *CommentHandler {
 	return &CommentHandler{
 		service: service,
@@ -157,5 +184,35 @@ func (h *CommentHandler) UnlikeComment(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	response.SuccessOkEmpty(w)
+}
+
+func (h *CommentHandler) CreateCommnetReport(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusInternalServerError, "User not found")
+		return
+	}
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid comment ID format")
+		return
+	}
+
+	queryReason := r.URL.Query().Get("reason")
+	badReason := CommentReportReason(queryReason)
+	
+	if !badReason.IsValid() {
+		response.Error(w, http.StatusBadRequest, "Invalid reason")
+		return	
+	}
+
+	err = h.service.CreateCommentReport(r.Context(), id, userID, badReason.String())
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "Жалоба уже была отправлена")
+		return
+	}
+	
 	response.SuccessOkEmpty(w)
 }

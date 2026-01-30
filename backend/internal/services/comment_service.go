@@ -74,3 +74,7 @@ func (s *CommentService) SetCommentLike(ctx context.Context, commentID, userID i
 func (s *CommentService) DeleteCommentLike(ctx context.Context, commentID, userID int) error {
 	return s.repo.DeleteCommentLike(ctx, commentID, userID)
 }
+
+func (s *CommentService) CreateCommentReport(ctx context.Context, commentID, userID int, reason string) error {
+	return s.repo.CreateCommentReport(ctx, commentID, userID, reason)
+}
