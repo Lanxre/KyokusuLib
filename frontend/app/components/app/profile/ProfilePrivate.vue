@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { staticImage } from "@/utils/str";
+import UserTagId from "~/components/features/UserTagID/UserTagId.vue";
 import Separator from "@/components/ui/Separator/Separtor.vue";
 import { useProfile } from "@/composables/api/profile/useProfile";
 import type { GetUserDto } from "@/types/backend/user";
@@ -51,7 +52,7 @@ const { userRoleColor, isLogin } = useProfile();
                                 </span>
                             </h1>
                             <div class="flex flex-row gap-4 justify-start items-center text-sm text-zinc-500 dark:text-zinc-400 mt-2">
-                                <p>ID: #{{ profileData?.id }}</p>
+                                <UserTagId :userID="profileData?.id!"/>
                             </div>
                         </div>
                     </div>

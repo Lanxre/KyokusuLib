@@ -11,6 +11,7 @@ import TagSelector from "@/components/features/TagSelector/TagSelector.vue";
 import UserExperiance from "@/components/features/UserExperience/UserExperience.vue";
 import ModalWindow from "@/components/features/Modal/ModalWindow.vue";
 import ExperienceInfo from "./experience/ExperienceInfo.vue";
+import UserTagId from "~/components/features/UserTagID/UserTagId.vue";
 import TabBookmarks from "./tabs/TabBookmarks.vue";
 
 const {
@@ -79,8 +80,7 @@ const { pending } = await useAsyncData("profile-init", async () => {
                             </h1>
                             
                             <div class="flex flex-wrap items-center gap-4 mt-3 md:mt-2">
-                                <p class="mt-2 text-zinc-500 dark:text-zinc-400 font-medium">ID: #{{ profileData?.id }}</p>
-                                
+                                <UserTagId :userID="profileData?.id!"/>
                                 <TagSelector 
                                     v-if="isShowTag && profileData?.active_tag" 
                                     v-model="profileData.active_tag" 

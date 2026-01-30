@@ -10,6 +10,7 @@ import TabActivity from "@/components/app/profile/activity/TabActivity.vue";
 import UserExperiance from "@/components/features/UserExperience/UserExperience.vue";
 import ModalWindow from "@/components/features/Modal/ModalWindow.vue";
 import ExperienceInfo from "./experience/ExperienceInfo.vue";
+import UserTagId from "~/components/features/UserTagID/UserTagId.vue";
 import TabBookmarks from "./tabs/TabBookmarks.vue";
 
 const props = defineProps<{
@@ -93,7 +94,7 @@ const { status } = await useAsyncData(
                             </h1>
                             
                             <div class="flex flex-wrap items-center gap-4 mt-3 md:mt-2">
-                                <p class="mt-2 text-zinc-500 dark:text-zinc-400 font-medium">ID: #{{ profileData?.id }}</p>
+                                <UserTagId :userID="profileData?.id!"/>
                                 
                                 <div v-if="profileData?.active_tag" class="flex items-center text-dark dark:text-white dark:bg-zinc-800 mt-2 px-3 py-0.5 h-8 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold cursor-pointer hover:border-zinc-500 transition-colors select-none text-sm">
                                     {{ profileData.active_tag }}
@@ -105,6 +106,7 @@ const { status } = await useAsyncData(
                                         :level="profileData.user_level.level" 
                                         :currentExp="profileData.user_level.experience" 
                                         :expToNextLevel="profileData.user_level.xp_needed_for_next"
+                                        :levelTitle="profileData.user_level.level_title"
                                     />
 
                                     <button 
