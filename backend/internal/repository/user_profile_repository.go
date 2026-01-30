@@ -54,6 +54,9 @@ func (r *UserProfileRepository) GetUserLevel(ctx context.Context, userID int) (*
         needed := max(xpForNextLevel.Int64 - experience, 0)
         u.XPForNext = needed
     }
-    
+
+	u.Level = level
+	u.Experience = experience
+	
 	return u, nil
 }
