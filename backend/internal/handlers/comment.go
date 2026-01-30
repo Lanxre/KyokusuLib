@@ -96,9 +96,9 @@ func (h *CommentHandler) GetNovelaComments(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *CommentHandler) GetCommentsByUserID(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
-	if !ok {
-		response.Error(w, http.StatusInternalServerError, "User not found")
+	userID, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid comment ID format")
 		return
 	}
 
