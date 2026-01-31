@@ -14,6 +14,7 @@ type NovelaComment struct {
 	UserImage string     `db:"user_image"`
 	LikeCount int        `db:"like_count"`
 	HasLike   *bool       `db:"has_like"`
+	HasReport *bool      `db:"has_report"`
 }
 
 type SelectNovelaComment struct {

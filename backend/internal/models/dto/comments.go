@@ -9,6 +9,7 @@ type CommentResponse struct {
 	Replies   []*CommentResponse `json:"replies"`
 	LikeCount int                `json:"like_count"`
 	HasLike   *bool               `json:"has_like"`
+	HasReport *bool               `json:"has_report"`
 }
 
 type CommentUserAuthor struct {

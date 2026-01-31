@@ -32,6 +32,7 @@ func (s *CommentService) GetNovelaComments(ctx context.Context, novelaID, userID
 			CreatedAt: c.CreatedAt.Format(time.RFC3339),
 			LikeCount: c.LikeCount,
 			HasLike:   c.HasLike,
+			HasReport: c.HasReport,
 			User:      dto.CommentUserAuthor{ID: c.UserID, Name: c.UserName, Picture: c.UserImage},
 			Replies:   []*dto.CommentResponse{},
 		}

@@ -91,6 +91,7 @@ export interface NovelaCommentResponse {
 	content: string;
 	created_at: string;
 	has_like: boolean | null;
+	has_report: boolean | null;
 	like_count: number;
 	user: NovelaCommentUserResponse;
 	replies: NovelaCommentResponse[];

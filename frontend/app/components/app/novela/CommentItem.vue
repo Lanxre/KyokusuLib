@@ -12,6 +12,7 @@ interface Props {
 	userId?: number;
 }
 
+const route = useRoute();
 const props = defineProps<Props>();
 const emit = defineEmits(["reply", "delete", "update", "like", "unset-like", "report"]);
     
@@ -96,12 +97,15 @@ const onReportSubmit = (payload: any) => {
                             <span class="text-[10px] font-bold text-zinc-400 cursor-default mt-0.5"> {{ comment.like_count }} </span>
                         </div>
                         <div v-if="comment.user.id !== userId" class="flex flex-row justify-center gap-1">
-                            <BaseToolTip text="Пожаловаться" position="left">
-                                 <Icon 
-                                    name="ph:flag-bold" 
+                            <BaseToolTip :text="comment.has_report ? 'Жалоба отправлена' : 'Пожаловаться'" position="left">
+                                 <Icon
+                                    :name="comment.has_report ? 'ph:flag-fill' : 'ph:flag-bold'"
                                     size="16" 
-                                    class="cursor-pointer transition-colors" 
-                                    :class="isReportMenuOpen ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'"
+                                    class="cursor-pointer transition-colors"
+                                    :class="[
+                                        isReportMenuOpen ? 'text-red-500' : '',
+                                        comment.has_report !== null ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'
+                                    ]"
                                     @click="isReportMenuOpen = !isReportMenuOpen"
                                 />
 
@@ -145,7 +149,7 @@ const onReportSubmit = (payload: any) => {
                 <div class="overflow-hidden">
                     <div class="mt-2 border-l-2 border-zinc-100 dark:border-zinc-800 pl-4 space-y-2">
                         <CommentItem 
-                            v-for="reply in comment.replies" 
+                            v-for="reply in comment.replies"
                             :key="reply.id" 
                             :comment="reply" 
                             :user-id="userId" 

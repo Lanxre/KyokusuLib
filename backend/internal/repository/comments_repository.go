@@ -27,11 +27,13 @@ func (r *CommentsRepository) GetCommentsByNovelaID(ctx context.Context, novelaID
 			up.name       AS user_name,
 			up.picture    AS user_image,
 			COUNT(cl.user_id) AS like_count,
-			BOOL_OR(cl.user_id = $2) AS has_like
+			BOOL_OR(cl.user_id = $2) AS has_like,
+			BOOL_OR(cr.user_id = $2) AS has_report
 		FROM novela_comments c
 		JOIN users u ON c.user_id = u.id
 		LEFT JOIN user_profiles up ON u.id = up.user_id
 		LEFT JOIN like_comments cl ON cl.comment_id = c.id
+		LEFT JOIN novela_comments_reports cr ON cr.comment_id = c.id
 		WHERE c.novela_id = $1
 		GROUP BY c.id, u.id, up.name, up.picture`
 
@@ -54,6 +56,7 @@ func (r *CommentsRepository) GetCommentsByNovelaID(ctx context.Context, novelaID
 			&c.UserImage,
 			&c.LikeCount,
 			&c.HasLike,
+			&c.HasReport,
 		); err != nil {
 			return nil, err
 		}
