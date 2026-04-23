@@ -42,6 +42,8 @@ const bookmarkInitial = ref(Boolean(novela.value?.bookmark));
 const currentBookmarkCategory = ref(novela.value?.bookmark || null);
 const isOpenNovelaSettings = ref(false);
 
+const openedSections = ref<string[]>([]);
+
 const totalChapters = computed(() => {
 	if (!novela.value) return 0;
 	return novela.value.volumes.reduce(
@@ -203,10 +205,12 @@ const updatedNovela = (payload: NovelaDetails) => {
 	}
 };
 
-const openedSection = ref<string | null>(null);
-
 const toggleSection = (name: string) => {
-	openedSection.value = openedSection.value === name ? null : name;
+	if (openedSections.value.includes(name)) {
+		openedSections.value = openedSections.value.filter((s) => s !== name);
+	} else {
+		openedSections.value.push(name);
+	}
 };
 
 
@@ -323,12 +327,12 @@ watch(() => route.query.tab, (newTab) => {
                             </div>
                             <div class="flex flex-row gap-6 mb-2 md:flex-row items-start">
                                 <NovelaRatingStats 
-                                    :is-expanded="openedSection === 'rating'"
+                                    :is-expanded="openedSections.includes('rating')"
                                     @toggle="toggleSection('rating')"
                                     :rating-details="novela.rating_details" 
                                 />
                                 <NovelaBookmarkStats 
-                                    :is-expanded="openedSection === 'bookmark'"
+                                    :is-expanded="openedSections.includes('bookmark')"
                                     @toggle="toggleSection('bookmark')"
                                     :bookmark-details="novela.bookmark_details" 
                                 />

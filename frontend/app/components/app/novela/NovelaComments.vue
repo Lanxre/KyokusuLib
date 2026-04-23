@@ -49,7 +49,6 @@ onMounted(() => {
             const el = document.querySelector(route.hash);
             if (el) {
                 el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // Optional: add a slight highlight effect to the comment
                 el.classList.add('ring-2', 'ring-yellow-500', 'ring-offset-2', 'ring-offset-white', 'dark:ring-offset-zinc-900');
                 setTimeout(() => {
                     el.classList.remove('ring-2', 'ring-yellow-500', 'ring-offset-2', 'ring-offset-white', 'dark:ring-offset-zinc-900');

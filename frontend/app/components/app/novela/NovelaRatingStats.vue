@@ -46,7 +46,6 @@ const getPercentage = (count: number) => {
 			</div>
 		</button>
 
-		<!-- Новый метод анимации через CSS Grid -->
 		<div 
 			class="grid transition-[grid-template-rows] duration-300 ease-in-out"
 			:class="isExpanded ? 'grid-template-rows-[1fr]' : 'grid-template-rows-[0fr]'"
