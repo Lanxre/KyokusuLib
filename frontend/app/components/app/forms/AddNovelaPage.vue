@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import HeaderApp from "@/components/common/HeaderApp.vue";
 import FooterApp from "@/components/common/FooterApp.vue";
-import BaseInput from "@/components/ui/BaseInput/BaseInput.vue";
-import SearchSelect from "@/components/ui/SearchSelect/SearchSelect.vue";
-import BaseRichTextEditor from "@/components/ui/BaseRichTextEditor/BaseRichTextEditor.vue";
+import { Input as BaseInput, SearchSelect, RichText as BaseRichTextEditor, MultiSelect as BaseMultiSelect } from "@kyokusu-ui/vue";
 import YearSelect from "@/components/features/YearSelector/YearSelector.vue";
-import BaseMultiSelect from "@/components/ui/BaseMultiSelect/BaseMultiSelect.vue";
 import UploadIcon from "@/assets/images/special/add.png";
 
 import { useNovelaForm } from "@/composables/api/forms/useNovelaForm";

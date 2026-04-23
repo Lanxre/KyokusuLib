@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { useNovelaComments } from "@/composables/api/novela/useNovelaComments";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationStore } from "@/stores/notification";
 import CommentItem from "./CommentItem.vue";
 import AuthRequiredModal from "~/components/common/AuthRequiredModal.vue";
-import BaseRichTextEditor from "~/components/ui/BaseRichTextEditor/BaseRichTextEditor.vue";
+import { RichText as BaseRichTextEditor } from "@kyokusu-ui/vue";
 import { NOVELA_MAX_COMMENT_LENGTH } from "~/constants/data";
 import { useUserActivity } from "~/composables/api/profile/useUserActivity";
 import { ACTIVITY_TYPES } from "~/constants/user-activity";
 
 const props = defineProps<{ novelaId: number, novelaTitle: string }>();
 
+const route = useRoute();
 const { user, isAuthenticated } = useAuthStore();
 const { notify } = useNotificationStore();
 const { 
@@ -40,6 +42,22 @@ const { status, refresh } = await useAsyncData(
 );
 
 const isPending = computed(() => status.value === 'pending' || apiLoading.value);
+
+onMounted(() => {
+    if (route.hash) {
+        setTimeout(() => {
+            const el = document.querySelector(route.hash);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Optional: add a slight highlight effect to the comment
+                el.classList.add('ring-2', 'ring-yellow-500', 'ring-offset-2', 'ring-offset-white', 'dark:ring-offset-zinc-900');
+                setTimeout(() => {
+                    el.classList.remove('ring-2', 'ring-yellow-500', 'ring-offset-2', 'ring-offset-white', 'dark:ring-offset-zinc-900');
+                }, 2000);
+            }
+        }, 300);
+    }
+});
 
 const scrolltoEditor = () => {
     nextTick(() => {

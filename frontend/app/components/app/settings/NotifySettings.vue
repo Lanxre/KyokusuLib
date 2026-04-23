@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import EmailIcon from "@/assets/images/special/email.png";
 import ChatBubbleIcon from "@/assets/images/special/chat-bubble.png";
-import BaseToggle from "@/components/ui/BaseToggle/BaseToggle.vue";
+import { Toggle as BaseToggle } from "@kyokusu-ui/vue";
 import { useNotifySettings } from "@/composables/api/settings/useNotifySettings";
 
 const { profileSettings } = useNotifySettings();

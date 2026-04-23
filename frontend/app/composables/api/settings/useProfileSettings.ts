@@ -15,7 +15,7 @@ export function useProfileSettings() {
 	const errors = ref<Record<string, string>>({});
 	const isLoading = ref(false);
 	const isSuccess = ref(false);
-	const isBirthDateDisable = ref(user?.birthday ? true : false);
+	const isBirthDateDisable = ref(user?.birthday && !user.birthday.startsWith("0001-01-01") && user.birthday !== "01.01.1" ? true : false);
 
 	const fileInput = ref<HTMLInputElement | null>(null);
 	const selectedFile = ref<File | null>(null);
@@ -24,6 +24,29 @@ export function useProfileSettings() {
 	const selectedBannerFile = ref<File | null>(null);
 
 	const profile = ref<GetUserDto>({ ...user! });
+
+	if (!profile.value.birthday || profile.value.birthday === "01.01.1" || profile.value.birthday === "0001-01-01T00:00:00Z" || profile.value.birthday === "0001-01-01" || profile.value.birthday?.startsWith("0001-01-01")) {
+		profile.value.birthday = "";
+	} else {
+		// Clean up time components
+		let cleanDate = profile.value.birthday;
+		if (cleanDate.includes("T")) cleanDate = cleanDate.split("T")[0]!;
+		if (cleanDate.includes(" ")) cleanDate = cleanDate.split(" ")[0]!;
+		
+		// Validate that the date can be safely parsed by kyokusu-ui-vue
+		if (cleanDate.includes("-")) {
+			const parts = cleanDate.split("-");
+			if (parts.length !== 3 || parts.some(p => isNaN(Number(p)))) {
+				cleanDate = "";
+			}
+		} else if (cleanDate.includes(".")) {
+			const parts = cleanDate.split(".");
+			if (parts.length !== 3 || parts.some(p => isNaN(Number(p)))) {
+				cleanDate = "";
+			}
+		}
+		profile.value.birthday = cleanDate;
+	}
 
 	const validate = (): boolean => {
 		errors.value = {};
@@ -58,7 +81,7 @@ export function useProfileSettings() {
 		}
 
 		const birthdayText = profile.value.birthday;
-		if (birthdayText === "01.01.1") {
+		if (birthdayText === "01.01.1" || birthdayText === "0001-01-01T00:00:00Z" || birthdayText === "0001-01-01") {
 			profile.value.birthday = "";
 		}
 

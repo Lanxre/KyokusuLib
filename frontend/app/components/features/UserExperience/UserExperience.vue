@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import BaseToolTip from "~/components/ui/BaseToolTip/BaseToolTip.vue";
+import { Tooltip as BaseToolTip } from "@kyokusu-ui/vue";
 
 interface Props {
 	currentExp: number;

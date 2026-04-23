@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ModalWindow from "@/components/features/Modal/ModalWindow.vue";
+import { ModalWindow } from "@kyokusu-ui/vue";
 interface Props {
 	modelValue: boolean;
 	actionText?: string;

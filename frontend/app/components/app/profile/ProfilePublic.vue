@@ -5,10 +5,9 @@ import { useProfile } from "@/composables/api/profile/useProfile";
 import { useUserActivity } from "@/composables/api/profile/useUserActivity";
 import type { GetUserDto } from "@/types/backend/user";
 
-import Separator from "@/components/ui/Separator/Separtor.vue";
+import { Separator, ModalWindow } from "@kyokusu-ui/vue";
 import TabActivity from "@/components/app/profile/activity/TabActivity.vue";
 import UserExperiance from "@/components/features/UserExperience/UserExperience.vue";
-import ModalWindow from "@/components/features/Modal/ModalWindow.vue";
 import ExperienceInfo from "./experience/ExperienceInfo.vue";
 import UserTagId from "~/components/features/UserTagID/UserTagId.vue";
 import TabBookmarks from "./tabs/TabBookmarks.vue";

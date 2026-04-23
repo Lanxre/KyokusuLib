@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import type { NovelaCommentResponse } from "@/types/backend/novela";
 import { staticImage } from "@/utils/str";
 import { parseDateToLocale } from "@/utils/date";
-import BaseToolTip from "~/components/ui/BaseToolTip/BaseToolTip.vue";
+import { Tooltip as BaseToolTip } from "@kyokusu-ui/vue";
 import CommentReportMenu from "./CommentReportMenu.vue";
 
 interface Props {
@@ -41,7 +41,7 @@ const onReportSubmit = (payload: any) => {
 </script>
 
 <template>
-    <div :class="['flex gap-4 group transition-all', isReply ? 'mt-4' : 'bg-white dark:bg-zinc-900/50 p-4 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm']">
+    <div :id="`comment-${comment.id}`" :class="['flex gap-4 group transition-all', isReply ? 'mt-4' : 'bg-white dark:bg-zinc-900/50 p-4 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm']">
         <img 
             :src="staticImage(comment.user.picture)" 
             class="rounded-full bg-zinc-100 shrink-0 object-cover border border-zinc-200 dark:border-zinc-800 shadow-sm cursor-pointer transition-transform hover:scale-105" 

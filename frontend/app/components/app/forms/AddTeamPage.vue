@@ -2,8 +2,7 @@
 import { reactive, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useTeam } from "@/composables/api/teams/useTeams";
-import BaseInput from "@/components/ui/BaseInput/BaseInput.vue";
-import Label from "~/components/ui/Label/Label.vue";
+import { Input as BaseInput, Label } from "@kyokusu-ui/vue";
 
 const router = useRouter();
 const { createTeam, isLoading } = useTeam();

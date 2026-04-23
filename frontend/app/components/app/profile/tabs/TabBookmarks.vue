@@ -42,7 +42,7 @@ watch(activeCategory, load, { immediate: true });
             </button>
         </div>
 
-        <div class="min-h-[400px] relative">
+        <div class="min-h-100 relative">
             <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 <div v-for="i in 5" :key="i" class="aspect-[2/3] rounded-2xl bg-zinc-200 dark:bg-zinc-800 animate-pulse"></div>
             </div>

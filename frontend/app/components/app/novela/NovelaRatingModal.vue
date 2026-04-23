@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useNovelaRating } from "@/composables/api/novela/useNovelaRating";
-import ModalWindow from "~/components/features/Modal/ModalWindow.vue";
+import { ModalWindow } from "@kyokusu-ui/vue";
 import { useNotificationStore } from "@/stores/notification";
 
 interface Props {

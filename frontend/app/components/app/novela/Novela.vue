@@ -355,16 +355,16 @@ watch(() => route.query.tab, (newTab) => {
                             </div>
                         </div>
 
-                        <div class="flex gap-8 border-b border-zinc-200 dark:border-zinc-800 mb-8">
+                        <div class="flex gap-8 border-b border-zinc-200 dark:border-zinc-800 mb-8 overflow-x-auto no-scrollbar whitespace-nowrap w-full">
                             <button 
                                 v-for="tab in NOVELA_ACTIVE_TABS" 
                                 :key="tab"
-                                class="pb-4 text-lg font-bold transition-all relative cursor-pointer capitalize"
+                                class="flex flex-row items-center pb-4 text-lg font-bold transition-all relative cursor-pointer capitalize shrink-0" 
                                 :class="activeTab === tab ? 'text-zinc-900 dark:text-white' : 'text-zinc-400'"
                                 @click="activeTab = tab as any"
                             >
                                 {{ convToRu(tab) }}
-                                <span v-if="tab === NovelaActiveTabsEnum.CHAPTERS" class="ml-2 text-xs opacity-50">{{ totalChapters }}</span>
+                                <span v-if="tab === NovelaActiveTabsEnum.CHAPTERS" class="ml-2 text-lg opacity-50">{{ totalChapters }}</span>
                                 <div v-if="activeTab === tab" class="absolute bottom-0 left-0 w-full h-1 bg-yellow-500 rounded-t-full"></div>
                             </button>
                         </div>
@@ -413,4 +413,15 @@ watch(() => route.query.tab, (newTab) => {
     opacity: 0;
     transform: translateY(10px);
 }
+
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
 </style>

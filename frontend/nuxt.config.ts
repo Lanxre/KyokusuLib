@@ -36,6 +36,13 @@ export default defineNuxtConfig({
 
 	vite: {
 		plugins: [tailwindcss()],
+		resolve: {
+			dedupe: ["vue"],
+		},
+	},
+
+	build: {
+		transpile: ["@kyokusu-ui/vue"],
 	},
 
 	css: ["~/assets/css/global.css"],

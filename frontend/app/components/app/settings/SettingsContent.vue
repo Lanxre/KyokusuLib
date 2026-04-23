@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Separtor from "@/components/ui/Separator/Separtor.vue";
+import { Separator as Separtor } from "@kyokusu-ui/vue";
 
 import AccountSettings from "@/components/app/settings/AccountSettings.vue";
 import SafetySettings from "@/components/app/settings/SafetySettings.vue";

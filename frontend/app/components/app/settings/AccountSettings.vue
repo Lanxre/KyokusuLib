@@ -1,9 +1,6 @@
 <script lang="ts" setup>
 import { staticImage } from "@/utils/str";
-import BaseDateInput from "@/components/ui/BaseDateInput/BaseDateInput.vue";
-import BaseInput from "@/components/ui/BaseInput/BaseInput.vue";
-import BaseSelect from "@/components/ui/BaseSelect/BaseSelect.vue";
-import BaseToggle from "@/components/ui/BaseToggle/BaseToggle.vue";
+import { DatePicker as BaseDateInput, Input as BaseInput, Select as BaseSelect, Toggle as BaseToggle } from "@kyokusu-ui/vue";
 import { useProfileSettings } from "@/composables/api/settings/useProfileSettings";
 import { GenderSetting } from "@/types/enums/gender-enum";
 
@@ -151,12 +148,14 @@ const genderOptions = [
                     </div>
 
                     <div class="flex flex-col">
-                        <BaseDateInput 
-                            id="birthdate"
-                            label="Дата рождения"
-                            v-model="profile.birthday"
-                            :disabled="isBirthDateDisable || isLoading"
-                        />
+                        <ClientOnly>
+                            <BaseDateInput 
+                                id="birthdate"
+                                label="Дата рождения"
+                                v-model="profile.birthday"
+                                :disabled="isBirthDateDisable || isLoading"
+                            />
+                        </ClientOnly>
                         <p class="text-xs text-zinc-500 dark:text-stone-500 mt-0.5 ml-[3px]">Выставляется единожды. В этот день сайт выдаст вам награду.</p> 
                     </div>
                 </div>

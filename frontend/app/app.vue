@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { useAuthStore } from "@/stores/auth";
 import { useActivityStore } from "@/stores/activity";
+import { useNotificationStore } from "@/stores/notification";
 import { useInterfaceSettings } from "~/composables/api/settings/useInterfaceSettings";
-import TheNotifications from "@/components/ui/TheNotifications/TheNotifications.vue";
+import { NotificationContainer as TheNotifications } from "@kyokusu-ui/vue";
 
 const authStore = useAuthStore();
 const activityStore = useActivityStore();
+const notificationStore = useNotificationStore();
 
 const { syncSettingWithBackend } = useInterfaceSettings();
 
@@ -27,7 +29,12 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen flex flex-col">
-    <TheNotifications />
+    <ClientOnly>
+      <TheNotifications 
+        :notifications="notificationStore.notifications" 
+        @remove="notificationStore.remove" 
+      />
+    </ClientOnly>
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

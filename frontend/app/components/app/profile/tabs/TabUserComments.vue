@@ -14,11 +14,13 @@ await useAsyncData(`user-comments-${props.userId}`, () => fetchUserComments(prop
       <div 
         v-for="comment in comments" 
         :key="comment.id"
-        class="group relative bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 transition-all hover:border-yellow-500/30 hover:shadow-lg hover:shadow-yellow-500/5"
+        @click="navigateTo(`/novela/${comment.novela_id}?tab=comments#comment-${comment.id}`)"
+        class="group relative bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 transition-all hover:border-yellow-500/30 hover:shadow-lg hover:shadow-yellow-500/5 cursor-pointer"
       >
         <div class="flex items-center justify-between mb-3">
           <NuxtLink 
             :to="`/novela/${comment.novela_id}`"
+            @click.stop
             class="flex items-center gap-2 group/link"
           >
             <div class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover/link:bg-yellow-500 transition-colors">
@@ -45,6 +47,7 @@ await useAsyncData(`user-comments-${props.userId}`, () => fetchUserComments(prop
         <div class="flex justify-end mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 opacity-0 group-hover:opacity-100 transition-opacity">
           <NuxtLink 
             :to="`/novela/${comment.novela_id}?tab=comments#comment-${comment.id}`"
+            @click.stop
             class="text-[10px] font-black uppercase tracking-widest text-yellow-600 hover:text-yellow-500 flex items-center gap-1.5"
           >
             Перейти к обсуждению

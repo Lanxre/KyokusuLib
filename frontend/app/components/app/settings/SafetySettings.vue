@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useSecuritySettings } from "@/composables/api/settings/useSecuritySettings";
 import { useAuthStore } from "@/stores/auth";
-import BaseInput from "@/components/ui/BaseInput/BaseInput.vue";
+import { Input as BaseInput } from "@kyokusu-ui/vue";
 import { ref } from "vue";
 
 const { user } = useAuthStore();

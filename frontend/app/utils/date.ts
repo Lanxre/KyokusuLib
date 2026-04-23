@@ -1,4 +1,5 @@
 export function parseDateToISO(input: string): string {
+	if (!input) return "";
 	const date = new Date(input).toISOString().split("T")[0]!;
 	return date;
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref } from "vue";
 import { onClickOutside } from "@vueuse/core";
 import { useProfile } from "@/composables/api/profile/useProfile";
 import { useUserTag } from "@/composables/api/profile/useUserTag";

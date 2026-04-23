@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import ModalWindow from "~/components/features/Modal/ModalWindow.vue";
-import BaseInput from "~/components/ui/BaseInput/BaseInput.vue";
-import SearchSelect from "~/components/ui/SearchSelect/SearchSelect.vue";
-import BaseMultiSelect from "~/components/ui/BaseMultiSelect/BaseMultiSelect.vue";
-import BaseRichTextEditor from "~/components/ui/BaseRichTextEditor/BaseRichTextEditor.vue";
+import { ModalWindow, Input as BaseInput, SearchSelect, MultiSelect as BaseMultiSelect, RichText as BaseRichTextEditor } from "@kyokusu-ui/vue";
 import YearSelect from "~/components/features/YearSelector/YearSelector.vue";
 import UploadIcon from "@/assets/images/special/add.png";
 
@@ -47,8 +43,8 @@ const initialAuthors =
 
 const authorsOptions = computed(() => {
 	const map = new Map();
-	initialAuthors.forEach((a: any) => map.set(a.id, a));
-	foundAuthors.value.forEach((a) => map.set(a.id, a));
+	for (const a of initialAuthors) map.set(a.id, a);
+	for (const a of foundAuthors.value) map.set(a.id, a);
 	return Array.from(map.values());
 });
 

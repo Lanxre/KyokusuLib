@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { staticImage } from "@/utils/str";
 import UserTagId from "~/components/features/UserTagID/UserTagId.vue";
-import Separator from "@/components/ui/Separator/Separtor.vue";
+import { Separator } from "@kyokusu-ui/vue";
 import { useProfile } from "@/composables/api/profile/useProfile";
 import type { GetUserDto } from "@/types/backend/user";
 

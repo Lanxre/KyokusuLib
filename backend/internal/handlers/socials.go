@@ -263,7 +263,7 @@ func (h *SocialNetworkHandler) completeOAuth(w http.ResponseWriter, r *http.Requ
 	}
 
 	h.Service.LinkAccount(r.Context(), userID, provider, userDTO.Id, refreshToken)
-	http.Redirect(w, r, h.FrontendURL + "/settings", http.StatusTemporaryRedirect)
+	http.Redirect(w, r, h.FrontendURL + "/profile/settings", http.StatusTemporaryRedirect)
 }
 
 

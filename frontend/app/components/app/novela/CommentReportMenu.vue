@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { onClickOutside } from "@vueuse/core";
-import SearchSelect from "~/components/ui/SearchSelect/SearchSelect.vue";
+import { SearchSelect } from "@kyokusu-ui/vue";
 import { REPORT_COMMNET_REASONS } from "~/constants/data";
 
 const props = defineProps<{ commentId: number }>();

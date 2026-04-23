@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import BaseInput from "@/components/ui/BaseInput/BaseInput.vue";
-import SearchSelect from "@/components/ui/SearchSelect/SearchSelect.vue";
-import BaseRichTextEditor from "@/components/ui/BaseRichTextEditor/BaseRichTextEditor.vue";
+import { Input as BaseInput, SearchSelect, RichText as BaseRichTextEditor } from "@kyokusu-ui/vue";
 import UploadIcon from "@/assets/images/special/add.png";
 
 import { useAuthorForm } from "@/composables/api/forms/useAuthorForm";
