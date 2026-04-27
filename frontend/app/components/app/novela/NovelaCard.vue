@@ -26,7 +26,7 @@ defineProps<Props>();
         {{ roundTo(rating, 1) }}
       </div>
 
-      <div class="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
+      <div class="absolute inset-0 rounded-2xl bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
          <span v-if="type" class="text-[10px] text-white font-bold uppercase tracking-widest bg-yellow-500/20 px-2 py-1 rounded-md backdrop-blur-sm">
             {{ type }}
          </span>

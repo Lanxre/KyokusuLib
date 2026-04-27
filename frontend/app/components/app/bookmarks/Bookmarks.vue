@@ -31,9 +31,13 @@ watch(activeCategory, load);
 
 const handleStatusChange = async (novelaId: number, newCategory: BookmarkCategory | 'remove') => {
     try {
-        if (newCategory === 'remove') await removeBookmark(novelaId);
-        else await setBookmark(novelaId, newCategory);
-        load();
+        if (newCategory === 'remove') {
+            await removeBookmark(novelaId);
+        } else {
+            await setBookmark(novelaId, newCategory);
+        }
+        
+        userBookmarkNovels.value = userBookmarkNovels.value.filter(n => n.id !== novelaId);
     } catch (error) {
         console.error("Error changing bookmark status", error);
     }

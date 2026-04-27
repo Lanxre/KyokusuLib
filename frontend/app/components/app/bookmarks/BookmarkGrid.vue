@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import type { BookmarkCategory } from "@/types/frontend/bookmarks";
 import NovelaCard from "@/components/app/novela/NovelaCard.vue";
 
@@ -13,12 +13,29 @@ const emit = defineEmits<{
     (e: 'change-status', id: number, category: BookmarkCategory | 'remove'): void;
 }>();
 
-const categoryOptions = computed(() => {
-    return [
-        ...props.categories.map(c => ({ value: c.id, label: c.label })),
-        { value: 'remove', label: 'Удалить из закладок' }
-    ];
+const openMenuId = ref<number | null>(null);
+
+const closeMenu = () => {
+    openMenuId.value = null;
+};
+
+onMounted(() => {
+    document.addEventListener('click', closeMenu);
 });
+
+onBeforeUnmount(() => {
+    document.removeEventListener('click', closeMenu);
+});
+
+const toggleMenu = (event: Event, id: number) => {
+    event.stopPropagation();
+    openMenuId.value = openMenuId.value === id ? null : id;
+};
+
+const handleSelect = (id: number, category: any) => {
+    emit('change-status', id, category);
+    closeMenu();
+};
 </script>
 
 <template>
@@ -33,26 +50,53 @@ const categoryOptions = computed(() => {
                 :key="novela.id" 
                 class="shrink-0 snap-start relative group"
             >
-                <div class="w-40">
-                    <NovelaCard v-bind="novela" />
+                <div class="w-40 h-70 md:h-auto">
+                    <NovelaCard v-bind="novela" class="h-full" />
                 </div>
                 
-                <div class="absolute top-2 right-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity z-10" @click.prevent>
-                    
+                <div 
+                    class="absolute -top-1 mt-3 right-2 transition-opacity z-10"
+                    :class="openMenuId === novela.id ? 'opacity-100' : 'opacity-100 sm:opacity-0 group-hover:opacity-100'"
+                >
                     <div class="relative">
-                        <div>sadsad</div>
-                        <select 
-                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            @change="(e) => emit('change-status', novela.id, (e.target as HTMLSelectElement).value as any)"
+                        <button 
+                            @click.prevent="(e) => toggleMenu(e, novela.id)"
+                            class="w-6 h-6 rounded-xl bg-zinc-900/80 backdrop-blur border border-white/10 flex items-center justify-center text-white shadow-lg transition-transform hover:scale-110 cursor-pointer"
                         >
-                            <option disabled selected>Переместить</option>
-                            <option v-for="opt in categoryOptions" :key="opt.value" :value="opt.value">
-                                {{ opt.label }}
-                            </option>
-                        </select>
-                        <div class="w-7 h-7 rounded-xl bg-zinc-900/80 backdrop-blur border border-white/10 flex items-center justify-center text-white shadow-lg pointer-events-none transition-transform group-hover:scale-110">
-                            <Icon name="ph:dots-three-bold" size="18" />
-                        </div>
+                            <Icon name="ph:dots-three-bold" size="20" />
+                        </button>
+
+                        <Transition name="popover">
+                            <div 
+                                v-if="openMenuId === novela.id"
+                                @click.stop
+                                class="absolute top-full -right-45 sm:-right-40 mt-2 w-48 p-1.5 z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl overflow-hidden origin-top-right"
+                            >
+                                <div class="flex flex-col gap-0.5">
+                                    <button
+                                        v-for="cat in categories"
+                                        :key="cat.id"
+                                        @click="handleSelect(novela.id, cat.id)"
+                                        class="w-full py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                                        :class="novela.bookmark === cat.id 
+                                            ? 'bg-yellow-50 dark:bg-yellow-500/10 text-yellow-600 dark:text-yellow-500' 
+                                            : 'hover:bg-yellow-50 dark:hover:bg-yellow-500/10 text-zinc-600 dark:text-zinc-400 hover:text-yellow-600 dark:hover:text-yellow-500'"
+                                    >
+                                        {{ cat.label }}
+                                        <div v-if="novela.bookmark === cat.id" class="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
+                                    </button>
+
+                                    <div class="h-px bg-zinc-100 dark:bg-zinc-800 my-1"></div>
+
+                                    <button
+                                        @click="handleSelect(novela.id, 'remove')"
+                                        class="w-full py-2 flex justify-center rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
+                                    >
+                                        Удалить из закладок
+                                    </button>
+                                </div>
+                            </div>
+                        </Transition>
                     </div>
                 </div>
             </div>
@@ -64,3 +108,13 @@ const categoryOptions = computed(() => {
         </div>
     </div>
 </template>
+
+<style scoped>
+.popover-enter-active, .popover-leave-active {
+  transition: all 0.2s ease;
+}
+.popover-enter-from, .popover-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+</style>
