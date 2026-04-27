@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const socialLinks = [
-	{ name: "Telegram", icon: "ph:telegram-logo", href: "#" },
+	{ name: "Telegram", icon: "ph:telegram-logo", href: "https://t.me/KyokusuLib" },
 	{ name: "Discord", icon: "ph:discord-logo", href: "#" },
 ];
 </script>
@@ -41,7 +41,7 @@ const socialLinks = [
           </nav>
         </div>
 
-        <div class="flex flex-col gap-4 full text-center items-center md:items-start text-center md:text-left">
+        <div class="flex flex-col gap-4 full text-center items-center md:items-start md:text-left">
           <h2 class="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Сообщество</h2>
           <div class="flex gap-3">
               <a 
