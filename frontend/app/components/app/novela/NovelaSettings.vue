@@ -116,7 +116,7 @@ const handleUpdate = async () => {
                         id="edit-type" 
                         label="Тип" 
                         v-model="form.type" 
-                        :selects="NOVELA_TYPES" 
+                        :options="NOVELA_TYPES" 
                         :disabled="isUpdating" 
                     />
                     
@@ -124,7 +124,7 @@ const handleUpdate = async () => {
                         id="edit-age" 
                         label="Рейтинг" 
                         v-model="form.ageRating" 
-                        :selects="AGE_RATINGS" 
+                        :options="AGE_RATINGS" 
                         :disabled="isUpdating" 
                     />
                     
@@ -141,7 +141,7 @@ const handleUpdate = async () => {
                         id="edit-country" 
                         label="Страна" 
                         v-model="form.country" 
-                        :selects="COUNTRIES_LIST" 
+                        :options="COUNTRIES_LIST" 
                         :disabled="isUpdating" 
                     />
                     
@@ -149,7 +149,7 @@ const handleUpdate = async () => {
                         id="edit-status" 
                         label="Статус выхода" 
                         v-model="form.status" 
-                        :selects="NOVELA_STATUSES" 
+                        :options="NOVELA_STATUSES" 
                         :disabled="isUpdating" 
                     />
                     
@@ -157,7 +157,7 @@ const handleUpdate = async () => {
                         id="edit-tl-status" 
                         label="Статус перевода" 
                         v-model="form.translationStatus" 
-                        :selects="TRANSLATION_STATUSES" 
+                        :options="TRANSLATION_STATUSES" 
                         :disabled="isUpdating" 
                     />
 
