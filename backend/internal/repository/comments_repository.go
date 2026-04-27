@@ -102,6 +102,12 @@ func (r *CommentsRepository) CreateCommentReport(ctx context.Context, commentID,
 	return err
 }
 
+func (r *CommentsRepository) CancelCommentReport(ctx context.Context, commentID int) error {
+	query := `DELETE FROM novela_comments_reports WHERE comment_id = $1`
+	_, err := r.DB.ExecContext(ctx, query, commentID)
+	return err
+}
+
 func (r *CommentsRepository) GetCommentsByUserID(ctx context.Context, userID int) ([]db.SelectNovelaComment, error) {
 	query := `SELECT c.id, c.novela_id, n.title as novela_title, c.content, c.created_at, c.updated_at 
 			  FROM novela_comments c

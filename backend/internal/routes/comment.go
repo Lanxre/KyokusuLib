@@ -19,6 +19,7 @@ func (h *CommentRoutes) Register(cfg *config.Config, r *mux.Router) {
 	api.HandleFunc("/comments/unlike/{id:[0-9]+}", middleware.AuthMiddleware(h.Handler.UnlikeComment, cfg.JWTSecret)).Methods("POST")
 
 	api.HandleFunc("/comments/{id:[0-9]+}/report", middleware.AuthMiddleware(h.Handler.CreateCommnetReport, cfg.JWTSecret)).Methods("POST")
+	api.HandleFunc("/comments/{id:[0-9]+}/report", middleware.AuthMiddleware(h.Handler.CancelCommentReport, cfg.JWTSecret)).Methods("DELETE")
 
 	userCommentRouter.HandleFunc("/{id:[0-9]+}/comments", middleware.AuthMiddleware(h.Handler.GetCommentsByUserID, cfg.JWTSecret)).Methods("GET")
 }

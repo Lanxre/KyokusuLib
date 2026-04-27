@@ -231,3 +231,25 @@ func (h *CommentHandler) CreateCommnetReport(w http.ResponseWriter, r *http.Requ
 	
 	response.SuccessOkEmpty(w)
 }
+
+func (h *CommentHandler) CancelCommentReport(w http.ResponseWriter, r *http.Request) {
+	_, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusInternalServerError, "User not found")
+		return
+	}
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid comment ID format")
+		return
+	}
+
+	err = h.service.CancelCommentReport(r.Context(), id)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	
+	response.SuccessOkEmpty(w)
+}

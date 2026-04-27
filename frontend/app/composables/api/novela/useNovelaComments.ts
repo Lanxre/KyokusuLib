@@ -52,6 +52,12 @@ export function useNovelaComments() {
         });
     };
 
+    const cancelCommentReport = async (commentId: number) => {
+        return await $api(`/api/novela/comments/${commentId}/report`, {
+            method: 'DELETE'
+        });
+    };
+
     return { 
         comments, 
         isLoading, 
@@ -61,6 +67,7 @@ export function useNovelaComments() {
         updateComment,
         setCommentLike,
         unsetCommentLike,
-        reportComment
+        reportComment,
+        cancelCommentReport
     };
 }

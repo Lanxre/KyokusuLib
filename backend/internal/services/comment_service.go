@@ -81,6 +81,10 @@ func (s *CommentService) CreateCommentReport(ctx context.Context, commentID, use
 	return s.repo.CreateCommentReport(ctx, commentID, userID, reason)
 }
 
+func (s *CommentService) CancelCommentReport(ctx context.Context, commentID int) error {
+	return s.repo.CancelCommentReport(ctx, commentID)
+}
+
 func (s *CommentService) GetCommentsByUserID(ctx context.Context, userID int) ([]dto.ProfileUserCommentResponse, error) {
 	userComments, err := s.repo.GetCommentsByUserID(ctx, userID)
 	if err != nil {

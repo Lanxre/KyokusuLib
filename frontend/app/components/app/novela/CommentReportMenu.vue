@@ -4,14 +4,14 @@ import { onClickOutside } from "@vueuse/core";
 import { SearchSelect } from "@kyokusu-ui/vue";
 import { REPORT_COMMNET_REASONS } from "~/constants/data";
 
-const props = defineProps<{ commentId: number }>();
-const emit = defineEmits(["close", "submit"]);
+const props = defineProps<{ commentId: number, reported: boolean }>();
+const emit = defineEmits(["close", "submit", "cancel"]);
 
 const target = ref(null);
 const selectedReason = ref<string | null>(null);
 const error = ref(false);
 
-onClickOutside(target, () => emit("close"));
+onClickOutside(target, () => emit("close"), { ignore: ['.report-toggle-btn'] });
 
 const handleSend = () => {
     if (!selectedReason.value) {
@@ -21,6 +21,12 @@ const handleSend = () => {
     emit("submit", { commentId: props.commentId, reason: selectedReason.value });
     emit("close");
 };
+
+const handleSendCansel = () => {
+  emit("cancel", props.commentId)
+  emit("close")
+}
+
 </script>
 
 <template>
@@ -31,22 +37,26 @@ const handleSend = () => {
                 <SearchSelect
                     id="report-reason"
                     v-model="selectedReason"
-                    :selects="REPORT_COMMNET_REASONS"
+                    :options="REPORT_COMMNET_REASONS"
                     placeholder="Выберите причину"
                     :error="error && !selectedReason ? 'Обязательно выберите причину' : ''"
                 />
             </div>
 
             <div class="flex flex-col gap-2">
-                <button 
-                    @click="handleSend"
-                    class="w-full py-1.5 bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-colors cursor-pointer"
+                <button
+                    @click="!reported ? handleSend() : handleSendCansel()"
+                    class="w-full py-1.5 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-colors cursor-pointer"
+                    :class="[
+                      !reported ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+                    ]"
                 >
-                    Отправить репорт
+                    {{ !reported ? 'Отправить жалобу' : 'Отменить жалобу' }}
                 </button>
+                
                 <button 
                     @click="emit('close')"
-                    class="w-full py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 text-xs font-bold uppercase rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                    class="w-full py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 text-[10px] font-bold uppercase rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                 >
                     Отмена
                 </button>

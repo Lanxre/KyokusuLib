@@ -25,6 +25,7 @@ const {
     setCommentLike,
     unsetCommentLike,
     reportComment,
+    cancelCommentReport,
     isLoading: apiLoading 
 } = useNovelaComments();
 
@@ -221,8 +222,34 @@ const handleReport = async ({ commentId, reason }: { commentId: number, reason: 
                 desc: `Пользователь пожаловался на комментарий (ID: ${commentId})`,
             },
         });
+        const commentWithReport = comments.value.find(c => c.id === commentId);
+        
+        if (commentWithReport) {
+            commentWithReport.has_report = true;
+        }
+        
     } catch (e: any) {
         notify({ title: "Ошибка", content: e.message, type: "error" });
+    }
+};
+
+const handleReportCancel = async (id: number) => {
+    if (!isAuthenticated) {
+        isAuthModalOpen.value = true;
+        return;
+    }
+    
+    try {
+        await cancelCommentReport(id);
+        notify({ title: "Жалоба отменена", content: "Жалоба на комментарий отменена", type: "success" });
+    } catch (e: any) {
+        notify({ title: "Ошибка", content: e.message, type: "error" });
+    }
+    
+    const commentWithReport = comments.value.find(c => c.id === id);
+    
+    if (commentWithReport) {
+        commentWithReport.has_report = false;
     }
 };
 
@@ -307,6 +334,7 @@ const handleReport = async ({ commentId, reason }: { commentId: number, reason: 
                     @like="handleLike"
                     @unset-like="handleUnsetLike"
                     @report="handleReport"
+                    @cancel-report="handleReportCancel"
                 />
             </TransitionGroup>
         </div>

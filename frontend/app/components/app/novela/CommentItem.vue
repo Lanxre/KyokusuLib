@@ -12,10 +12,9 @@ interface Props {
 	userId?: number;
 }
 
-const route = useRoute();
 const props = defineProps<Props>();
-const emit = defineEmits(["reply", "delete", "update", "like", "unset-like", "report"]);
     
+const emit = defineEmits(["reply", "delete", "update", "like", "unset-like", "report", "cancel-report"]);
 const isReportMenuOpen = ref(false);
 const isExpanded = ref(false);
 
@@ -37,6 +36,14 @@ const handleLike = () => {
 const onReportSubmit = (payload: any) => {
     emit('report', payload);
 };
+
+const onReportCancel = (id: number) => {
+    emit('cancel-report', id);
+}
+
+const openReportMenu = () => {
+  isReportMenuOpen.value = !isReportMenuOpen.value;
+}
 
 </script>
 
@@ -96,26 +103,28 @@ const onReportSubmit = (payload: any) => {
                             </BaseToolTip>
                             <span class="text-[10px] font-bold text-zinc-400 cursor-default mt-0.5"> {{ comment.like_count }} </span>
                         </div>
-                        <div v-if="comment.user.id !== userId" class="flex flex-row justify-center gap-1">
+                        <div v-if="comment.user.id !== userId" class="flex flex-row justify-center gap-1 relative">
                             <BaseToolTip :text="comment.has_report ? 'Жалоба отправлена' : 'Пожаловаться'" position="left">
                                  <Icon
                                     :name="comment.has_report ? 'ph:flag-fill' : 'ph:flag-bold'"
                                     size="16" 
-                                    class="cursor-pointer transition-colors"
+                                    class="cursor-pointer transition-colors report-toggle-btn"
                                     :class="[
                                         isReportMenuOpen ? 'text-red-500' : '',
-                                        comment.has_report !== null ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'
+                                        comment.has_report !== null && comment.has_report === true ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'
                                     ]"
-                                    @click="isReportMenuOpen = !isReportMenuOpen"
-                                />
-
-                                <CommentReportMenu 
-                                    v-if="isReportMenuOpen" 
-                                    :comment-id="comment.id"
-                                    @close="isReportMenuOpen = false"
-                                    @submit="onReportSubmit"
+                                    @click ="openReportMenu"
                                 />
                             </BaseToolTip>
+
+                            <CommentReportMenu 
+                                v-if="isReportMenuOpen" 
+                                :comment-id="comment.id"
+                                :reported="Boolean(comment.has_report)"
+                                @close="isReportMenuOpen = false"
+                                @submit="onReportSubmit"
+                                @cancel="onReportCancel"
+                            />
                         </div>
                     </div>
                 </div>
