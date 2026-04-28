@@ -49,9 +49,18 @@ const goToLogin = () => {
         </NuxtLink>
 
         <nav class="hidden md:flex items-center gap-2 lg:gap-4">
-          <NuxtLink to="/catalog" class="px-6 py-3 rounded-2xl bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white">Каталог</NuxtLink>
-          <NuxtLink to="/top" class="px-6 py-3 rounded-2xl bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white">Топы</NuxtLink>
-          <NuxtLink to="/forum" class="px-6 py-3 rounded-2xl bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white">Форум</NuxtLink>
+          <NuxtLink to="/catalog" class="flex items-center gap-2 px-6 py-3 rounded-2xl bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white">
+              <Icon name="ph:books-bold" size="16" class="text-zinc-700 dark:text-zinc-200" />
+              Каталог
+          </NuxtLink>
+          <NuxtLink to="/top" class="flex items-center gap-2 px-6 py-3 rounded-2xl bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white">
+              <Icon name="ph:ranking-bold" size="16" class="text-zinc-700 dark:text-zinc-200" />
+              Топы
+          </NuxtLink>
+          <NuxtLink to="/forum" class="flex items-center gap-2 px-6 py-3 rounded-2xl bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-200 dark:hover:text-white">
+              <Icon name="ph:chats-circle-bold" size="16" class="text-zinc-700 dark:text-zinc-200" />
+              Форум
+          </NuxtLink>
         </nav>
       </div>
 
@@ -67,7 +76,7 @@ const goToLogin = () => {
         </button>
 
         <NuxtLink to="/bookmarks" class="hidden sm:flex items-center gap-2 px-4 py-3 rounded-full bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors">
-          <Icon name="ph:bookmark-simple-bold" size="20" class="text-zinc-700 dark:text-zinc-200" />
+          <Icon name="ph:bookmarks-bold" size="16" class="text-zinc-700 dark:text-zinc-200" />
           <span class="hidden lg:inline font-medium">Закладки</span>
         </NuxtLink>
 

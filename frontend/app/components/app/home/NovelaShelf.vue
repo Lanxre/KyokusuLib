@@ -4,6 +4,7 @@ import type { NovelaDetails } from "~/types/backend/novela";
 
 interface Props {
 	title: string;
+	titleIcon: string;
 	items: NovelaDetails[];
 	viewAllHref?: string;
 }
@@ -15,10 +16,13 @@ defineProps<Props>();
     <section class="flex flex-col gap-6 w-full py-2">
         <div class="flex items-end justify-between px-2">
             <div class="space-y-1">
-                <h2 class="text-xl md:text-2xl font-black tracking-tight text-zinc-900 dark:text-white uppercase italic">
-                    {{ title }}
+                <h2 class="flex items-start gap-3 text-xl md:text-2xl font-black tracking-tight text-zinc-900 dark:text-white uppercase italic">
+                    <div class="flex flex-col items-center gap-3">
+                        {{ title }}
+                        <div class="h-1 w-full bg-yellow-500 rounded-full"></div>
+                    </div>
+                    <Icon :name="titleIcon" size="20" class="text-zinc-700 dark:text-zinc-200 mt-2" />
                 </h2>
-                <div class="h-1 w-12 bg-yellow-500 rounded-full"></div>
             </div>
 
             <NuxtLink 

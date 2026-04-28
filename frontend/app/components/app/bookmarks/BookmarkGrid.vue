@@ -40,28 +40,28 @@ const handleSelect = (id: number, category: any) => {
 
 <template>
     <div class="min-h-100 relative">
-        <div v-if="loading" class="flex sm:grid overflow-x-auto sm:overflow-visible sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 sm:gap-6 pb-6 no-scrollbar">
-            <div v-for="i in 6" :key="i" class="w-28 sm:w-32 shrink-0 aspect-2/3 rounded-3xl bg-zinc-200 dark:bg-zinc-800 animate-pulse"></div>
+        <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 pb-6">
+            <div v-for="i in 10" :key="i" class="w-full aspect-[2/3] rounded-3xl bg-zinc-200 dark:bg-zinc-800 animate-pulse"></div>
         </div>
 
-        <div v-else-if="novels.length" class="flex sm:grid overflow-x-auto sm:overflow-visible sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 sm:gap-6 pb-6 no-scrollbar snap-x">
+        <div v-else-if="novels.length" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 pb-6">
             <div 
                 v-for="novela in novels" 
                 :key="novela.id" 
-                class="shrink-0 snap-start relative group"
+                class="relative group"
             >
-                <div class="w-40 h-70 md:h-auto">
+                <div class="w-full h-full">
                     <NovelaCard v-bind="novela" class="h-full" />
                 </div>
                 
                 <div 
-                    class="absolute -top-1 mt-3 right-2 transition-opacity z-10"
+                    class="absolute top-2 right-2 transition-opacity z-10"
                     :class="openMenuId === novela.id ? 'opacity-100' : 'opacity-100 sm:opacity-0 group-hover:opacity-100'"
                 >
                     <div class="relative">
                         <button 
                             @click.prevent="(e) => toggleMenu(e, novela.id)"
-                            class="w-6 h-6 rounded-xl bg-zinc-900/80 backdrop-blur border border-white/10 flex items-center justify-center text-white shadow-lg transition-transform hover:scale-110 cursor-pointer"
+                            class="w-8 h-8 rounded-xl bg-zinc-900/80 backdrop-blur border border-white/10 flex items-center justify-center text-white shadow-lg transition-transform hover:scale-110 cursor-pointer"
                         >
                             <Icon name="ph:dots-three-bold" size="20" />
                         </button>
@@ -70,7 +70,7 @@ const handleSelect = (id: number, category: any) => {
                             <div 
                                 v-if="openMenuId === novela.id"
                                 @click.stop
-                                class="absolute top-full -right-45 sm:-right-40 mt-2 w-48 p-1.5 z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl overflow-hidden origin-top-right"
+                                class="absolute top-full right-0 mt-2 w-48 p-1.5 z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl overflow-hidden origin-top-right"
                             >
                                 <div class="flex flex-col gap-0.5">
                                     <button

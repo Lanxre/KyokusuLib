@@ -97,11 +97,13 @@ const { data: trendingNovels } = await useAsyncData("novels-trending", () =>
 	<div class="w-full max-w-6xl mx-auto px-2 sm:px-4 py-6">
 		<NovelaShelf 
 			title="Трендовое" 
+			titleIcon="ph:books-bold"
 			:items="trendingNovels || []"
 		/>
 
 		<NovelaShelf 
 			title="Свежие главы" 
+			titleIcon="ph:book-open-bold"
 			:items="updatedNovels || []"
 		/>
 	</div>
