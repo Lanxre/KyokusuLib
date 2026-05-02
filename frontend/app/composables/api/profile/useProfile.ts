@@ -88,11 +88,16 @@ export function useProfile() {
 		isSelfProfile,
 		isPublicAccount,
 		isLoading: profileLoading,
-		profileTabs: [
-			{ id: "overview", label: "Обзор" },
-			{ id: "bookmarks", label: "Закладки" },
-			{ id: "comments", label: "Комментарии" },
-		],
+		profileTabs: authStore.isAuthenticated
+			? [
+					{ id: "overview", label: "Обзор" },
+		     	{ id: "bookmarks", label: "Закладки" },
+					{ id: "comments", label: "Комментарии" },
+				]
+      : [
+          { id: "overview", label: "Обзор" },
+					{ id: "comments", label: "Комментарии" },
+			],
 
 		userRoleColor: computed(() => getRoleColor(profileData.value?.role)),
 		userGender: computed(() => getGenderText(profileData.value?.gender)),

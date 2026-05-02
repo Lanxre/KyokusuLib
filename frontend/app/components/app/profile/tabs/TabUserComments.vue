@@ -26,7 +26,7 @@ await useAsyncData(`user-comments-${props.userId}`, () => fetchUserComments(prop
             <div class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover/link:bg-yellow-500 transition-colors">
               <Icon name="ph:book-open-bold" size="16" class="text-zinc-500 dark:text-zinc-400 group-hover/link:text-zinc-900" />
             </div>
-            <span class="text-sm font-black text-zinc-900 dark:text-zinc-100 group-hover/link:text-yellow-600 transition-colors truncate max-w-[200px] sm:max-w-md">
+            <span class="text-sm font-black text-zinc-900 dark:text-zinc-100 group-hover/link:text-yellow-600 transition-colors truncate max-w-50 sm:max-w-md">
               {{ comment.novela_title }}
             </span>
           </NuxtLink>

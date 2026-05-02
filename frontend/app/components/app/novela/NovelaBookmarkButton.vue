@@ -15,7 +15,7 @@ const emit = defineEmits(["update:modelValue"]);
 
 const { setBookmark, removeBookmark, fetchBookmarkCategories, loading, bookmarkCategories } =
 	useBookmark();
-const { isAuthenticated } = useAuthStore();
+const { isAuthenticated, user } = useAuthStore();
 
 const isPopoverOpen = ref(false);
 const isModalOpen = ref(false);
@@ -23,7 +23,7 @@ const containerRef = ref(null);
 
 onMounted(() => {
     if (isAuthenticated) {
-        fetchBookmarkCategories();
+        fetchBookmarkCategories(user!.id);
     }
 });
 

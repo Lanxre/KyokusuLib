@@ -17,9 +17,9 @@ export function useBookmark() {
 		{ id: "dropped", label: "Брошено", icon: "ph:prohibit-bold" },
 	]);
 
-	const fetchBookmarkCategories = async () => {
+	const fetchBookmarkCategories = async (user_id: number) => {
 		try {
-			const data = await $api<any[]>("/api/bookmarks/categories", {
+			const data = await $api<any[]>(`/api/bookmarks/categories?user_id=${user_id}`, {
 				method: "GET",
 			});
 			if (data) {
@@ -34,11 +34,12 @@ export function useBookmark() {
 					else if (cat.name === "dropped") { icon = "ph:prohibit-bold"; label = "Брошено"; }
 
 					return {
-						id: cat.id || cat.name, // Use ID if available
+						id: cat.id || cat.name,
 						label: label,
 						icon: icon,
 						user_id: cat.user_id,
 						count: cat.count || 0,
+						visible: cat.visible,
 					};
 				});
 			}
@@ -105,26 +106,27 @@ export function useBookmark() {
 		}
 	};
 
-	const createBookmarkCategory = async (name: string) => {
+	const createBookmarkCategory = async (user_id: number, name: string) => {
 		try {
-			await $api("/api/bookmarks/categories", {
+			const data = await $api<{ id: number; message: string }>("/api/bookmarks/categories", {
 				method: "POST",
 				body: { name },
-			});
-			await fetchBookmarkCategories();
+      });
+			
+			bookmarkCategories.value.push({ id: data.id, user_id: user_id, label: name, icon: "ph:bookmark-simple-bold", count: 0, visible: true })
 		} catch (e) {
 			console.error("Failed to create bookmark category:", e);
 			throw e;
 		}
 	};
 
-	const updateBookmarkCategory = async (id: number, name: string) => {
+	const updateBookmarkCategory = async (id: number, name: string, visible: boolean) => {
 		try {
 			await $api(`/api/bookmarks/categories/${id}`, {
 				method: "PUT",
-				body: { name },
+				body: { name, visible },
 			});
-			await fetchBookmarkCategories();
+			bookmarkCategories.value = bookmarkCategories.value.map(cat => cat.id === id ? { ...cat, label: name, visible } : cat);
 		} catch (e) {
 			console.error("Failed to update bookmark category:", e);
 			throw e;
@@ -136,7 +138,7 @@ export function useBookmark() {
 			await $api(`/api/bookmarks/categories/${id}`, {
 				method: "DELETE",
 			});
-			await fetchBookmarkCategories();
+			bookmarkCategories.value = bookmarkCategories.value.filter(cat => cat.id !== id);
 		} catch (e) {
 			console.error("Failed to delete bookmark category:", e);
 			throw e;

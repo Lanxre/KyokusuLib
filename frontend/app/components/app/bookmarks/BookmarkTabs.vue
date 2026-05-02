@@ -85,7 +85,7 @@ const handleTabClick = (e: Event, catId: BookmarkCategory) => {
                     <span v-if="cat.count !== undefined" 
                           class="
                           flex items-center justify-center 
-                          border-1 border-zinc-500 
+                          border border-zinc-500 
                           bg-zinc-200 dark:bg-zinc-800 
                           text-zinc-500 px-1.5 py-0.5 h-4 w-4
                           text-[10px] 

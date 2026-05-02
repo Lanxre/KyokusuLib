@@ -273,8 +273,8 @@ func (s *NovelaService) CreateBookmarkCategory(ctx context.Context, userID int, 
 	return s.BookmarkRepo.CreateCategory(ctx, userID, name)
 }
 
-func (s *NovelaService) UpdateBookmarkCategory(ctx context.Context, id int, userID int, name string) error {
-	return s.BookmarkRepo.UpdateCategory(ctx, id, userID, name)
+func (s *NovelaService) UpdateBookmarkCategory(ctx context.Context, id int, userID int, name string, visible bool) error {
+	return s.BookmarkRepo.UpdateCategory(ctx, id, userID, name, visible)
 }
 
 func (s *NovelaService) DeleteBookmarkCategory(ctx context.Context, id int, userID int) error {

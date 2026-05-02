@@ -337,13 +337,26 @@ func (h *NovelaHandler) GetUserNovelaBookmarks(w http.ResponseWriter, r *http.Re
 }
 
 func (h *NovelaHandler) GetBookmarkCategories(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	_, ok := r.Context().Value(middleware.UserIDKey).(int)
 	if !ok {
 		response.Error(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
-	categories, err := h.service.GetBookmarkCategories(r.Context(), userID)
+	query := r.URL.Query()
+	userID := query.Get("user_id")
+	if userID == "" {
+		response.Error(w, http.StatusBadRequest, "Missing user_id parameter")
+		return
+	}
+
+	userIDInt, err := strconv.Atoi(userID)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid user_id format")
+		return
+	}
+	
+	categories, err := h.service.GetBookmarkCategories(r.Context(), userIDInt)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
@@ -408,7 +421,12 @@ func (h *NovelaHandler) UpdateBookmarkCategory(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if err := h.service.UpdateBookmarkCategory(r.Context(), categoryID, userID, req.Name); err != nil {
+	visible := true
+	if req.Visible != nil {
+		visible = *req.Visible
+	}
+
+	if err := h.service.UpdateBookmarkCategory(r.Context(), categoryID, userID, req.Name, visible); err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}

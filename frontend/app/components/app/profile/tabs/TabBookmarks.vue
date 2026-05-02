@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
-import { getBookmarkCategoryLabel } from "@/types/frontend/bookmarks";
 import type { BookmarkCategory } from "@/types/frontend/bookmarks";
 import NovelaCard from "@/components/app/novela/NovelaCard.vue";
 import { useBookmark } from "~/composables/api/novela/useBookmark";
 
 const props = defineProps<{ userId: number }>();
 
+const { user } = useAuthStore();
 const activeCategory = ref<BookmarkCategory>("reading");
 
 const {
@@ -20,7 +20,7 @@ const {
 const load = () => fetchUserBookmarkNovels(props.userId, activeCategory.value);
 
 onMounted(() => {
-    fetchBookmarkCategories();
+    fetchBookmarkCategories(props.userId);
 });
 
 watch(activeCategory, load, { immediate: true });
@@ -70,6 +70,13 @@ const handleTabClick = (e: Event, catId: BookmarkCategory) => {
     }
     activeCategory.value = catId;
 };
+
+const tabVisible = (cat: any) => {
+  if (props.userId === user!.id) return true;
+  
+  return cat.visible && (cat.user_id === props.userId || cat.user_id === null);
+};
+
 </script>
 
 <template>
@@ -82,30 +89,33 @@ const handleTabClick = (e: Event, catId: BookmarkCategory) => {
             @mouseup="onMouseUp"
             @mousemove="onMouseMove"
         >
-            <button
-                v-for="cat in bookmarkCategories"
-                :key="cat.id"
-                @click="(e) => handleTabClick(e, cat.id as BookmarkCategory)"
-                class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap border cursor-pointer"
-                :class="[
-                    activeCategory === cat.id 
-                        ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-transparent shadow-lg'
-                        : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-400'
-                ]"
-            >
-                <div class="flex justify-center items-center gap-3">
-                    <Icon :name="cat.icon" size="16" />
-                    <div class="flex items-center gap-2">
-                        <span>{{ cat.label }}</span>
-                        <span v-if="cat.count !== undefined" class="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded-md" :class="activeCategory === cat.id ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-200' : ''">{{ cat.count }}</span>
+            <div v-for="cat in bookmarkCategories">
+                <button
+                    v-if="tabVisible(cat)"
+                    :key="cat.id"
+                    @click="(e) => handleTabClick(e, cat.id as BookmarkCategory)"
+                    class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap border cursor-pointer"
+                    :class="[
+                        activeCategory === cat.id 
+                            ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-transparent shadow-lg'
+                            : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-400'
+                    ]"
+                >
+                    <div class="flex justify-center items-center gap-3">
+                        <Icon :name="cat.icon" size="16" />
+                        <div class="flex items-center gap-2">
+                            <span>{{ cat.label }}</span>
+                            <span v-if="cat.count !== undefined" class="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded-md" :class="activeCategory === cat.id ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-200' : ''">{{ cat.count }}</span>
+                        </div>
                     </div>
-                </div>
-            </button>
+                </button>
+            </div>
+            
         </div>
 
         <div class="min-h-100 relative">
             <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                <div v-for="i in 5" :key="i" class="aspect-[2/3] rounded-2xl bg-zinc-200 dark:bg-zinc-800 animate-pulse"></div>
+                <div v-for="i in 5" :key="i" class="aspect-2/3 rounded-2xl bg-zinc-200 dark:bg-zinc-800 animate-pulse"></div>
             </div>
 
             <div v-else-if="!!userBookmarkNovels.length" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">

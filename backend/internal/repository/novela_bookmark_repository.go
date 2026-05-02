@@ -82,7 +82,7 @@ func (r *NovelaBookmarkRepository) GetCategoryByName(ctx context.Context, userID
 }
 
 func (r *NovelaBookmarkRepository) GetCategories(ctx context.Context, userID int) ([]db.BookmarkCategory, error) {
-	query := `SELECT id, user_id, name FROM bookmark_categories WHERE user_id IS NULL OR user_id = $1 ORDER BY id ASC`
+	query := `SELECT id, user_id, name, visible FROM bookmark_categories WHERE user_id IS NULL OR user_id = $1 ORDER BY id ASC`
 	rows, err := r.DB.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (r *NovelaBookmarkRepository) GetCategories(ctx context.Context, userID int
 	var categories []db.BookmarkCategory
 	for rows.Next() {
 		var cat db.BookmarkCategory
-		if err := rows.Scan(&cat.ID, &cat.UserID, &cat.Name); err != nil {
+		if err := rows.Scan(&cat.ID, &cat.UserID, &cat.Name, &cat.Visible); err != nil {
 			return nil, err
 		}
 		categories = append(categories, cat)
@@ -102,11 +102,11 @@ func (r *NovelaBookmarkRepository) GetCategories(ctx context.Context, userID int
 
 func (r *NovelaBookmarkRepository) GetCategoriesWithCount(ctx context.Context, userID int) ([]db.BookmarkCategoryCount, error) {
 	query := `
-		SELECT c.id, c.user_id, c.name, COUNT(b.novela_id) as count
+		SELECT c.id, c.user_id, c.name, c.visible, COUNT(b.novela_id) as count
 		FROM bookmark_categories c
 		LEFT JOIN user_novela_bookmarks b ON c.id = b.category_id AND b.user_id = $1
 		WHERE c.user_id IS NULL OR c.user_id = $1
-		GROUP BY c.id, c.user_id, c.name
+		GROUP BY c.id, c.user_id, c.name, c.visible
 		ORDER BY c.id ASC`
 	
 	rows, err := r.DB.QueryContext(ctx, query, userID)
@@ -118,7 +118,7 @@ func (r *NovelaBookmarkRepository) GetCategoriesWithCount(ctx context.Context, u
 	var categories []db.BookmarkCategoryCount
 	for rows.Next() {
 		var cat db.BookmarkCategoryCount
-		if err := rows.Scan(&cat.ID, &cat.UserID, &cat.Name, &cat.Count); err != nil {
+		if err := rows.Scan(&cat.ID, &cat.UserID, &cat.Name, &cat.Visible, &cat.Count); err != nil {
 			return nil, err
 		}
 		categories = append(categories, cat)
@@ -133,9 +133,9 @@ func (r *NovelaBookmarkRepository) CreateCategory(ctx context.Context, userID in
 	return id, err
 }
 
-func (r *NovelaBookmarkRepository) UpdateCategory(ctx context.Context, id int, userID int, name string) error {
-	query := `UPDATE bookmark_categories SET name = $1 WHERE id = $2 AND user_id = $3`
-	res, err := r.DB.ExecContext(ctx, query, name, id, userID)
+func (r *NovelaBookmarkRepository) UpdateCategory(ctx context.Context, id int, userID int, name string, visible bool) error {
+	query := `UPDATE bookmark_categories SET name = $1, visible = $2 WHERE id = $3 AND user_id = $4`
+	res, err := r.DB.ExecContext(ctx, query, name, visible, id, userID)
 	if err != nil {
 		return err
 	}

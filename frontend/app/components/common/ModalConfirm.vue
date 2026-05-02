@@ -34,7 +34,7 @@ const onCancel = () => {
 </script>
 
 <template>
-  <div>
+  <div class="modal-confirm">
     <ModalWindow 
       :model-value="modelValue" 
       @update:model-value="$emit('update:modelValue', $event)"
@@ -51,7 +51,7 @@ const onCancel = () => {
           <Button variant="outline" @click="onCancel">
             {{ cancelText }}
           </Button>
-          <Button variant="solid" color="danger" @click="onConfirm">
+          <Button variant="danger" @click="onConfirm">
             {{ confirmText }}
           </Button>
         </div>

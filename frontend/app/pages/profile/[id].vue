@@ -4,32 +4,34 @@ import ProfileSelfContent from "~/components/app/profile/ProfileSelfContent.vue"
 import ProfilePublic from "~/components/app/profile/ProfilePublic.vue";
 import ProfilePrivate from "~/components/app/profile/ProfilePrivate.vue";
 
+
 const route = useRoute();
-const userIdParam = route.params.id as string;
+const { profileData, isSelfProfile, isPublicAccount, init, profileError } = useProfile();
 
-if (!/^\d+$/.test(userIdParam)) {
-	await navigateTo("/");
-}
+definePageMeta({
+    middleware: (to) => {
+        if (!/^\d+$/.test(to.params.id as string)) {
+            return navigateTo('/');
+        }
+    }
+});
 
-const userId = Number(userIdParam);
-const { profileData, isSelfProfile, isPublicAccount, init, profileError } =
-	useProfile();
+const userId = computed(() => Number(route.params.id));
 
 const { status } = await useAsyncData(
-	`profile-data-${userId}`,
-	() => init(userId),
-	{ watch: [() => route.params.id] },
+    `profile-${userId.value}`,
+    () => init(userId.value),
+    { watch: [userId] }
 );
 
 if (profileError.value) {
-	await navigateTo("/");
+    throw createError({ statusCode: 404 });
 }
 
 useSeoMeta({
-	title: () =>
-		profileData.value?.name ? `${profileData.value.name} - Профиль` : "Профиль",
-	ogTitle: () => profileData.value?.name,
-	ogImage: () => profileData.value?.picture,
+    title: () => profileData.value?.name ? `${profileData.value.name} - Профиль` : "Профиль",
+    ogTitle: () => profileData.value?.name,
+    ogImage: () => profileData.value?.picture,
 });
 </script>
 
@@ -42,7 +44,7 @@ useSeoMeta({
             </svg>
         </div>
 
-        <div v-else>
+        <div v-else-if="profileData">
             <ProfileSelfContent v-if="isSelfProfile" />
             <ProfilePublic v-else-if="isPublicAccount" :profileData="profileData" />
             <ProfilePrivate v-else :profileData="profileData" />

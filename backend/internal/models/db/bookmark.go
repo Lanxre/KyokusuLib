@@ -1,16 +1,18 @@
 package db
 
 type BookmarkCategory struct {
-	ID     int    `json:"id"`
-	UserID *int   `json:"user_id"`
-	Name   string `json:"name"`
+	ID      int    `json:"id"`
+	UserID  *int   `json:"user_id"`
+	Name    string `json:"name"`
+	Visible bool   `json:"visible"`
 }
 
 type BookmarkCategoryCount struct {
-	ID     int    `json:"id"`
-	UserID *int   `json:"user_id"`
-	Name   string `json:"name"`
-	Count  int    `json:"count"`
+	ID      int    `json:"id"`
+	UserID  *int   `json:"user_id"`
+	Name    string `json:"name"`
+	Visible bool   `json:"visible"`
+	Count   int    `json:"count"`
 }
 
 type Bookmark struct {

@@ -28,7 +28,7 @@ const load = () => {
 
 onMounted(async () => { 
     if (authStore.user) {
-        await fetchBookmarkCategories();
+        await fetchBookmarkCategories(authStore.user.id);
         load(); 
     }
 });

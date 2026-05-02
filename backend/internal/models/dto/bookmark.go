@@ -7,7 +7,8 @@ type UpdateBookmarkRequest struct {
 }
 
 type BookmarkCategoryRequest struct {
-	Name string `json:"name" validate:"required"`
+	Name    string `json:"name" validate:"required"`
+	Visible *bool  `json:"visible"`
 }
 
 type DeleteBookmarkRequest struct {
