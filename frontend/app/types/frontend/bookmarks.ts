@@ -1,14 +1,10 @@
-export type BookmarkCategory =
-	| "planned"
-	| "reading"
-	| "completed"
-	| "on_hold"
-	| "dropped";
+export type BookmarkCategory = string | number;
 
 export interface Bookmark {
 	user_id: number;
 	novela_id: number;
 	category: BookmarkCategory;
+	category_id?: number;
 	created_at: string;
 	updated_at: string;
 }
@@ -26,6 +22,6 @@ export function getBookmarkCategoryLabel(category: BookmarkCategory): string {
 		case "dropped":
 			return "Брошено";
 		default:
-			return "";
+			return category.toString();
 	}
 }

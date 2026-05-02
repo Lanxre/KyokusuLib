@@ -86,6 +86,7 @@ func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, user
 		authorsJSON []byte
 		volumesJSON []byte
 		userRating  sql.NullInt32
+		bookmark    sql.NullString
 	)
 
 	query := `
@@ -150,7 +151,7 @@ func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, user
 			), '[]'),
 
 			CASE 
-				WHEN $2 > 0 THEN (SELECT category FROM user_novela_bookmarks WHERE novela_id = n.id AND user_id = $2)
+				WHEN $2 > 0 THEN (SELECT c.name FROM user_novela_bookmarks b JOIN bookmark_categories c ON b.category_id = c.id WHERE b.novela_id = n.id AND b.user_id = $2)
 				ELSE NULL 
 			END as user_category,
 
@@ -183,7 +184,7 @@ func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, user
 		pq.Array(&n.Categories),
 		&authorsJSON,
 		&volumesJSON,
-		&n.Bookmark,
+		&bookmark,
 		&n.HasLiked,
 		&n.LikeCount,
 		&userRating,
@@ -208,9 +209,8 @@ func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, user
 		}
 	}
 
-	if n.Bookmark != nil {
-		val := db.BookmarkCategory(*n.Bookmark)
-		n.Bookmark = &val
+	if bookmark.Valid {
+		n.Bookmark = &db.BookmarkCategory{Name: bookmark.String}
 	}
 
 	if userRating.Valid {
@@ -483,15 +483,15 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
         (SELECT MAX(created_at) FROM novela_chapters ch JOIN novela_volumes v ON ch.novela_volume_id = v.id WHERE v.novela_id = n.id) as last_chapter_at,
         
         -- Поля пользователя
-        (SELECT category FROM user_novela_bookmarks WHERE novela_id = n.id AND user_id = $1) as user_bookmark,
+        (SELECT c.name FROM user_novela_bookmarks b JOIN bookmark_categories c ON b.category_id = c.id WHERE b.novela_id = n.id AND b.user_id = $1) as user_bookmark,
         
         COALESCE((SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $1), FALSE) as has_liked
 
     FROM novela n
     WHERE %s
     ORDER BY %s
-    LIMIT $%d OFFSET $%d`, 
-    strings.Join(where, " AND "), orderBy, argID, argID+1)
+    LIMIT $%d OFFSET $%d`,
+		strings.Join(where, " AND "), orderBy, argID, argID+1)
 
 	finalArgs := append(args, f.Limit, f.Offset)
 	rows, err := tx.QueryContext(ctx, query, finalArgs...)
@@ -504,6 +504,7 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 	for rows.Next() {
 		var n db.Novela
 		var lastChapterAt sql.NullTime
+		var bookmark sql.NullString
 		err := rows.Scan(
 			&n.ID,
 			&n.Title,
@@ -516,12 +517,17 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 			pq.Array(&n.Categories),
 			&n.Rating,
 			&lastChapterAt,
-			&n.Bookmark,
+			&bookmark,
 			&n.HasLiked,
 		)
 		if err != nil {
 			return nil, 0, err
 		}
+
+		if bookmark.Valid {
+			n.Bookmark = &db.BookmarkCategory{Name: bookmark.String}
+		}
+
 		novelas = append(novelas, n)
 	}
 
@@ -533,16 +539,16 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 
 	return novelas, total, nil
 }
-func (r *NovelaRepository) GetUserNovelaBookmarks(ctx context.Context, userID int, category db.BookmarkCategory) ([]db.UserNovelaBookmark, error) {
+func (r *NovelaRepository) GetUserNovelaBookmarks(ctx context.Context, userID int, categoryID int) ([]db.UserNovelaBookmark, error) {
 	query := `
 		SELECT n.id, n.title, n.poster_url, n.type,
 		       COALESCE((SELECT AVG(rating) FROM novela_ratings WHERE novela_id = n.id), 0) as rating
 		FROM novela n
 		JOIN user_novela_bookmarks b ON n.id = b.novela_id
-		WHERE b.user_id = $1 AND b.category = $2
+		WHERE b.user_id = $1 AND b.category_id = $2
 		ORDER BY b.updated_at DESC`
 
-	rows, err := r.DB.QueryContext(ctx, query, userID, category)
+	rows, err := r.DB.QueryContext(ctx, query, userID, categoryID)
 	if err != nil {
 		return nil, err
 	}
@@ -556,6 +562,6 @@ func (r *NovelaRepository) GetUserNovelaBookmarks(ctx context.Context, userID in
 		}
 		novelas = append(novelas, n)
 	}
-	
+
 	return novelas, nil
 }

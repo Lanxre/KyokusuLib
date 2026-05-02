@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { onClickOutside } from "@vueuse/core";
 import { useBookmark } from "@/composables/api/novela/useBookmark";
 import { useAuthStore } from "#imports";
@@ -13,13 +13,19 @@ interface Props {
 const props = defineProps<Props>();
 const emit = defineEmits(["update:modelValue"]);
 
-const { setBookmark, removeBookmark, loading, bookmarkCategories } =
+const { setBookmark, removeBookmark, fetchBookmarkCategories, loading, bookmarkCategories } =
 	useBookmark();
 const { isAuthenticated } = useAuthStore();
 
 const isPopoverOpen = ref(false);
 const isModalOpen = ref(false);
 const containerRef = ref(null);
+
+onMounted(() => {
+    if (isAuthenticated) {
+        fetchBookmarkCategories();
+    }
+});
 
 onClickOutside(containerRef, () => {
 	isPopoverOpen.value = false;
@@ -28,7 +34,7 @@ onClickOutside(containerRef, () => {
 const currentLabel = computed(() => {
 	if (!props.modelValue) return "В закладки";
 	return (
-		bookmarkCategories.find((c) => c.id === props.modelValue)?.label ||
+		bookmarkCategories.value?.find?.((c: any) => c.id === props.modelValue)?.label ||
 		"В закладки"
 	);
 });

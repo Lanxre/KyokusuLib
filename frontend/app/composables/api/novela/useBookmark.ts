@@ -9,23 +9,57 @@ export function useBookmark() {
 	);
 	const loading = ref(false);
 
-	const bookmarkCategories = [
+	const bookmarkCategories = useState<any[]>("user-bookmark-categories", () => [
 		{ id: "planned", label: "В планах", icon: "ph:book-open-bold" },
 		{ id: "reading", label: "Читаю", icon: "ph:calendar-blank-bold" },
 		{ id: "completed", label: "Прочитано", icon: "ph:check-circle-bold" },
 		{ id: "on_hold", label: "Отложено", icon: "ph:pause-circle-bold" },
 		{ id: "dropped", label: "Брошено", icon: "ph:prohibit-bold" },
-	];
+	]);
+
+	const fetchBookmarkCategories = async () => {
+		try {
+			const data = await $api<any[]>("/api/bookmarks/categories", {
+				method: "GET",
+			});
+			if (data) {
+				bookmarkCategories.value = data.map((cat: any) => {
+					let icon = "ph:bookmark-simple-bold";
+					let label = cat.name;
+
+					if (cat.name === "planned") { icon = "ph:book-open-bold"; label = "В планах"; }
+					else if (cat.name === "reading") { icon = "ph:calendar-blank-bold"; label = "Читаю"; }
+					else if (cat.name === "completed") { icon = "ph:check-circle-bold"; label = "Прочитано"; }
+					else if (cat.name === "on_hold") { icon = "ph:pause-circle-bold"; label = "Отложено"; }
+					else if (cat.name === "dropped") { icon = "ph:prohibit-bold"; label = "Брошено"; }
+
+					return {
+						id: cat.id || cat.name, // Use ID if available
+						label: label,
+						icon: icon,
+						user_id: cat.user_id,
+						count: cat.count || 0,
+					};
+				});
+			}
+		} catch (e) {
+			console.error("Failed to fetch bookmark categories:", e);
+		}
+	};
 
 	const setBookmark = async (novelaId: number, category: BookmarkCategory) => {
 		loading.value = true;
 		try {
+			const body: Record<string, any> = { novela_id: novelaId };
+			if (typeof category === 'number') {
+				body.category_id = category;
+			} else {
+				body.category = category;
+			}
+
 			const data = await $api("/api/novela/bookmark", {
 				method: "POST",
-				body: {
-					novela_id: novelaId,
-					category: category,
-				},
+				body,
 			});
 
 			return data;
@@ -71,9 +105,51 @@ export function useBookmark() {
 		}
 	};
 
+	const createBookmarkCategory = async (name: string) => {
+		try {
+			await $api("/api/bookmarks/categories", {
+				method: "POST",
+				body: { name },
+			});
+			await fetchBookmarkCategories();
+		} catch (e) {
+			console.error("Failed to create bookmark category:", e);
+			throw e;
+		}
+	};
+
+	const updateBookmarkCategory = async (id: number, name: string) => {
+		try {
+			await $api(`/api/bookmarks/categories/${id}`, {
+				method: "PUT",
+				body: { name },
+			});
+			await fetchBookmarkCategories();
+		} catch (e) {
+			console.error("Failed to update bookmark category:", e);
+			throw e;
+		}
+	};
+
+	const deleteBookmarkCategory = async (id: number) => {
+		try {
+			await $api(`/api/bookmarks/categories/${id}`, {
+				method: "DELETE",
+			});
+			await fetchBookmarkCategories();
+		} catch (e) {
+			console.error("Failed to delete bookmark category:", e);
+			throw e;
+		}
+	};
+
 	return {
 		loading,
 		bookmarkCategories,
+		fetchBookmarkCategories,
+		createBookmarkCategory,
+		updateBookmarkCategory,
+		deleteBookmarkCategory,
 		setBookmark,
 		removeBookmark,
 		fetchUserBookmarkNovels,

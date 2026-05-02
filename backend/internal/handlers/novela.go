@@ -46,7 +46,6 @@ func (h *NovelaHandler) GetNovela(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusOK, novela)
 }
 
-
 func (h *NovelaHandler) CreateNovela(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		response.Error(w, http.StatusBadRequest, "File too big or invalid format")
@@ -273,12 +272,16 @@ func (h *NovelaHandler) GetNovelas(w http.ResponseWriter, r *http.Request) {
 
 	toInt := func(k string, d int) int {
 		v, err := strconv.Atoi(q.Get(k))
-		if err != nil { return d }
+		if err != nil {
+			return d
+		}
 		return v
 	}
 
 	parseCSV := func(k string) []string {
-		if v := q.Get(k); v != "" { return strings.Split(v, ",") }
+		if v := q.Get(k); v != "" {
+			return strings.Split(v, ",")
+		}
 		return q[k]
 	}
 
@@ -305,7 +308,7 @@ func (h *NovelaHandler) GetNovelas(w http.ResponseWriter, r *http.Request) {
 
 func (h *NovelaHandler) GetUserNovelaBookmarks(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	
+
 	userID := query.Get("user_id")
 	if userID == "" {
 		response.Error(w, http.StatusBadRequest, "Missing user_id parameter")
@@ -333,3 +336,105 @@ func (h *NovelaHandler) GetUserNovelaBookmarks(w http.ResponseWriter, r *http.Re
 	response.SuccessWithEntity(w, http.StatusOK, novelas)
 }
 
+func (h *NovelaHandler) GetBookmarkCategories(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	categories, err := h.service.GetBookmarkCategories(r.Context(), userID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.SuccessWithEntity(w, http.StatusOK, categories)
+}
+
+func (h *NovelaHandler) CreateBookmarkCategory(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	var req dto.BookmarkCategoryRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if err := h.Validator.Struct(req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Validation error: "+err.Error())
+		return
+	}
+
+	id, err := h.service.CreateBookmarkCategory(r.Context(), userID, req.Name)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.JSON(w, http.StatusCreated, map[string]any{
+		"id":      id,
+		"message": "Category created successfully",
+	})
+}
+
+func (h *NovelaHandler) UpdateBookmarkCategory(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	vars := mux.Vars(r)
+	categoryIDStr := vars["id"]
+	categoryID, err := strconv.Atoi(categoryIDStr)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid category ID")
+		return
+	}
+
+	var req dto.BookmarkCategoryRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if err := h.Validator.Struct(req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Validation error: "+err.Error())
+		return
+	}
+
+	if err := h.service.UpdateBookmarkCategory(r.Context(), categoryID, userID, req.Name); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.SuccessOkEmpty(w)
+}
+
+func (h *NovelaHandler) DeleteBookmarkCategory(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	vars := mux.Vars(r)
+	categoryIDStr := vars["id"]
+	categoryID, err := strconv.Atoi(categoryIDStr)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid category ID")
+		return
+	}
+
+	if err := h.service.DeleteBookmarkCategory(r.Context(), categoryID, userID); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.SuccessOkEmpty(w)
+}

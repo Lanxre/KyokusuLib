@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"mime/multipart"
+	"strconv"
 	"time"
 
 	"github.com/lanxre/kyokusulib/internal/models/db"
@@ -14,10 +15,10 @@ import (
 )
 
 type NovelaService struct {
-	Repo                     *repository.NovelaRepository
-	RatingRepo         *repository.NovelaRatingRepository
+	Repo         *repository.NovelaRepository
+	RatingRepo   *repository.NovelaRatingRepository
 	BookmarkRepo *repository.NovelaBookmarkRepository
-	LikeRepo    *repository.NovelaLikeRepository
+	LikeRepo     *repository.NovelaLikeRepository
 }
 
 func NewNovelaService(repo *repository.NovelaRepository,
@@ -26,10 +27,10 @@ func NewNovelaService(repo *repository.NovelaRepository,
 	novelaLikeRepo *repository.NovelaLikeRepository,
 ) *NovelaService {
 	return &NovelaService{
-		Repo: repo,
-		RatingRepo: novelaRatingRepo,
+		Repo:         repo,
+		RatingRepo:   novelaRatingRepo,
 		BookmarkRepo: novelaBookmarkRepo,
-		LikeRepo: novelaLikeRepo,
+		LikeRepo:     novelaLikeRepo,
 	}
 }
 
@@ -55,7 +56,6 @@ func (s *NovelaService) GetNovelaById(ctx context.Context, id, userID int) (*dto
 	return res, nil
 }
 
-
 func (s *NovelaService) UploadPoster(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
 	return files.UploadImage(ctx, file, header, "/novelas/posters", 600, 900)
 }
@@ -68,15 +68,19 @@ func (s *NovelaService) Create(ctx context.Context, novela *db.Novela) error {
 	return s.Repo.Create(ctx, novela)
 }
 
-func (s *NovelaService) SetBookmark(context context.Context, userID int, req dto.UpdateBookmarkRequest) error {
-
-	dbBookmark := &db.Bookmark{
-		UserID:   userID,
-		NovelaID: req.NovelaID,
-		Category: db.BookmarkCategory(req.Category),
+func (s *NovelaService) SetBookmark(ctx context.Context, userID int, req dto.UpdateBookmarkRequest) error {
+	categoryID := req.CategoryID
+	if categoryID == 0 && req.Category != "" {
+		id, err := s.BookmarkRepo.GetCategoryByName(ctx, userID, req.Category)
+		if err != nil {
+			return errors.New("invalid category")
+		}
+		categoryID = id
+	} else if categoryID == 0 {
+		return errors.New("category is required")
 	}
 
-	return s.BookmarkRepo.SetBookmark(context, dbBookmark)
+	return s.BookmarkRepo.SetBookmark(ctx, userID, req.NovelaID, categoryID)
 }
 
 func (s *NovelaService) RemoveBookmark(ctx context.Context, userID, novelaID int) error {
@@ -133,7 +137,9 @@ func (s *NovelaService) UpdateNovela(ctx context.Context, id int, req dto.Update
 }
 
 func (s *NovelaService) GetNovelas(ctx context.Context, userID int, f dto.NovelaFilters) ([]dto.NovelaResponse, int, error) {
-	if f.Limit <= 0 || f.Limit > 100 { f.Limit = 20 }
+	if f.Limit <= 0 || f.Limit > 100 {
+		f.Limit = 20
+	}
 
 	tx, err := s.Repo.DB.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
 	if err != nil {
@@ -163,7 +169,21 @@ func (s *NovelaService) GetNovelas(ctx context.Context, userID int, f dto.Novela
 }
 
 func (s *NovelaService) GetUserNovelaBookmarks(ctx context.Context, userID int, category string) ([]dto.UserNovelaBookmark, error) {
-	novelas, err := s.Repo.GetUserNovelaBookmarks(ctx, userID, db.BookmarkCategory(category))
+	var categoryID int
+	var err error
+
+	// If the category is a number, it's already an ID
+	if id, parseErr := strconv.Atoi(category); parseErr == nil {
+		categoryID = id
+	} else {
+		// Otherwise, look it up by name
+		categoryID, err = s.BookmarkRepo.GetCategoryByName(ctx, userID, category)
+		if err != nil {
+			return nil, errors.New("Invalid category type")
+		}
+	}
+
+	novelas, err := s.Repo.GetUserNovelaBookmarks(ctx, userID, categoryID)
 	if err != nil {
 		return nil, errors.New("Invalid category type ")
 	}
@@ -203,7 +223,7 @@ func (s *NovelaService) novelaToDto(n *db.Novela) *dto.NovelaResponse {
 
 	var bookmark *string
 	if n.Bookmark != nil {
-		str := string(*n.Bookmark)
+		str := n.Bookmark.Name
 		bookmark = &str
 	}
 
@@ -222,10 +242,12 @@ func (s *NovelaService) mapRatingToDto(data *db.NovelaRatingSummary) dto.NovelaR
 	if data == nil {
 		return dto.NovelaRatingCategory{NCItems: items}
 	}
-	
+
 	for i := 10; i >= 1; i-- {
 		count := 0
-		if val, ok := data.Distribution[i]; ok { count = val }
+		if val, ok := data.Distribution[i]; ok {
+			count = val
+		}
 		items = append(items, dto.NCItem{Value: i, Count: count})
 	}
 	return dto.NovelaRatingCategory{Total: data.TotalCount, TotalRating: data.AverageRating, NCItems: items}
@@ -237,10 +259,24 @@ func (s *NovelaService) mapBookmarkToDto(data *db.NovelaBookmarkSummary) dto.Nov
 		return dto.NovelaBookmarkCategory{NCItems: items}
 	}
 
-	for _, cat := range db.BookmarkCategories {
-		count := 0
-		if val, ok := data.Distribution[string(cat)]; ok { count = val }
-		items = append(items, dto.NCItem{Value: string(cat), Count: count})
+	for catName, count := range data.Distribution {
+		items = append(items, dto.NCItem{Value: catName, Count: count})
 	}
 	return dto.NovelaBookmarkCategory{Total: data.TotalCount, NCItems: items}
+}
+
+func (s *NovelaService) GetBookmarkCategories(ctx context.Context, userID int) ([]db.BookmarkCategoryCount, error) {
+	return s.BookmarkRepo.GetCategoriesWithCount(ctx, userID)
+}
+
+func (s *NovelaService) CreateBookmarkCategory(ctx context.Context, userID int, name string) (int, error) {
+	return s.BookmarkRepo.CreateCategory(ctx, userID, name)
+}
+
+func (s *NovelaService) UpdateBookmarkCategory(ctx context.Context, id int, userID int, name string) error {
+	return s.BookmarkRepo.UpdateCategory(ctx, id, userID, name)
+}
+
+func (s *NovelaService) DeleteBookmarkCategory(ctx context.Context, id int, userID int) error {
+	return s.BookmarkRepo.DeleteCategory(ctx, id, userID)
 }

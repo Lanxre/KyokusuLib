@@ -1,26 +1,20 @@
 package db
 
-type BookmarkCategory string
+type BookmarkCategory struct {
+	ID     int    `json:"id"`
+	UserID *int   `json:"user_id"`
+	Name   string `json:"name"`
+}
 
-const (
-    CategoryPlanned   BookmarkCategory = "planned"
-    CategoryReading   BookmarkCategory = "reading"
-    CategoryCompleted BookmarkCategory = "completed"
-    CategoryOnHold    BookmarkCategory = "on_hold"
-    CategoryDropped   BookmarkCategory = "dropped"
-)
-
-var BookmarkCategories = []BookmarkCategory{
-    CategoryPlanned,
-    CategoryReading,
-    CategoryCompleted,
-    CategoryOnHold,
-    CategoryDropped,
+type BookmarkCategoryCount struct {
+	ID     int    `json:"id"`
+	UserID *int   `json:"user_id"`
+	Name   string `json:"name"`
+	Count  int    `json:"count"`
 }
 
 type Bookmark struct {
-    UserID   int              `json:"user_id"`
-    NovelaID int              `json:"novela_id"`
-    Category BookmarkCategory `json:"category"`
+	UserID     int `json:"user_id"`
+	NovelaID   int `json:"novela_id"`
+	CategoryID int `json:"category_id"`
 }
-

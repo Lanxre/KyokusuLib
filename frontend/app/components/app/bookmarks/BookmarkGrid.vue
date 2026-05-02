@@ -70,7 +70,7 @@ const handleSelect = (id: number, category: any) => {
                             <div 
                                 v-if="openMenuId === novela.id"
                                 @click.stop
-                                class="absolute top-full right-0 mt-2 w-48 p-1.5 z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl overflow-hidden origin-top-right"
+                                class="absolute top-full -right-40 mt-1.4 w-48 p-1.5 z-50 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl overflow-hidden origin-top-right"
                             >
                                 <div class="flex flex-col gap-0.5">
                                     <button

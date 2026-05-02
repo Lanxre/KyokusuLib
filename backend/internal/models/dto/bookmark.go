@@ -1,8 +1,13 @@
 package dto
 
 type UpdateBookmarkRequest struct {
-	NovelaID int `json:"novela_id" validate:"required,gt=0"`
-	Category string `json:"category" validate:"required,oneof=planned reading completed on_hold dropped"`
+	NovelaID   int    `json:"novela_id" validate:"required,gt=0"`
+	Category   string `json:"category"`
+	CategoryID int    `json:"category_id"`
+}
+
+type BookmarkCategoryRequest struct {
+	Name string `json:"name" validate:"required"`
 }
 
 type DeleteBookmarkRequest struct {

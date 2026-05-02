@@ -17,16 +17,16 @@ func NewNovelaBookmarkRepository(db *sql.DB) *NovelaBookmarkRepository {
 	return &NovelaBookmarkRepository{DB: db}
 }
 
-func (r *NovelaBookmarkRepository) SetBookmark(ctx context.Context, bookmark *db.Bookmark) error {
+func (r *NovelaBookmarkRepository) SetBookmark(ctx context.Context, userID, novelaID, categoryID int) error {
 	query := `
-		INSERT INTO user_novela_bookmarks (user_id, novela_id, category, updated_at) 
+		INSERT INTO user_novela_bookmarks (user_id, novela_id, category_id, updated_at) 
 		VALUES ($1, $2, $3, CURRENT_TIMESTAMP) 
 		ON CONFLICT (user_id, novela_id) 
 		DO UPDATE SET 
-			category = EXCLUDED.category, 
+			category_id = EXCLUDED.category_id, 
 			updated_at = CURRENT_TIMESTAMP`
 
-	_, err := r.DB.ExecContext(ctx, query, bookmark.UserID, bookmark.NovelaID, bookmark.Category)
+	_, err := r.DB.ExecContext(ctx, query, userID, novelaID, categoryID)
 	return err
 }
 
@@ -38,21 +38,23 @@ func (r *NovelaBookmarkRepository) RemoveBookmark(ctx context.Context, userID, n
 
 func (r *NovelaBookmarkRepository) GetBookmarkStats(tx *sql.Tx, ctx context.Context, novelaID int) (*db.NovelaBookmarkSummary, error) {
 	query := `
- 		SELECT
-	        SUM(count) AS total_count,
-			COALESCE(jsonb_object_agg(category, count), '{}'::jsonb)
+		SELECT 
+			COALESCE(SUM(s.count), 0) as total_count,
+			COALESCE(jsonb_object_agg(c.name, s.count), '{}'::jsonb)
 		FROM (
-			SELECT category, COUNT(*) as count 
+			SELECT category_id, COUNT(*) as count 
 			FROM user_novela_bookmarks 
 			WHERE novela_id = $1 
-			GROUP BY category
-		) s`
+			GROUP BY category_id
+		) s
+		JOIN bookmark_categories c ON s.category_id = c.id`
 
 	var summary db.NovelaBookmarkSummary
 	var distJSON []byte
+	var totalCount int
 
 	err := tx.QueryRowContext(ctx, query, novelaID).Scan(
-		&summary.TotalCount,
+		&totalCount,
 		&distJSON,
 	)
 
@@ -62,11 +64,103 @@ func (r *NovelaBookmarkRepository) GetBookmarkStats(tx *sql.Tx, ctx context.Cont
 		}
 		return nil, err
 	}
-	
+
+	summary.TotalCount = totalCount
 	summary.Distribution = make(map[string]int)
 	if len(distJSON) > 0 {
 		json.Unmarshal(distJSON, &summary.Distribution)
 	}
 
 	return &summary, nil
+}
+
+func (r *NovelaBookmarkRepository) GetCategoryByName(ctx context.Context, userID int, name string) (int, error) {
+	query := `SELECT id FROM bookmark_categories WHERE name = $1 AND (user_id IS NULL OR user_id = $2) ORDER BY user_id DESC NULLS LAST LIMIT 1`
+	var id int
+	err := r.DB.QueryRowContext(ctx, query, name, userID).Scan(&id)
+	return id, err
+}
+
+func (r *NovelaBookmarkRepository) GetCategories(ctx context.Context, userID int) ([]db.BookmarkCategory, error) {
+	query := `SELECT id, user_id, name FROM bookmark_categories WHERE user_id IS NULL OR user_id = $1 ORDER BY id ASC`
+	rows, err := r.DB.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var categories []db.BookmarkCategory
+	for rows.Next() {
+		var cat db.BookmarkCategory
+		if err := rows.Scan(&cat.ID, &cat.UserID, &cat.Name); err != nil {
+			return nil, err
+		}
+		categories = append(categories, cat)
+	}
+	return categories, nil
+}
+
+func (r *NovelaBookmarkRepository) GetCategoriesWithCount(ctx context.Context, userID int) ([]db.BookmarkCategoryCount, error) {
+	query := `
+		SELECT c.id, c.user_id, c.name, COUNT(b.novela_id) as count
+		FROM bookmark_categories c
+		LEFT JOIN user_novela_bookmarks b ON c.id = b.category_id AND b.user_id = $1
+		WHERE c.user_id IS NULL OR c.user_id = $1
+		GROUP BY c.id, c.user_id, c.name
+		ORDER BY c.id ASC`
+	
+	rows, err := r.DB.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var categories []db.BookmarkCategoryCount
+	for rows.Next() {
+		var cat db.BookmarkCategoryCount
+		if err := rows.Scan(&cat.ID, &cat.UserID, &cat.Name, &cat.Count); err != nil {
+			return nil, err
+		}
+		categories = append(categories, cat)
+	}
+	return categories, nil
+}
+
+func (r *NovelaBookmarkRepository) CreateCategory(ctx context.Context, userID int, name string) (int, error) {
+	query := `INSERT INTO bookmark_categories (user_id, name) VALUES ($1, $2) RETURNING id`
+	var id int
+	err := r.DB.QueryRowContext(ctx, query, userID, name).Scan(&id)
+	return id, err
+}
+
+func (r *NovelaBookmarkRepository) UpdateCategory(ctx context.Context, id int, userID int, name string) error {
+	query := `UPDATE bookmark_categories SET name = $1 WHERE id = $2 AND user_id = $3`
+	res, err := r.DB.ExecContext(ctx, query, name, id, userID)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return errors.New("category not found or not owned by user")
+	}
+	return nil
+}
+
+func (r *NovelaBookmarkRepository) DeleteCategory(ctx context.Context, id int, userID int) error {
+	query := `DELETE FROM bookmark_categories WHERE id = $1 AND user_id = $2`
+	res, err := r.DB.ExecContext(ctx, query, id, userID)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return errors.New("category not found or not owned by user")
+	}
+	return nil
 }
