@@ -72,7 +72,7 @@ const handleTabClick = (e: Event, catId: BookmarkCategory) => {
 };
 
 const tabVisible = (cat: any) => {
-  if (props.userId === user!.id) return true;
+  if (user && user.id === props.userId) return true;
   
   return cat.visible && (cat.user_id === props.userId || cat.user_id === null);
 };
@@ -89,10 +89,9 @@ const tabVisible = (cat: any) => {
             @mouseup="onMouseUp"
             @mousemove="onMouseMove"
         >
-            <div v-for="cat in bookmarkCategories">
+            <div v-for="cat in bookmarkCategories" :key="cat.id">
                 <button
                     v-if="tabVisible(cat)"
-                    :key="cat.id"
                     @click="(e) => handleTabClick(e, cat.id as BookmarkCategory)"
                     class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap border cursor-pointer"
                     :class="[

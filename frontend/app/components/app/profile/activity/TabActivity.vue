@@ -55,9 +55,7 @@ const visibleActivities = computed(() => {
 
         <!-- Activities List -->
         <div v-else class="space-y-3">
-            <TransitionGroup 
-                name="list" 
-                tag="div" 
+            <div 
                 class="space-y-3 transition-all duration-500 custom-scrollbar"
                 :class="isExpanded ? 'max-h-[780px] overflow-y-auto pr-2' : 'max-h-full'"
             >
@@ -95,7 +93,7 @@ const visibleActivities = computed(() => {
                         </svg>
                     </div>
                 </div>
-            </TransitionGroup>
+            </div>
 
             <!-- Toggle Button -->
             <button 

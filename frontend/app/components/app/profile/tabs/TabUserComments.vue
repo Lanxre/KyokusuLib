@@ -5,6 +5,7 @@ import { useUserComments } from "~/composables/api/profile/useUserComments";
 
 const props = defineProps<{ userId: number }>();
 const { comments, fetchUserComments } = useUserComments();
+
 await useAsyncData(`user-comments-${props.userId}`, () => fetchUserComments(props.userId));
 </script>
 

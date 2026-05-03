@@ -42,7 +42,7 @@ const { status } = await useAsyncData(
 	},
 	{
 		watch: [() => props.profileData?.id],
-	},
+	}
 );
 </script>
 
@@ -178,40 +178,30 @@ const { status } = await useAsyncData(
                     </div>
 
                     <div class="min-h-[300px]">
-                        <transition name="fade" mode="out-in">
-                            <div v-if="activeTab === 'overview'" :key="activeTab">
-                                <TabActivity :activities="activities" :isLoading="isLoadingActivities" />
-                            </div>
-                            <div v-else-if="activeTab === 'bookmarks'" :key="'bookmarks'">
-                                <TabBookmarks :userId="profileData!.id" />
-                            </div>
-                            <div v-else-if="activeTab === 'comments'" key="comments">
-                                <TabUserComments :userId="profileData?.id!"/>
-                            </div>
-                            <div v-else class="p-12 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-500 text-center">
-                                Здесь пока ничего нет
-                            </div>
-                        </transition>
+                        <div v-if="activeTab === 'overview'" :key="activeTab">
+                            <TabActivity :activities="activities" :isLoading="isLoadingActivities" />
+                        </div>
+                        <div v-else-if="activeTab === 'bookmarks'" :key="'bookmarks'">
+                            <TabBookmarks :userId="profileData!.id" />
+                        </div>
+                        <div v-else-if="activeTab === 'comments'" key="comments">
+                            <TabUserComments :userId="profileData?.id!"/>
+                        </div>
+                        <div v-else class="p-12 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-500 text-center">
+                            Здесь пока ничего нет
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <ModalWindow v-model="isModalOpen" title="Информация об уровнях" width="w-full max-w-2xl">
+        <ModalWindow v-if="isModalOpen" v-model="isModalOpen" title="Информация об уровнях" width="w-full max-w-2xl">
             <ExperienceInfo />
         </ModalWindow>
     </div>
 </template>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
