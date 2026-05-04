@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import EmailIcon from "@/assets/images/special/email.png";
 import ChatBubbleIcon from "@/assets/images/special/chat-bubble.png";
-import { Toggle as BaseToggle } from "@kyokusu-ui/vue";
 import { useNotifySettings } from "@/composables/api/settings/useNotifySettings";
+
+import TabToggleSettings from "./TabToggleSettings.vue";
 
 const { profileSettings } = useNotifySettings();
 </script>
@@ -16,41 +17,23 @@ const { profileSettings } = useNotifySettings();
 
         <div class="space-y-6 text-left">
             <div class="pb-6 border-b space-y-4 border-zinc-200 dark:border-zinc-800">
-                <h3 class="text-base leading-xl font-semibold text-zinc-800 dark:text-zinc-200">На сайте</h3>
-                
-                <div class="flex items-center justify-between p-4 rounded-lg border transition-colors duration-300 bg-white border-zinc-200 dark:bg-zinc-900/50 dark:border-zinc-800">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-4">
-                            <span class="text-sm font-medium block text-zinc-700 dark:text-zinc-200">Оповещения</span>
-                            <img :src="EmailIcon" class="w-6 h-6 invert-0 dark:invert"/>
-                        </div>
-                        <p class="text-xs text-zinc-500 dark:text-stone-500">
-                            Переключите для отключения оповещений на сайте.
-                        </p>
-                    </div>
-                    <BaseToggle 
-                        v-if="profileSettings"
-                        v-model="profileSettings.is_app_notify" 
-                        id="app_notify_toggle"
-                    />
-                </div>
+                <h3 class="px-2 text-base leading-xl font-semibold text-zinc-800 dark:text-zinc-200">Уведомления на сайте</h3>
+        
+                <TabToggleSettings 
+                    v-model="profileSettings.is_app_notify"
+                    id="app_notify_toggle"
+                    title="Оповещения"
+                    imgSrc="ph:envelope"
+                    description="Переключите для отключения оповещений на сайте."
+                />
 
-                <div class="flex items-center justify-between p-4 rounded-lg border transition-colors duration-300 bg-white border-zinc-200 dark:bg-zinc-900/50 dark:border-zinc-800">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-4">
-                            <span class="text-sm font-medium block text-zinc-700 dark:text-zinc-200">Выход новых работ</span>
-                            <img :src="ChatBubbleIcon" class="w-6 h-6 invert-0 dark:invert"/>
-                        </div>
-                        <p class="text-xs text-zinc-500 dark:text-stone-500">
-                            Переключите для отключения оповещений на сайте.
-                        </p>
-                    </div>
-                    <BaseToggle 
-                        v-if="profileSettings"
-                        v-model="profileSettings.is_new_published_notify" 
-                        id="new_published_toggle"
-                    />
-                </div>
+                <TabToggleSettings 
+                    v-model="profileSettings.is_new_published_notify"
+                    id="show_tag_toggle"
+                    title="Выход новых работ"
+                    imgSrc="ph:chat-text"
+                    description="Переключите для отключения оповещений на сайте."
+                />
             </div>
         </div>
     </div>

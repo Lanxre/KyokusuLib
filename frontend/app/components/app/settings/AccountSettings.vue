@@ -4,6 +4,8 @@ import { DatePicker as BaseDateInput, Input as BaseInput, Select as BaseSelect, 
 import { useProfileSettings } from "@/composables/api/settings/useProfileSettings";
 import { GenderSetting } from "@/types/enums/gender-enum";
 
+import TabToggleSettings from "./TabToggleSettings.vue";
+
 const {
 	profile,
 	fileInput,
@@ -116,7 +118,7 @@ const genderOptions = [
                 />
 
                 <div class="space-y-2 text-left">
-                    <label for="about" class="text-sm font-medium text-zinc-700 dark:text-stone-300 ml-[3px]">О себе</label>
+                    <label for="about" class="text-sm font-medium text-zinc-700 dark:text-stone-300 ml-0.75">О себе</label>
                     <textarea 
                         id="about"
                         v-model="profile.about"
@@ -159,15 +161,15 @@ const genderOptions = [
                         <p class="text-xs text-zinc-500 dark:text-stone-500 mt-0.5 ml-[3px]">Выставляется единожды. В этот день сайт выдаст вам награду.</p> 
                     </div>
                 </div>
+
+                <TabToggleSettings 
+                    v-model="profile.is_public"
+                    id="show_profile_toggle"
+                    title="Публичный профиль"
+                    imgSrc="ph:link-simple"
+                    description="Переключите для отключения публичного профиля на сайте."
+                />
                 
-                <div class="mt-2 p-2 space-y-4 flex flex-col gap-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-transparent">
-                    <BaseToggle 
-                        v-model="profile.is_public" 
-                        label="Публичный профиль" 
-                        id="public-profile"
-                        :disabled="isLoading"
-                    />
-                </div>
             </div>
 
             <div class="pt-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3">

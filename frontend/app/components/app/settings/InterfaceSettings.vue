@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import ThemeIcon from "@/assets/images/special/theme.png";
 import { useInterfaceSettings } from "@/composables/api/settings/useInterfaceSettings";
-import { Toggle as BaseToggle } from "@kyokusu-ui/vue";
+
+import TabToggleSettings from "@/components/app/settings/TabToggleSettings.vue";
 
 const { isDarkTheme, isShowTag, syncSettingWithBackend } =
 	useInterfaceSettings();
@@ -18,33 +18,24 @@ await useAsyncData("settings-sync", () => syncSettingWithBackend());
 
         <div class="space-y-6 text-left">
             <div class="pb-6 border-b space-y-4 border-zinc-200 dark:border-zinc-800">
-                <h3 class="text-base font-semibold">Оформление</h3>
+                <h3 class="px-2 text-base font-semibold">Оформление</h3>
                 
-                <div class="flex flex-row items-center justify-between gap-4 p-4 rounded-lg border bg-white dark:bg-zinc-900/50 dark:border-zinc-800">
-                    <div class="flex flex-col gap-2">
-                        <div class="flex items-center gap-4">
-                            <span class="text-sm font-medium">Тёмная тема</span>
-                            <img :src="ThemeIcon" class="w-6 h-6 dark:invert"/>
-                        </div>
-                        <p class="text-xs text-zinc-500 dark:text-stone-500">
-                                Переключите для смены темы.
-                        </p>
-                    </div>
-                    <BaseToggle v-model="isDarkTheme" id="theme_toggle" />
-                </div>
+                <TabToggleSettings 
+                    v-model="isDarkTheme"
+                    id="theme_toggle"
+                    title="Тёмная тема"
+                    imgSrc="ph:palette"
+                    description="Переключите для смены темы."
+                />
                 
-                <div class="flex flex-row items-center justify-between gap-4 p-4 rounded-lg border bg-white dark:bg-zinc-900/50 dark:border-zinc-800">
-                    <div class="flex flex-col gap-2">
-                        <div class="flex items-center gap-4">
-                            <span class="text-sm font-medium">Показывать тэг пользователя</span>
-                            <img :src="ThemeIcon" class="w-6 h-6 dark:invert"/>
-                        </div>
-                        <p class="text-xs text-zinc-500 dark:text-stone-500">
-                                Переключите для показа пользовательского тэга.
-                        </p>
-                    </div>
-                    <BaseToggle v-model="isShowTag" id="show_tag_toggle" />
-                </div>
+                <TabToggleSettings 
+                    v-model="isShowTag"
+                    id="show_tag_toggle"
+                    title="Показывать тэг пользователя"
+                    imgSrc="ph:tag"
+                    description="Переключите для показа пользовательского тэга."
+                />
+                
             </div>
         </div>
     </div>

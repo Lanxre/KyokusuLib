@@ -57,6 +57,7 @@ const showPassword = ref(false);
                         id="email"
                         v-model="form.email"
                         type="email"
+                        autocomplete="email"
                         placeholder="example@kyokusu.lib"
                         :disabled="isLoading"
                         :error="errors.email"
