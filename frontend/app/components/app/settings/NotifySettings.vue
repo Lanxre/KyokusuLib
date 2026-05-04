@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import EmailIcon from "@/assets/images/special/email.png";
-import ChatBubbleIcon from "@/assets/images/special/chat-bubble.png";
 import { useNotifySettings } from "@/composables/api/settings/useNotifySettings";
 
 import TabToggleSettings from "./TabToggleSettings.vue";

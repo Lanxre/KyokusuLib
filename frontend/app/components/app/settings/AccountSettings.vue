@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { staticImage } from "@/utils/str";
-import { DatePicker as BaseDateInput, Input as BaseInput, Select as BaseSelect, Toggle as BaseToggle } from "@kyokusu-ui/vue";
+import { DatePicker as BaseDateInput, Input as BaseInput, Select as BaseSelect } from "@kyokusu-ui/vue";
 import { useProfileSettings } from "@/composables/api/settings/useProfileSettings";
 import { GenderSetting } from "@/types/enums/gender-enum";
 
