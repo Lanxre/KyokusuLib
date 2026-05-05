@@ -23,7 +23,21 @@ export function useProfile() {
 		return isSelfProfile.value ? authStore.user : fetchedUser.value;
 	});
 
-	const isPublicAccount = computed(() => !!profileData.value?.is_public);
+  const isPublicAccount = computed(() => !!profileData.value?.is_public);
+
+  const profileTabs = computed(() => {
+    const tabs = [
+      { label: "Обзор", id: "overview" },
+    ];
+    
+    if (authStore.isAuthenticated && profileData.value?.settings.is_show_bookmark) {
+      tabs.push({ label: "Закладки", id: "bookmarks" });
+    }
+
+    tabs.push({ label: "Комментарии", id: "comments" })
+    
+    return tabs;
+  });
 
 	const getRoleColor = (role?: string) => {
 		const roles: Record<string, string> = {
@@ -88,17 +102,7 @@ export function useProfile() {
 		isSelfProfile,
 		isPublicAccount,
 		isLoading: profileLoading,
-		profileTabs: authStore.isAuthenticated
-			? [
-					{ id: "overview", label: "Обзор" },
-		     	{ id: "bookmarks", label: "Закладки" },
-					{ id: "comments", label: "Комментарии" },
-				]
-      : [
-          { id: "overview", label: "Обзор" },
-					{ id: "comments", label: "Комментарии" },
-			],
-
+		profileTabs,
 		userRoleColor: computed(() => getRoleColor(profileData.value?.role)),
 		userGender: computed(() => getGenderText(profileData.value?.gender)),
 		accountCreated: computed(() =>

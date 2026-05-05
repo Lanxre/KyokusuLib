@@ -31,6 +31,7 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 	
 	userPublicSettings := dto.PublicUserSettingsDTO{
 		IsShowTag: userDb.IsShowTag,
+		IsShowBookmark: userDb.IsShowBookmark,
 	}
 	
 	userLevel, err := s.UserProfileRepo.GetUserLevel(context.Background(), userId)

@@ -27,6 +27,7 @@ export interface UserTagDTO {
 
 export interface PublicUserSettingsDTO {
 	is_show_tag: boolean;
+	is_show_bookmark: boolean;
 }
 
 export interface UserLevel {

@@ -58,4 +58,5 @@ type UpdateUserTagDTO struct {
 
 type PublicUserSettingsDTO struct {
 	IsShowTag						bool		`json:"is_show_tag"`
+	IsShowBookmark					bool		`json:"is_show_bookmark"`
 }

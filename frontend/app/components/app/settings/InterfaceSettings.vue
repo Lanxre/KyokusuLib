@@ -3,7 +3,7 @@ import { useInterfaceSettings } from "@/composables/api/settings/useInterfaceSet
 
 import TabToggleSettings from "@/components/app/settings/TabToggleSettings.vue";
 
-const { isDarkTheme, isShowTag, syncSettingWithBackend } =
+const { isDarkTheme, isShowTag, isShowBookmark, syncSettingWithBackend } =
 	useInterfaceSettings();
 
 await useAsyncData("settings-sync", () => syncSettingWithBackend());
@@ -28,12 +28,27 @@ await useAsyncData("settings-sync", () => syncSettingWithBackend());
                     description="Переключите для смены темы."
                 />
                 
+                
+                
+            </div>
+
+            <div class="pb-6 border-b space-y-4 border-zinc-200 dark:border-zinc-800">
+                <h3 class="px-2 text-base font-semibold">Профиль</h3>
+                
                 <TabToggleSettings 
                     v-model="isShowTag"
                     id="show_tag_toggle"
                     title="Показывать тэг пользователя"
                     imgSrc="ph:tag"
                     description="Переключите для показа пользовательского тэга."
+                />
+
+                <TabToggleSettings 
+                    v-model="isShowBookmark"
+                    id="show_bookmark_toggle"
+                    title="Показывать закладки пользователя"
+                    imgSrc="ph:bookmark"
+                    description="Переключите для отображения закладок пользователя в профиле."
                 />
                 
             </div>

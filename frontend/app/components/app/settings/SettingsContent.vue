@@ -54,7 +54,7 @@ const categories = [
                     </nav>
                 </aside>
 
-                <div class="flex-1 bg-white border-zinc-200 dark:bg-zinc-900/30 rounded-lg border dark:border-zinc-800 p-6 min-h-[400px] transition-colors duration-300">
+                <div class="flex-1 bg-white border-zinc-200 dark:bg-zinc-900/30 rounded-lg border dark:border-zinc-800 p-6 min-h-100 transition-colors duration-300">
                     <div v-if="settingsStore.activeTab === TabSettings.Account" class="h-full">
                         <AccountSettings />
                     </div>

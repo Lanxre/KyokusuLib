@@ -49,6 +49,7 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 		birthday                     sql.NullTime
 		gender                       sql.NullString
 		isShowTag                    sql.NullBool
+		isShowBookmark               sql.NullBool
 	)
 
 	query := `
@@ -60,7 +61,7 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 			u.create_at,
 			p.name, p.picture, p.banner, p.about, p.birthday, p.gender,
 			t.tag,
-			ups.is_show_tag
+			ups.is_show_tag, ups.is_show_bookmark
 		FROM users u
 		LEFT JOIN user_profiles p ON p.user_id = u.id
 		LEFT JOIN user_tags t ON t.id = p.tag_id
@@ -89,6 +90,7 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 		&gender,
 		&u.Tag,
 		&isShowTag,
+		&isShowBookmark,
 	)
 
 	if err != nil {
@@ -133,6 +135,9 @@ func (r *UserRepository) findOne(field string, value interface{}) (*db.User, err
 	}
 	if isShowTag.Valid {
 		u.IsShowTag = isShowTag.Bool
+	}
+	if isShowBookmark.Valid {
+		u.IsShowBookmark = isShowBookmark.Bool
 	}
     
 	return u, nil

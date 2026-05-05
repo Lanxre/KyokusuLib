@@ -253,6 +253,7 @@ func (s AuthService) toUserDTO(user *db.User, tags []dto.UserTagDTO, level *db.U
 		AllTags:   tags,
 		Settings: dto.PublicUserSettingsDTO{
 			IsShowTag: user.IsShowTag,
+			IsShowBookmark: user.IsShowBookmark,
 		},
 	}
 

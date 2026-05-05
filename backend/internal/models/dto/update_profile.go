@@ -41,6 +41,7 @@ type NotifySettingsPatchDTO struct {
 
 type UserInterfacePatchDTO struct {
 	IsShowTag *bool `json:"is_show_tag"`
+	IsShowBookmark *bool `json:"is_show_bookmark"`
 }
 
 func (d *UpdateProfileDTO) Validate() error {

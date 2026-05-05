@@ -22,7 +22,7 @@ func (r *UserProfileSettingRepository) GetUserProfileSettings(ctx context.Contex
 	settings := &db.UserProfileSetting{}
 
 	query := `
-		SELECT theme, is_app_notify, is_new_published_notify, is_show_tag
+		SELECT theme, is_app_notify, is_new_published_notify, is_show_tag, is_show_bookmark
 		FROM user_profile_settings
 		WHERE user_id = $1`
 
@@ -31,6 +31,7 @@ func (r *UserProfileSettingRepository) GetUserProfileSettings(ctx context.Contex
 		&settings.IsAppNotify,
 		&settings.IsNewPublishedNotify,
 		&settings.IsShowTag,
+		&settings.IsShowBookmark,
 	)
 	if err != nil {
 		return nil, err
@@ -66,6 +67,12 @@ func (r *UserProfileSettingRepository) UpdateUserInterfaceSettings(ctx context.C
 	if settings.IsShowTag != nil {
 		setClauses = append(setClauses, fmt.Sprintf("is_show_tag = $%d", argID))
 		args = append(args, *settings.IsShowTag)
+		argID++
+	}
+
+	if settings.IsShowBookmark != nil {
+		setClauses = append(setClauses, fmt.Sprintf("is_show_bookmark = $%d", argID))
+		args = append(args, *settings.IsShowBookmark)
 		argID++
 	}
 

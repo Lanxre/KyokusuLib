@@ -12,6 +12,7 @@ export function useInterfaceSettings() {
 	const authStore = useAuthStore();
 
 	const isShowTag = useState<boolean>("settings-is-show-tag", () => false);
+	const isShowBookmark = useState<boolean>("settings-is-show-bookmark", () => true);
 	const isInitialized = useState<boolean>(
 		"settings-is-initialized",
 		() => false,
@@ -59,6 +60,8 @@ export function useInterfaceSettings() {
 				if (data.value.theme) colorMode.preference = data.value.theme;
 				if (data.value.is_show_tag !== undefined)
 					isShowTag.value = data.value.is_show_tag;
+				if (data.value.is_show_bookmark !== undefined)
+					isShowBookmark.value = data.value.is_show_bookmark;
 
 				isInitialized.value = true;
 			}
@@ -76,9 +79,19 @@ export function useInterfaceSettings() {
 		}
 	});
 
+	watch(isShowBookmark, (newVal) => {
+		if (import.meta.client && isInitialized.value) {
+			useApi("/api/profile/settings/interface", {
+				method: "PATCH",
+				body: { is_show_bookmark: newVal },
+			});
+		}
+	});
+
 	return {
 		isDarkTheme,
 		isShowTag,
+		isShowBookmark,
 		syncSettingWithBackend,
 		colorMode,
 	};

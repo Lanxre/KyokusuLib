@@ -12,4 +12,5 @@ type UserProfileSetting struct {
 	IsAppNotify bool `json:"is_app_notify"`
 	IsNewPublishedNotify bool `json:"is_new_published_notify"`
 	IsShowTag bool `json:"is_show_tag"`
+	IsShowBookmark bool `json:"is_show_bookmark"`
 }

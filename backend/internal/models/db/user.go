@@ -26,6 +26,7 @@ type User struct {
 	IsVerified               		bool       `json:"is_verified" db:"is_verified"`
 	IsPublic             		    bool       `json:"is_public"`
 	IsShowTag						bool	   `json:"is_show_tag"`
+	IsShowBookmark					bool	   `json:"is_show_bookmark"`
     VerificationToken        		string     `json:"-" db:"verification_token"`
     VerificationTokenExpiresAt 		*time.Time `json:"-" db:"verification_token_expires_at"`
 

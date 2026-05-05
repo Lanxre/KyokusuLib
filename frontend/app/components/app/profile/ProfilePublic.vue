@@ -96,7 +96,7 @@ const { status } = await useAsyncData(
                             <div class="flex flex-wrap items-center gap-4 mt-3 md:mt-2">
                                 <UserTagId :userID="profileData?.id!"/>
                                 
-                                <div v-if="profileData?.active_tag" class="flex items-center text-dark dark:text-white dark:bg-zinc-800 mt-2 px-3 py-0.5 h-8 rounded-2xl border-2 border-white dark:border-zinc-700 font-semibold cursor-pointer hover:border-zinc-500 transition-colors select-none text-sm">
+                                <div v-if="profileData?.active_tag" class="flex items-center text-dark dark:text-white  dark:bg-zinc-900/50 mt-2 px-3 py-0.5 h-8 rounded-2xl border border-white dark:border-zinc-800 font-semibold cursor-pointer hover:border-yellow-500/30 hover:shadow-lg hover:shadow-yellow-500/5 transition-colors select-none text-sm">
                                     {{ profileData.active_tag }}
                                 </div>
 
@@ -177,7 +177,7 @@ const { status } = await useAsyncData(
                         </button>
                     </div>
 
-                    <div class="min-h-[300px]">
+                    <div class="min-h-75">
                         <div v-if="activeTab === 'overview'" :key="activeTab">
                             <TabActivity :activities="activities" :isLoading="isLoadingActivities" />
                         </div>
