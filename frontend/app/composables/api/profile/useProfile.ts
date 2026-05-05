@@ -30,7 +30,7 @@ export function useProfile() {
       { label: "Обзор", id: "overview" },
     ];
     
-    if (authStore.isAuthenticated && profileData.value?.settings.is_show_bookmark) {
+    if ((authStore.isAuthenticated && isSelfProfile.value) || profileData.value?.settings.is_show_bookmark) {
       tabs.push({ label: "Закладки", id: "bookmarks" });
     }
 
