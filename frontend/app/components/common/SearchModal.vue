@@ -20,6 +20,8 @@ const {
     clearRecentSearches
 } = useSearch();
 
+const searchInputRef = ref<HTMLInputElement | null>(null);
+
 const handleSelectResult = (item: any) => {
     addRecentSearch(searchQuery.value);
     closeSearch();
@@ -47,8 +49,22 @@ const handleKeydown = (e: KeyboardEvent) => {
     }
 };
 
+watch(isOpen, (val) => {
+    if (val) {
+        setTimeout(() => {
+            if (searchInputRef.value) {
+                searchInputRef.value.focus();
+            }
+        }, 150);
+    }
+});
+
 onMounted(() => {
     window.addEventListener("keydown", handleKeydown);
+    
+    if (isOpen.value && searchInputRef.value) {
+        searchInputRef.value.focus();
+    }
 });
 
 onUnmounted(() => {
@@ -83,7 +99,7 @@ onUnmounted(() => {
                         <Icon name="ph:magnifying-glass-bold" size="20" class="text-zinc-400 dark:text-zinc-500 group-focus-within:text-yellow-500 transition-colors duration-300 shrink-0" />
                         
                         <input 
-                            ref="inputRef"
+                            ref="searchInputRef"
                             v-model="searchQuery" 
                             type="text" 
                             class="flex-1 w-full pl-4 pr-10 sm:pr-28 bg-transparent border-none text-sm sm:text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-0 selection:bg-yellow-500/30"

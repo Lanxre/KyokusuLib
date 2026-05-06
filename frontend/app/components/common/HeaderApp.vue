@@ -40,6 +40,22 @@ const goToLogin = () => {
 	closeMobileMenu();
 	router.push("/login");
 };
+
+const handleGlobalSearchShortcut = (e: KeyboardEvent) => {
+	if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+		e.preventDefault();
+		openSearch();
+		closeMobileMenu();
+	}
+};
+
+onMounted(() => {
+	window.addEventListener("keydown", handleGlobalSearchShortcut);
+});
+
+onUnmounted(() => {
+	window.removeEventListener("keydown", handleGlobalSearchShortcut);
+});
 </script>
 
 <template>
@@ -69,9 +85,16 @@ const goToLogin = () => {
 
       <div class="flex items-center gap-3 md:gap-4">
         
-        <div @click="openSearch" class="hidden w-64 md:flex items-center gap-3 px-4 py-3 rounded-full bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors cursor-pointer group">
-          <Icon name="ph:magnifying-glass-bold" size="20" class="text-zinc-500 group-hover:text-zinc-900 dark:text-zinc-400 dark:group-hover:text-white" />
-          <span class="text-sm lg:text-base font-medium text-zinc-500 group-hover:text-zinc-900 dark:text-zinc-400 dark:group-hover:text-white">Поиск</span>
+        <div @click="openSearch" class="hidden w-64 md:flex items-center justify-between px-4 py-3 rounded-full bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors cursor-pointer group">
+          <div class="flex items-center gap-3">
+            <Icon name="ph:magnifying-glass-bold" size="20" class="text-zinc-500 group-hover:text-zinc-900 dark:text-zinc-400 dark:group-hover:text-white" />
+            <span class="text-sm lg:text-base font-medium text-zinc-500 group-hover:text-zinc-900 dark:text-zinc-400 dark:group-hover:text-white">Поиск</span>
+          </div>
+          <div class="hidden lg:flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+            <kbd class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-zinc-400/30 text-zinc-600 dark:text-zinc-300">Ctrl</kbd>
+            <span class="text-xs font-bold text-zinc-500">+</span>
+            <kbd class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-zinc-400/30 text-zinc-600 dark:text-zinc-300">K</kbd>
+          </div>
         </div>
         
         <button class="p-3 rounded-full bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors flex items-center justify-center">
