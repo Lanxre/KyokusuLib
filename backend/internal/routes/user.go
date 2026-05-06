@@ -9,6 +9,7 @@ import (
 func (a *UserRoutes) Register(cfg *config.Config, r *mux.Router) {
 	s := r.PathPrefix("/api/user").Subrouter()
 
+	s.HandleFunc("", a.Handler.GetUsers).Methods("GET")
 	s.HandleFunc("/{id:[0-9]+}", a.Handler.GetUserById).Methods("GET")
 	s.HandleFunc("/activity", middleware.AuthMiddleware(a.Handler.UpdateUserStatus, cfg.JWTSecret)).Methods("POST")
 	s.HandleFunc("/tag", middleware.AuthMiddleware(a.Handler.UpdateUserTag, cfg.JWTSecret)).Methods("PUT")

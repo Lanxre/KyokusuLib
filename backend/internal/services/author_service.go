@@ -40,8 +40,14 @@ func (s *AuthorService) GetAuthorByName(ctx context.Context, name string) (*db.A
 	return s.repo.GetAuthorByName(ctx, name)
 }
 
-func (s *AuthorService) GetAuthors(ctx context.Context) ([]*db.Author, error) {
-	authorsDb, err := s.repo.GetAuthors(ctx)
+func (s *AuthorService) GetAuthors(ctx context.Context, search string, limit int) ([]*db.Author, error) {
+	if limit <= 0 {
+		limit = 10
+	} else if limit > 100 {
+		limit = 100
+	}
+	
+	authorsDb, err := s.repo.GetAuthors(ctx, search, limit)
 	
 	if err != nil {
 		return nil, err

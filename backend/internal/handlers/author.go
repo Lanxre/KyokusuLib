@@ -82,16 +82,19 @@ func (h *AuthorHandler) GetAuthorByName(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *AuthorHandler) GetAuthors(w http.ResponseWriter, r *http.Request) {
-	authors, err := h.service.GetAuthors(r.Context())
+	search := r.URL.Query().Get("search")
+	limit := 20
+
+	authors, err := h.service.GetAuthors(r.Context(), search, limit)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "Failed to get authors")
 		return
 	}
 	
-	if len(authors) == 0 {
-		response.Error(w, http.StatusNotFound, "No authors found")
-		return
-	}
+	// if len(authors) == 0 {
+	// 	response.Error(w, http.StatusNotFound, "No authors found")
+	// 	return
+	// }
 	
 	response.SuccessWithEntity(w, http.StatusOK, authors)
 }

@@ -41,6 +41,19 @@ func (h *TeamHandler) Create(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusCreated, team)
 }
 
+func (h *TeamHandler) GetTeams(w http.ResponseWriter, r *http.Request) {
+	search := r.URL.Query().Get("search")
+	limit := 20
+
+	teams, err := h.Service.GetTeams(r.Context(), search, limit)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "Failed to get teams")
+		return
+	}
+
+	response.JSON(w, http.StatusOK, teams)
+}
+
 func (h *TeamHandler) Get(w http.ResponseWriter, r *http.Request) {
 	slug := mux.Vars(r)["slug"]
 	team, err := h.Service.Get(r.Context(), slug)

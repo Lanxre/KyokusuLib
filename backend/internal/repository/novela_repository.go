@@ -426,14 +426,14 @@ func (r *NovelaRepository) UpdatePoster(ctx context.Context, id int, posterURL s
 
 func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID int, f dto.NovelaFilters) ([]db.Novela, int, error) {
 	var args []interface{}
-	where := []string{"1=1"}
+	where := []string{"$1::int IS NOT NULL"}
 	argID := 1
 
 	args = append(args, userID)
 	argID++
 
 	if f.Search != "" {
-		where = append(where, fmt.Sprintf("(n.title ILIKE $%d OR $%d ILIKE ANY(n.alternative_titles))", argID, argID))
+		where = append(where, fmt.Sprintf("(n.title ILIKE $%d::text OR $%d::text ILIKE ANY(n.alternative_titles))", argID, argID))
 		args = append(args, "%"+f.Search+"%")
 		argID++
 	}
@@ -533,7 +533,7 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 
 	var total int
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM novela n WHERE %s", strings.Join(where, " AND "))
-	if err := tx.QueryRowContext(ctx, countQuery, args[1:]...).Scan(&total); err != nil {
+	if err := tx.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
 		return nil, 0, err
 	}
 

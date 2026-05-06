@@ -17,6 +17,54 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{DB: db}
 }
 
+func (r *UserRepository) GetUsers(ctx context.Context, search string, limit int) ([]*db.User, error) {
+	var query string
+	var rows *sql.Rows
+	var err error
+
+	if search != "" {
+		query = `
+			SELECT u.id, p.name, p.picture, u.role 
+			FROM users u 
+			LEFT JOIN user_profiles p ON p.user_id = u.id 
+			WHERE p.name ILIKE $1::text OR u.email ILIKE $1::text
+			ORDER BY u.id DESC LIMIT $2`
+		rows, err = r.DB.QueryContext(ctx, query, "%"+search+"%", limit)
+	} else {
+		query = `
+			SELECT u.id, p.name, p.picture, u.role 
+			FROM users u 
+			LEFT JOIN user_profiles p ON p.user_id = u.id 
+			ORDER BY u.id DESC LIMIT $1`
+		rows, err = r.DB.QueryContext(ctx, query, limit)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*db.User
+	for rows.Next() {
+		var u db.User
+		var name, picture sql.NullString
+		if err := rows.Scan(&u.ID, &name, &picture, &u.Role); err != nil {
+			return nil, err
+		}
+		if name.Valid {
+			u.Name = name.String
+		}
+		if picture.Valid {
+			u.Picture = picture.String
+		}
+		users = append(users, &u)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func (r *UserRepository) GetByEmail(email string) (*db.User, error) {
 	return r.findOne("email", email)
 }

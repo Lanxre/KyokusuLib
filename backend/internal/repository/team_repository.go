@@ -17,6 +17,55 @@ func NewTeamRepository(db *sql.DB) *TeamRepository {
 	return &TeamRepository{DB: db}
 }
 
+func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int) ([]*db.PublisherTeam, error) {
+	var query string
+	var rows *sql.Rows
+	var err error
+
+	if search != "" {
+		query = "SELECT id, name, slug, description, avatar_url, owner_id, created_at FROM publisher_teams WHERE name ILIKE $1::text OR slug ILIKE $1::text ORDER BY id DESC LIMIT $2"
+		rows, err = r.DB.QueryContext(ctx, query, "%"+search+"%", limit)
+	} else {
+		query = "SELECT id, name, slug, description, avatar_url, owner_id, created_at FROM publisher_teams ORDER BY id DESC LIMIT $1"
+		rows, err = r.DB.QueryContext(ctx, query, limit)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var teams []*db.PublisherTeam
+	for rows.Next() {
+		var team db.PublisherTeam
+		var description sql.NullString
+		var avatarURL sql.NullString
+		
+		if err := rows.Scan(
+			&team.ID, &team.Name, &team.Slug, 
+			&description, &avatarURL, 
+			&team.OwnerID, &team.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		
+		if description.Valid {
+			team.Description = description.String
+		}
+		if avatarURL.Valid {
+			team.AvatarURL = avatarURL.String
+		}
+		
+		teams = append(teams, &team)
+	}
+	
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	
+	return teams, nil
+}
+
 var ErrTeamLimitReached = errors.New("team limit reached")
 
 func (r *TeamRepository) Create(ctx context.Context, team *db.PublisherTeam) error {

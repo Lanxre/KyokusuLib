@@ -17,6 +17,30 @@ func NewUserService(repo *repository.UserRepository, userProfileRepo *repository
 	return &UserService{Repo: repo, UserProfileRepo: userProfileRepo}
 }
 
+func (s *UserService) GetUsers(ctx context.Context, search string, limit int) ([]*dto.GetUserDTO, error) {
+	if limit <= 0 {
+		limit = 10
+	} else if limit > 100 {
+		limit = 100
+	}
+	
+	usersDb, err := s.Repo.GetUsers(ctx, search, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	usersDto := make([]*dto.GetUserDTO, len(usersDb))
+	for i, user := range usersDb {
+		usersDto[i] = &dto.GetUserDTO{
+			ID:      user.ID,
+			Name:    user.Name,
+			Picture: user.Picture,
+			Role:    user.Role,
+		}
+	}
+	return usersDto, nil
+}
+
 func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 	userDb, err := s.Repo.GetByID(userId)
 

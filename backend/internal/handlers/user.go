@@ -23,6 +23,19 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 	}
 }
 
+func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
+	search := r.URL.Query().Get("search")
+	limit := 20
+
+	users, err := h.UserService.GetUsers(r.Context(), search, limit)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "Failed to get users")
+		return
+	}
+
+	response.SuccessWithEntity(w, http.StatusOK, users)
+}
+
 func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr, ok := vars["id"]
