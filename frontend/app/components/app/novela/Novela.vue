@@ -308,11 +308,6 @@ watch(() => route.query.tab, (newTab) => {
                                         </button>
                                 </div>
 
-                                <NovelaSettings
-                                    v-model="isOpenNovelaSettings"
-                                    :novela="novela"
-                                    @updated="updatedNovela"
-                                />
                             </div>
                             
                             <div class="flex flex-wrap items-baseline-last gap-6 ml-2">
@@ -403,6 +398,13 @@ watch(() => route.query.tab, (newTab) => {
         <div v-else class="grow flex items-center justify-center">
             <div class="w-12 h-12 border-4 border-zinc-300 border-t-yellow-500 rounded-full animate-spin"></div>
         </div>
+        
+        <NovelaSettings
+            v-if="hasPermission(KyokusuAppRole.MODERATOR)"
+            v-model="isOpenNovelaSettings"
+            :novela="novela"
+            @updated="updatedNovela"
+        />
     </div>
 </template>
 

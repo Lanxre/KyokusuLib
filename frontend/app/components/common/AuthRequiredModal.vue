@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { ModalWindow } from "@kyokusu-ui/vue";
+
+defineOptions({
+  inheritAttrs: false
+});
+
 interface Props {
 	modelValue: boolean;
 	actionText?: string;

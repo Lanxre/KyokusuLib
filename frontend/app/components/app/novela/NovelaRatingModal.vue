@@ -4,6 +4,10 @@ import { useNovelaRating } from "@/composables/api/novela/useNovelaRating";
 import { ModalWindow } from "@kyokusu-ui/vue";
 import { useNotificationStore } from "@/stores/notification";
 
+defineOptions({
+  inheritAttrs: false
+});
+
 interface Props {
 	modelValue: boolean;
 	novelaId: number;

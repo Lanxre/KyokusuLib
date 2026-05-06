@@ -118,7 +118,7 @@ const handleRemove = async () => {
         </div>
       </div>
     </Transition>
-    <AuthRequiredModal v-model="isModalOpen" action-text="добавлять новеллы в закладки" />
+    <AuthRequiredModal v-if="isModalOpen" v-model="isModalOpen" action-text="добавлять новеллы в закладки" />
   </div>
 </template>
 

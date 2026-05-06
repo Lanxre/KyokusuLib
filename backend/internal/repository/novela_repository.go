@@ -155,7 +155,10 @@ func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, user
 				ELSE NULL 
 			END as user_category,
 
-			COALESCE((SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $1), FALSE) as has_liked,
+			CASE 
+				WHEN $2 > 0 THEN COALESCE((SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $2), FALSE)
+				ELSE FALSE 
+			END as has_liked,
 
 			COALESCE((SELECT COUNT(*) FROM user_novela_likes WHERE novela_id = n.id AND has_liked = TRUE), 0),
 

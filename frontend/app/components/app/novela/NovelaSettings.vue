@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { ModalWindow, Input as BaseInput, SearchSelect, MultiSelect as BaseMultiSelect, RichText as BaseRichTextEditor } from "@kyokusu-ui/vue";
+
+defineOptions({
+  inheritAttrs: false
+});
+
 import YearSelect from "~/components/features/YearSelector/YearSelector.vue";
 import UploadIcon from "@/assets/images/special/add.png";
 

@@ -339,7 +339,7 @@ const handleReportCancel = async (id: number) => {
             </TransitionGroup>
         </div>
 
-        <AuthRequiredModal v-model="isAuthModalOpen" action-text="взаимодействовать с комментариями" />
+        <AuthRequiredModal v-if="isAuthModalOpen" v-model="isAuthModalOpen" action-text="взаимодействовать с комментариями" />
     </div>
 </template>
 
