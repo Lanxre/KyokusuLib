@@ -6,12 +6,15 @@ import { staticImage } from "@/utils/str";
 import LogoIcon from "@/assets/images/Kyokusu/kyokusulib_logo_2.png";
 import { useAuthStore } from "@/stores/auth";
 import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
+import { useSearch } from "@/composables/api/search/useSearch";
+import SearchModal from "@/components/common/SearchModal.vue";
 import { KyokusuAppRole } from "@/types/enums/role-enum";
 
 const router = useRouter();
 const authStore = useAuthStore();
 const { user, isAuthenticated } = storeToRefs(authStore);
 const { hasPermission } = useRolePermissions();
+const { openSearch } = useSearch();
 
 const isMobileMenuOpen = ref(false);
 const isUserDropdownOpen = ref(false);
@@ -66,7 +69,7 @@ const goToLogin = () => {
 
       <div class="flex items-center gap-3 md:gap-4">
         
-        <div class="hidden w-64 md:flex items-center gap-3 px-4 py-3 rounded-full bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors cursor-pointer group">
+        <div @click="openSearch" class="hidden w-64 md:flex items-center gap-3 px-4 py-3 rounded-full bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors cursor-pointer group">
           <Icon name="ph:magnifying-glass-bold" size="20" class="text-zinc-500 group-hover:text-zinc-900 dark:text-zinc-400 dark:group-hover:text-white" />
           <span class="text-sm lg:text-base font-medium text-zinc-500 group-hover:text-zinc-900 dark:text-zinc-400 dark:group-hover:text-white">Поиск</span>
         </div>
@@ -186,10 +189,10 @@ const goToLogin = () => {
           
           <div class="w-full border-t border-zinc-200 dark:border-zinc-700 my-2 opacity-50"></div>
           
-          <NuxtLink to="/search" class="flex items-center gap-3 px-6 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800/50 w-full justify-center text-zinc-700 dark:text-zinc-200" @click="closeMobileMenu">
+          <button @click="openSearch(); closeMobileMenu()" class="flex items-center gap-3 px-6 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800/50 w-full justify-center text-zinc-700 dark:text-zinc-200 cursor-pointer">
             <Icon name="ph:magnifying-glass-bold" size="20" />
             <span>Поиск</span>
-          </NuxtLink>
+          </button>
           
           <NuxtLink to="/bookmarks" class="flex items-center gap-3 px-6 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800/50 w-full justify-center text-zinc-700 dark:text-zinc-200" @click="closeMobileMenu">
             <Icon name="ph:bookmark-simple-bold" size="20" />
@@ -210,6 +213,8 @@ const goToLogin = () => {
         </nav>
       </div>
     </Transition>
+
+    <SearchModal />
   </header>
 </template>
 
