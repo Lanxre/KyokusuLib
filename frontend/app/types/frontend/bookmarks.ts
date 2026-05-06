@@ -9,6 +9,16 @@ export interface Bookmark {
 	updated_at: string;
 }
 
+export interface BookmarkCategoryTab {
+	id: BookmarkCategory;
+	name: string;
+	label: string;
+	icon: string;
+	user_id: number;
+	count: number;
+	visible: boolean;
+}
+
 export function getBookmarkCategoryLabel(category: BookmarkCategory): string {
 	switch (category) {
 		case "planned":

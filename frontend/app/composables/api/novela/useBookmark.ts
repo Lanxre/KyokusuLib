@@ -35,6 +35,7 @@ export function useBookmark() {
 
 					return {
 						id: cat.id || cat.name,
+						name: cat.name,
 						label: label,
 						icon: icon,
 						user_id: cat.user_id,
