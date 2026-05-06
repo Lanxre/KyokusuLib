@@ -29,6 +29,8 @@ const load = () => {
 onMounted(async () => { 
     if (authStore.user) {
         await fetchBookmarkCategories(authStore.user.id);
+        const readingCat = bookmarkCategories.value.find((c: any) => c.name === 'reading');
+        if (readingCat) activeCategory.value = readingCat.id;
         load(); 
     }
 });

@@ -19,8 +19,10 @@ const {
 
 const load = () => fetchUserBookmarkNovels(props.userId, activeCategory.value);
 
-onMounted(() => {
-    fetchBookmarkCategories(props.userId);
+onMounted(async () => {
+    await fetchBookmarkCategories(props.userId);
+    const readingCat = bookmarkCategories.value.find((c: any) => c.name === 'reading');
+    if (readingCat) activeCategory.value = readingCat.id;
 });
 
 watch(activeCategory, load, { immediate: true });
