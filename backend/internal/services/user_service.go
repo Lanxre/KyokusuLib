@@ -17,25 +17,37 @@ func NewUserService(repo *repository.UserRepository, userProfileRepo *repository
 	return &UserService{Repo: repo, UserProfileRepo: userProfileRepo}
 }
 
-func (s *UserService) GetUsers(ctx context.Context, search string, limit int) ([]*dto.GetUserDTO, error) {
+func (s *UserService) GetUsers(ctx context.Context, search string, limit int, offset int) ([]*dto.GetUserDTO, error) {
 	if limit <= 0 {
 		limit = 10
 	} else if limit > 100 {
 		limit = 100
 	}
 	
-	usersDb, err := s.Repo.GetUsers(ctx, search, limit)
+	usersDb, err := s.Repo.GetUsers(ctx, search, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
 	usersDto := make([]*dto.GetUserDTO, len(usersDb))
 	for i, user := range usersDb {
+		userLevel, err := s.UserProfileRepo.GetUserLevel(context.Background(), user.ID)
+
+		if err != nil {
+			return nil, err
+		}
+		
 		usersDto[i] = &dto.GetUserDTO{
 			ID:      user.ID,
 			Name:    user.Name,
 			Picture: user.Picture,
 			Role:    user.Role,
+			UserLevel: dto.UserLevelDTO{
+				Level: userLevel.Level,
+				Experience: userLevel.Experience,
+				LevelTitle: userLevel.LevelTitle,
+				XPForNext: userLevel.XPForNext,
+			},
 		}
 	}
 	return usersDto, nil
@@ -63,6 +75,11 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	totalComments, readChapters, err := s.Repo.GetUserStats(context.Background(), userId)
+	if err != nil {
+		return nil, err
+	}
 	
 	return  &dto.GetUserDTO{
 		ID:       userDb.ID,
@@ -76,15 +93,19 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 		IsPublic: userDb.IsPublic,
 		LastLogin: userDb.LastLogin,
 		CreateAt: userDb.CreateAt,
-		Banner:   userDb.Banner,
-		ActiveTag:      userDb.Tag,
-		AllTags:        userTags,
-		Settings:       userPublicSettings,
-		UserLevel:      dto.UserLevelDTO{
-			Level:      userLevel.Level,
+		Banner: userDb.Banner,
+		ActiveTag: userDb.Tag,
+		AllTags: userTags,
+		Settings: userPublicSettings,
+		UserLevel: dto.UserLevelDTO{
+			Level: userLevel.Level,
 			Experience: userLevel.Experience,
 			LevelTitle: userLevel.LevelTitle,
-			XPForNext:  userLevel.XPForNext,
+			XPForNext: userLevel.XPForNext,
+		},
+		UserStats: dto.UserStatsDTO{
+			TotalComments: totalComments,
+			ReadChapters:  readChapters,
 		},
 	}, err
 }

@@ -465,6 +465,15 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 		argID++
 	}
 
+	if f.AuthorID > 0 {
+		where = append(where, fmt.Sprintf(`EXISTS (
+			SELECT 1 FROM novela_authors na 
+			WHERE na.novela_id = n.id AND na.author_id = $%d
+		)`, argID))
+		args = append(args, f.AuthorID)
+		argID++
+	}
+
 	orderBy := "n.created_at DESC"
 	switch f.Sort {
 	case dto.SortPopular:

@@ -8,7 +8,7 @@ defineProps<{
 const emit = defineEmits(["update:modelValue"]);
 
 const categories: { id: SearchCategory; label: string; icon: string }[] = [
-    { id: "ranobe", label: "Ранобэ", icon: "ph:book-open-bold" },
+    { id: "ranobe", label: "Ранобе", icon: "ph:book-open-bold" },
     { id: "users", label: "Пользователи", icon: "ph:users-bold" },
     { id: "teams", label: "Команды", icon: "ph:users-three-bold" },
     { id: "authors", label: "Авторы", icon: "ph:pen-nib-bold" }

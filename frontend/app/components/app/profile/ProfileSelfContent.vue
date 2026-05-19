@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { staticImage } from "@/utils/str";
+import { staticImage, roleConv } from "@/utils/str";
 import { useProfile } from "@/composables/api/profile/useProfile";
 import { useUserActivity } from "@/composables/api/profile/useUserActivity";
 import { useInterfaceSettings } from "@/composables/api/settings/useInterfaceSettings";
@@ -13,6 +13,7 @@ import ExperienceInfo from "./experience/ExperienceInfo.vue";
 import UserTagId from "~/components/features/UserTagID/UserTagId.vue";
 import TabBookmarks from "./tabs/TabBookmarks.vue";
 import TabUserComments from "./tabs/TabUserComments.vue";
+import type { KyokusuAppRole } from "~/types/enums/role-enum";
 
 const {
 	profileData,
@@ -75,7 +76,7 @@ const { pending } = await useAsyncData("profile-init", async () => {
                             <h1 class="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white flex flex-wrap items-center gap-3">
                                 {{ profileData?.name || 'Загрузка...' }}
                                 <span v-if="profileData?.role" :class="['text-[10px] md:text-xs px-2 py-0.5 rounded border uppercase tracking-wider font-semibold', userRoleColor]">
-                                    {{ profileData.role }}
+                                    {{ roleConv(profileData.role as KyokusuAppRole, 'ru') }}
                                 </span>
                             </h1>
                             
@@ -144,11 +145,11 @@ const { pending } = await useAsyncData("profile-init", async () => {
 
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl text-center">
-                            <div class="text-2xl font-bold text-zinc-900 dark:text-white">0</div>
+                            <div class="text-2xl font-bold text-zinc-900 dark:text-white">{{ profileData?.user_stats?.read_chapters || 0 }}</div>
                             <div class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Прочитано</div>
                         </div>
                         <div class="bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl text-center">
-                            <div class="text-2xl font-bold text-zinc-900 dark:text-white">0</div>
+                            <div class="text-2xl font-bold text-zinc-900 dark:text-white">{{ profileData?.user_stats?.total_comments || 0 }}</div>
                             <div class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Отзывов</div>
                         </div>
                     </div>

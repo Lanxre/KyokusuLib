@@ -27,7 +27,6 @@ func NewAuthService(repo *repository.UserRepository, userProfileRepo *repository
 }
 
 func (s *AuthService) RegisterUser(ctx context.Context, input *dto.RegisterDTO) (*db.User, error) {
-	// Проверка на существование
 	existing, err := s.Repo.GetByEmail(input.Email)
 	if err != nil {
 		return nil, err
@@ -111,7 +110,7 @@ func (s *AuthService) LoginUser(ctx context.Context, gUser *dto.UserDTO) (*dto.G
 			return nil, err
 		}
 
-		return s.toUserDTO(user, nil, nil), nil
+		return s.toUserDTO(user, nil, nil, 0, 0), nil
 	}
 
 	if !user.IsVerified {
@@ -231,10 +230,15 @@ func (s *AuthService) enrichUserDTO(ctx context.Context, user *db.User) (*dto.Ge
 		log.Printf("failed to get user level: %v", err)
 	}
 
-	return s.toUserDTO(user, userTags, userLevel), nil
+	totalComments, readChapters, err := s.Repo.GetUserStats(ctx, user.ID)
+	if err != nil {
+		log.Printf("failed to get user stats: %v", err)
+	}
+
+	return s.toUserDTO(user, userTags, userLevel, totalComments, readChapters), nil
 }
 
-func (s AuthService) toUserDTO(user *db.User, tags []dto.UserTagDTO, level *db.UserLevel) *dto.GetUserDTO {
+func (s AuthService) toUserDTO(user *db.User, tags []dto.UserTagDTO, level *db.UserLevel, totalComments int, readChapters int) *dto.GetUserDTO {
 	res := &dto.GetUserDTO{
 		ID:        user.ID,
 		Email:     user.Email,
@@ -254,6 +258,10 @@ func (s AuthService) toUserDTO(user *db.User, tags []dto.UserTagDTO, level *db.U
 		Settings: dto.PublicUserSettingsDTO{
 			IsShowTag: user.IsShowTag,
 			IsShowBookmark: user.IsShowBookmark,
+		},
+		UserStats: dto.UserStatsDTO{
+			TotalComments: totalComments,
+			ReadChapters:  readChapters,
 		},
 	}
 

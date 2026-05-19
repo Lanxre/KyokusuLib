@@ -4,8 +4,8 @@ import type { NovelaAuthorDetails } from "~/types/backend/novela";
 
 export function useAuthors() {
 	const isSearching = ref(false);
-	const foundAuthors = ref<{ id: number; label: string }[]>([]);
-
+	const foundAuthors = ref<NovelaAuthorDetails[]>([]);
+	
 	const searchAuthors = async (query: string) => {
 		if (!query || query.length < 2) {
 			foundAuthors.value = [];
@@ -20,18 +20,36 @@ export function useAuthors() {
 
 			foundAuthors.value = data.map((a) => ({
 				id: a.id,
-				label: a.name,
+				name: a.name,
+				country: a.country,
+				picture: a.picture,
+				metier: a.metier,
+				bio: a.bio,
 			}));
 		} catch (e) {
 			foundAuthors.value = [];
 		} finally {
 			isSearching.value = false;
 		}
+  };
+
+  const getAuthorById = async (authorId: string) => {
+    isSearching.value = true;
+
+    try {
+      const data = await $api<NovelaAuthorDetails>(`/api/author/${authorId}`);
+      return data;
+    } catch (e) {
+      return null;
+    } finally {
+      isSearching.value = false;
+    }
 	};
 
 	return {
 		isSearching,
-		foundAuthors,
-		searchAuthors,
+    foundAuthors,
+		getAuthorById,
+    searchAuthors,
 	};
 }

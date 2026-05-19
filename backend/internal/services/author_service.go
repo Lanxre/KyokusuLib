@@ -40,14 +40,14 @@ func (s *AuthorService) GetAuthorByName(ctx context.Context, name string) (*db.A
 	return s.repo.GetAuthorByName(ctx, name)
 }
 
-func (s *AuthorService) GetAuthors(ctx context.Context, search string, limit int) ([]*db.Author, error) {
+func (s *AuthorService) GetAuthors(ctx context.Context, search string, limit int, offset int) ([]*db.Author, error) {
 	if limit <= 0 {
 		limit = 10
 	} else if limit > 100 {
 		limit = 100
 	}
 	
-	authorsDb, err := s.repo.GetAuthors(ctx, search, limit)
+	authorsDb, err := s.repo.GetAuthors(ctx, search, limit, offset)
 	
 	if err != nil {
 		return nil, err
@@ -59,6 +59,18 @@ func (s *AuthorService) GetAuthors(ctx context.Context, search string, limit int
 	}
 
 	return authorsDb, nil
+}
+
+func (s *AuthorService) GetAuthorById(ctx context.Context, id string) (*dto.AuthorDTO, error) {
+	author, err := s.repo.GetAuthorById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return s.toDTO(author), nil
+}
+
+func (s *AuthorService) UpdateAuthor(ctx context.Context, id string, author *db.Author) error {
+	return s.repo.UpdateAuthor(ctx, id, author)
 }
 
 func (s *AuthorService) toDTO(author *db.Author) *dto.AuthorDTO {

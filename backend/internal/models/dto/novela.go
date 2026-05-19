@@ -115,6 +115,7 @@ type NovelaFilters struct {
 	Sort       NovelaSort `json:"sort"`
 	Limit      int        `json:"limit"`
 	Offset     int        `json:"offset"`
+	AuthorID   int        `json:"author_id"`
 }
 
 type UserNovelaBookmark struct {

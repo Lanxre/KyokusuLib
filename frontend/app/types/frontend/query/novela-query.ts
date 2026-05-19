@@ -12,4 +12,5 @@ export interface NovelsQueryParams {
 	order?: string;
 	search?: string;
 	sort?: NovelaSort;
+	author_id?: number;
 }

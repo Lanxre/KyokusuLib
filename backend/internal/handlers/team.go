@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
@@ -44,8 +45,15 @@ func (h *TeamHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *TeamHandler) GetTeams(w http.ResponseWriter, r *http.Request) {
 	search := r.URL.Query().Get("search")
 	limit := 20
+	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil {
+		limit = l
+	}
+	offset := 0
+	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil {
+		offset = o
+	}
 
-	teams, err := h.Service.GetTeams(r.Context(), search, limit)
+	teams, err := h.Service.GetTeams(r.Context(), search, limit, offset)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "Failed to get teams")
 		return

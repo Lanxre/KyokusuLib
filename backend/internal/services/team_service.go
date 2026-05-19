@@ -19,13 +19,13 @@ func NewTeamService(repo *repository.TeamRepository) *TeamService {
 	return &TeamService{Repo: repo}
 }
 
-func (s *TeamService) GetTeams(ctx context.Context, search string, limit int) ([]*db.PublisherTeam, error) {
+func (s *TeamService) GetTeams(ctx context.Context, search string, limit int, offset int) ([]*db.PublisherTeam, error) {
 	if limit <= 0 {
 		limit = 10
 	} else if limit > 100 {
 		limit = 100
 	}
-	return s.Repo.GetTeams(ctx, search, limit)
+	return s.Repo.GetTeams(ctx, search, limit, offset)
 }
 
 func (s *TeamService) Create(ctx context.Context, userID int, input dto.CreateTeamDTO) (*db.PublisherTeam, error) {

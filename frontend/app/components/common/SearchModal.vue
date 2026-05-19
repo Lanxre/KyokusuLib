@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from "vue";
 import { ModalWindow, Button as BaseButton } from "@kyokusu-ui/vue";
-import { useSearch } from "@/composables/api/search/useSearch";
+import { useSearch, type SearchResultItem } from "@/composables/api/search/useSearch";
 import SearchCategories from "./Search/SearchCategories.vue";
 import SearchHistory from "./Search/SearchHistory.vue";
 import SearchResults from "./Search/SearchResults.vue";
@@ -22,7 +22,7 @@ const {
 
 const searchInputRef = ref<HTMLInputElement | null>(null);
 
-const handleSelectResult = (item: any) => {
+const handleSelectResult = (item: SearchResultItem) => {
     addRecentSearch(searchQuery.value);
     closeSearch();
     
@@ -42,7 +42,19 @@ const handleSelectRecent = (query: string) => {
     searchQuery.value = query;
 };
 
-// Handle keyboard shortcuts (Esc to close)
+const navigateToSearch = () => {
+    const query = searchQuery.value.trim();
+    if (query.length >= 2) {
+        const category = activeCategory.value;
+        addRecentSearch(query);
+        closeSearch();
+        navigateTo({
+            path: '/search',
+            query: { q: query, type: category }
+        });
+    }
+};
+
 const handleKeydown = (e: KeyboardEvent) => {
     if (e.key === "Escape" && isOpen.value) {
         closeSearch();
@@ -101,6 +113,7 @@ onUnmounted(() => {
                         <input 
                             ref="searchInputRef"
                             v-model="searchQuery" 
+                            @keydown.enter="navigateToSearch"
                             type="text" 
                             class="flex-1 w-full pl-4 pr-10 sm:pr-28 bg-transparent border-none text-sm sm:text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-0 selection:bg-yellow-500/30"
                             placeholder="Что будем искать?"

@@ -1,5 +1,6 @@
 import PersonIcon from "@/assets/images/special/user.png";
 import { getApiBase } from "@/constants/urls";
+import type { KyokusuAppRole } from "~/types/enums/role-enum";
 
 export function correctProfileImageLink(link: string) {
 	const backendUrl = getApiBase();
@@ -37,3 +38,18 @@ export const formatDateUserActivity = (dateString: string) => {
 		year: "numeric",
 	});
 };
+
+export const roleConv = (role: KyokusuAppRole, lang: string) => {
+  switch (role) {
+    case "admin":
+      return lang === "ru" ? "Администратор" : "admin";
+    case "moderator":
+      return lang === "ru" ? "Модератор" : "moderator";
+    case "user":
+      return lang === "ru" ? "Пользователь" : "user";
+    case "publisher":
+      return lang === "ru" ? "Публикатор" : "publisher";
+    default:
+      return role;
+  }
+}

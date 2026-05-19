@@ -28,7 +28,8 @@ export interface NovelaAuthor {
 export interface NovelaAuthorDetails {
 	id: number;
 	name: string;
-	country: string;
+  country: string;
+	picture?: string;
 	metier: string;
 	bio: string;
 }

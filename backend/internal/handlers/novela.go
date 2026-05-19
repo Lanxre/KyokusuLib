@@ -294,6 +294,7 @@ func (h *NovelaHandler) GetNovelas(w http.ResponseWriter, r *http.Request) {
 		Status:     q.Get("status"),
 		Genres:     parseCSV("genres"),
 		Categories: parseCSV("categories"),
+		AuthorID:   toInt("author_id", 0),
 	}
 
 	novelas, total, err := h.service.GetNovelas(r.Context(), userID, filters)

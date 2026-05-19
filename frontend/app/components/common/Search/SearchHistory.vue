@@ -26,11 +26,11 @@ const emit = defineEmits(["select", "remove", "clear"]);
                     <Icon name="ph:clock-counter-clockwise-bold" size="14" class="text-zinc-400 group-hover:text-yellow-500 transition-colors" />
                     <button 
                         @click="emit('select', recent)" 
-                        class="text-sm font-semibold text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white mx-2 focus:outline-none"
+                        class="text-sm cursor-pointer font-semibold text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white mx-2 focus:outline-none"
                     >
                         {{ recent }}
                     </button>
-                    <button @click.stop="emit('remove', recent)" class="p-1 mt-0.5 rounded-full text-zinc-400 dark:hover:text-zinc-100 hover:bg-red-50 dark:hover:bg-zinc-500/10 transition-colors focus:outline-none">
+                    <button @click.stop="emit('remove', recent)" class="px-0.5 py-0.5 mt-0.5 cursor-pointer rounded-full text-zinc-400 dark:hover:text-zinc-100 hover:bg-red-50 dark:hover:bg-zinc-500/10 transition-colors focus:outline-none">
                         <Icon name="ph:x-bold" size="14" />
                     </button>
                 </div>

@@ -18,6 +18,12 @@ export interface GetUserDto {
 	tags: UserTagDTO[];
 	settings: PublicUserSettingsDTO;
 	user_level: UserLevel;
+	user_stats: UserStats;
+}
+
+export interface UserStats {
+	total_comments: number;
+	read_chapters: number;
 }
 
 export interface UserTagDTO {

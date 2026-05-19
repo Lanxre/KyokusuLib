@@ -12,6 +12,11 @@ type UserDTO struct {
 	Token 	  string
 }
 
+type UserStatsDTO struct {
+	TotalComments int `json:"total_comments"`
+	ReadChapters  int `json:"read_chapters"`
+}
+
 type GetUserDTO struct {
 	ID           			 		int       	`json:"id"`
 	Email 							string		`json:"-"`
@@ -32,6 +37,7 @@ type GetUserDTO struct {
 	AllTags							[]UserTagDTO	`json:"tags"`
 	Settings						PublicUserSettingsDTO	`json:"settings"`
 	UserLevel						UserLevelDTO	`json:"user_level"`
+	UserStats                       UserStatsDTO `json:"user_stats"`
 }
 
 type UserLevelDTO struct {

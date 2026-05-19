@@ -3,16 +3,19 @@ import { useStorage } from '@vueuse/core';
 import { useDebounceFn } from '@vueuse/core';
 import { $api } from '@/composables/api/useApi';
 import { useAuthors } from '@/composables/api/authors/useAuthors';
-import type { NovelaDetails } from '@/types/backend/novela';
+import type { NovelaDetails, NovelaAuthorDetails } from '@/types/backend/novela';
+import type { GetUserDto } from '@/types/backend/user';
+import type { Team } from '@/types/frontend/teams';
 
 export type SearchCategory = 'ranobe' | 'users' | 'teams' | 'authors';
+export type SearchResultItem = NovelaDetails | GetUserDto | Team | NovelaAuthorDetails | any;
 
 export function useSearch() {
     const isOpen = useState('search-is-open', () => false);
     const searchQuery = useState('search-query', () => '');
     const activeCategory = useState<SearchCategory>('search-category', () => 'ranobe');
     const isSearching = useState('search-is-searching', () => false);
-    const searchResults = useState<any[]>('search-results', () => []);
+    const searchResults = useState<SearchResultItem[]>('search-results', () => []);
     
     const recentSearches = useStorage<string[]>('recent-searches', []);
     const popularSearches = ref<string[]>(['Система', 'Магия', 'Перерождение', 'Академия']);

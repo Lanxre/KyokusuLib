@@ -26,8 +26,15 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	search := r.URL.Query().Get("search")
 	limit := 20
+	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil {
+		limit = l
+	}
+	offset := 0
+	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil {
+		offset = o
+	}
 
-	users, err := h.UserService.GetUsers(r.Context(), search, limit)
+	users, err := h.UserService.GetUsers(r.Context(), search, limit, offset)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "Failed to get users")
 		return

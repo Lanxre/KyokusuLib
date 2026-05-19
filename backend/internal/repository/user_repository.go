@@ -17,7 +17,7 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{DB: db}
 }
 
-func (r *UserRepository) GetUsers(ctx context.Context, search string, limit int) ([]*db.User, error) {
+func (r *UserRepository) GetUsers(ctx context.Context, search string, limit int, offset int) ([]*db.User, error) {
 	var query string
 	var rows *sql.Rows
 	var err error
@@ -28,15 +28,15 @@ func (r *UserRepository) GetUsers(ctx context.Context, search string, limit int)
 			FROM users u 
 			LEFT JOIN user_profiles p ON p.user_id = u.id 
 			WHERE p.name ILIKE $1::text OR u.email ILIKE $1::text
-			ORDER BY u.id DESC LIMIT $2`
-		rows, err = r.DB.QueryContext(ctx, query, "%"+search+"%", limit)
+			ORDER BY u.id DESC LIMIT $2 OFFSET $3`
+		rows, err = r.DB.QueryContext(ctx, query, "%"+search+"%", limit, offset)
 	} else {
 		query = `
 			SELECT u.id, p.name, p.picture, u.role 
 			FROM users u 
 			LEFT JOIN user_profiles p ON p.user_id = u.id 
-			ORDER BY u.id DESC LIMIT $1`
-		rows, err = r.DB.QueryContext(ctx, query, limit)
+			ORDER BY u.id DESC LIMIT $1 OFFSET $2`
+		rows, err = r.DB.QueryContext(ctx, query, limit, offset)
 	}
 
 	if err != nil {
@@ -458,4 +458,26 @@ func (r *UserRepository) UpdateUserTag(ctx context.Context, userID int, tagID in
 		
 	_, err := r.DB.Exec(query, tagID, userID)
 	return err
+}
+
+func (r *UserRepository) GetUserStats(ctx context.Context, userID int) (int, int, error) {
+	var totalComments, readChapters int
+
+	commentsQuery := `SELECT COUNT(*) FROM novela_comments WHERE user_id = $1`
+	err := r.DB.QueryRowContext(ctx, commentsQuery, userID).Scan(&totalComments)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	bookmarksQuery := `
+		SELECT COUNT(b.novela_id)
+		FROM user_novela_bookmarks b
+		JOIN bookmark_categories c ON b.category_id = c.id
+		WHERE b.user_id = $1 AND c.name = 'completed'`
+	err = r.DB.QueryRowContext(ctx, bookmarksQuery, userID).Scan(&readChapters)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return totalComments, readChapters, nil
 }
