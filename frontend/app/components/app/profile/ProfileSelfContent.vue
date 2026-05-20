@@ -10,10 +10,12 @@ import TabActivity from "@/components/app/profile/activity/TabActivity.vue";
 import TagSelector from "@/components/features/TagSelector/TagSelector.vue";
 import UserExperiance from "@/components/features/UserExperience/UserExperience.vue";
 import ExperienceInfo from "./experience/ExperienceInfo.vue";
-import UserTagId from "~/components/features/UserTagID/UserTagId.vue";
+import UserTagId from "@/components/features/UserTagID/UserTagId.vue";
 import TabBookmarks from "./tabs/TabBookmarks.vue";
 import TabUserComments from "./tabs/TabUserComments.vue";
-import type { KyokusuAppRole } from "~/types/enums/role-enum";
+import TabTeams from "./tabs/TabTeams.vue";
+import type { KyokusuAppRole } from "@/types/enums/role-enum";
+import { TabProfile } from "@/types/enums/tab-profile";
 
 const {
 	profileData,
@@ -27,8 +29,27 @@ const {
 
 const { activities, fetchActivities, isLoadingActivities } = useUserActivity();
 const { isShowTag, syncSettingWithBackend } = useInterfaceSettings();
-const activeTab = ref("overview");
+const activeTab = ref<TabProfile>(TabProfile.Overview);
 const isModalOpen = ref(false);
+
+const tabComponents: Record<string, any> = {
+    [TabProfile.Overview]: TabActivity,
+    [TabProfile.Bookmarks]: TabBookmarks,
+    [TabProfile.Comments]: TabUserComments,
+    [TabProfile.Teams]: TabTeams,
+};
+
+const activeComponent = computed(() => tabComponents[activeTab.value]);
+
+const activeTabProps = computed(() => {
+    if (activeTab.value === TabProfile.Overview) {
+        return { activities: activities.value, isLoading: isLoadingActivities.value };
+    }
+    if (activeTab.value === TabProfile.Bookmarks || activeTab.value === TabProfile.Comments || activeTab.value === TabProfile.Teams) {
+        return { userId: profileData.value!.id };
+    }
+    return {};
+});
 
 const { pending } = await useAsyncData("profile-init", async () => {
     await Promise.all([fetchActivities(profileData.value!.id), syncSettingWithBackend()]);
@@ -171,15 +192,11 @@ const { pending } = await useAsyncData("profile-init", async () => {
                     </div>
 
                     <div class="min-h-75">
-                        <div v-if="activeTab === 'overview'" :key="activeTab">
-                            <TabActivity :activities="activities" :isLoading="isLoadingActivities" />
-                        </div>
-                        <div v-else-if="activeTab === 'bookmarks'" :key="'bookmarks'">
-                            <TabBookmarks :userId="profileData!.id" />
-                        </div>
-                        <div v-else-if="activeTab === 'comments'" key="comments">
-                            <TabUserComments :userId="profileData!.id"/>
-                        </div>
+                        <component 
+                            v-if="activeComponent" 
+                            :is="activeComponent" 
+                            v-bind="activeTabProps" 
+                        />
                         <div v-else class="p-12 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-500 text-center">
                             Здесь пока ничего нет
                         </div>

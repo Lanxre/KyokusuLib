@@ -2,6 +2,7 @@ import { computed } from "vue";
 import { useAuthStore } from "~/stores/auth";
 import { GenderSetting } from "~/types/enums/gender-enum";
 import { KyokusuAppRole } from "~/types/enums/role-enum";
+import { TabProfile } from "@/types/enums/tab-profile";
 import type { GetUserDto } from "~/types/backend/user";
 import { useApi } from "../useApi";
 
@@ -26,15 +27,16 @@ export function useProfile() {
   const isPublicAccount = computed(() => !!profileData.value?.is_public);
 
   const profileTabs = computed(() => {
-    const tabs = [
-      { label: "Обзор", id: "overview" },
+    const tabs: { label: string; id: TabProfile }[] = [
+      { label: "Обзор", id: TabProfile.Overview },
     ];
     
     if ((authStore.isAuthenticated && isSelfProfile.value) || profileData.value?.settings.is_show_bookmark) {
-      tabs.push({ label: "Закладки", id: "bookmarks" });
+      tabs.push({ label: "Закладки", id: TabProfile.Bookmarks });
     }
 
-    tabs.push({ label: "Комментарии", id: "comments" })
+    tabs.push({ label: "Команды", id: TabProfile.Teams });
+    tabs.push({ label: "Комментарии", id: TabProfile.Comments });
     
     return tabs;
   });

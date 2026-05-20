@@ -104,6 +104,22 @@ export function useTeam() {
 		}
 	};
 
+	const getUserTeams = async (userId: number) => {
+		isLoading.value = true;
+		error.value = null;
+		try {
+			const data = await $api<Team[]>(`/api/teams`, {
+				query: { user_id: userId }
+			});
+			return data || [];
+		} catch (e: any) {
+			error.value = e.message;
+			return [];
+		} finally {
+			isLoading.value = false;
+		}
+	};
+
 	return {
 		team,
 		isLoading,
@@ -112,5 +128,6 @@ export function useTeam() {
 		createTeam,
 		updateTeam,
 		joinTeam,
+		getUserTeams
 	};
 }

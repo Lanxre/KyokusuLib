@@ -52,8 +52,12 @@ func (h *TeamHandler) GetTeams(w http.ResponseWriter, r *http.Request) {
 	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil {
 		offset = o
 	}
+	userID := 0
+	if u, err := strconv.Atoi(r.URL.Query().Get("user_id")); err == nil {
+		userID = u
+	}
 
-	teams, err := h.Service.GetTeams(r.Context(), search, limit, offset)
+	teams, err := h.Service.GetTeams(r.Context(), search, limit, offset, userID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "Failed to get teams")
 		return

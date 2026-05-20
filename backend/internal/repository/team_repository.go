@@ -17,12 +17,20 @@ func NewTeamRepository(db *sql.DB) *TeamRepository {
 	return &TeamRepository{DB: db}
 }
 
-func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int, offset int) ([]*db.PublisherTeam, error) {
+func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int, offset int, userID int) ([]*db.PublisherTeam, error) {
 	var query string
 	var rows *sql.Rows
 	var err error
 
-	if search != "" {
+	if userID > 0 {
+		query = `
+			SELECT pt.id, pt.name, pt.slug, pt.description, pt.avatar_url, pt.owner_id, pt.created_at
+			FROM publisher_teams pt
+			JOIN team_members tm ON pt.id = tm.team_id
+			WHERE tm.user_id = $1
+			ORDER BY pt.id DESC LIMIT $2 OFFSET $3`
+		rows, err = r.DB.QueryContext(ctx, query, userID, limit, offset)
+	} else if search != "" {
 		query = "SELECT id, name, slug, description, avatar_url, owner_id, created_at FROM publisher_teams WHERE name ILIKE $1::text OR slug ILIKE $1::text ORDER BY id DESC LIMIT $2 OFFSET $3"
 		rows, err = r.DB.QueryContext(ctx, query, "%"+search+"%", limit, offset)
 	} else {
