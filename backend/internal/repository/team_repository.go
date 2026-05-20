@@ -24,17 +24,31 @@ func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int,
 
 	if userID > 0 {
 		query = `
-			SELECT pt.id, pt.name, pt.slug, pt.description, pt.avatar_url, pt.owner_id, pt.created_at
+			SELECT pt.id, pt.name, pt.slug, pt.description, pt.avatar_url, pt.owner_id, pt.created_at,
+				(SELECT COUNT(*) FROM team_members WHERE team_id = pt.id) AS member_count,
+				(SELECT COUNT(*) FROM team_subscribers WHERE team_id = pt.id) AS subscribers_count
 			FROM publisher_teams pt
-			JOIN team_members tm ON pt.id = tm.team_id
-			WHERE tm.user_id = $1
-			ORDER BY pt.id DESC LIMIT $2 OFFSET $3`
+			WHERE EXISTS (SELECT 1 FROM team_members WHERE team_id = pt.id AND user_id = $1)
+			   OR EXISTS (SELECT 1 FROM team_subscribers WHERE team_id = pt.id AND user_id = $1)
+			ORDER BY pt.id DESC LIMIT $2 OFFSET $3
+			`
 		rows, err = r.DB.QueryContext(ctx, query, userID, limit, offset)
 	} else if search != "" {
-		query = "SELECT id, name, slug, description, avatar_url, owner_id, created_at FROM publisher_teams WHERE name ILIKE $1::text OR slug ILIKE $1::text ORDER BY id DESC LIMIT $2 OFFSET $3"
+		query = `
+			SELECT id, name, slug, description, avatar_url, owner_id, created_at, 
+			(SELECT COUNT(*) FROM team_members WHERE team_id = publisher_teams.id) AS member_count, 
+			(SELECT COUNT(*) FROM team_subscribers WHERE team_id = publisher_teams.id) AS subscribers_count 
+			FROM publisher_teams 
+			WHERE name ILIKE $1::text OR slug ILIKE $1::text 
+			ORDER BY id DESC LIMIT $2 OFFSET $3`
 		rows, err = r.DB.QueryContext(ctx, query, "%"+search+"%", limit, offset)
 	} else {
-		query = "SELECT id, name, slug, description, avatar_url, owner_id, created_at FROM publisher_teams ORDER BY id DESC LIMIT $1 OFFSET $2"
+		query = `
+			SELECT id, name, slug, description, avatar_url, owner_id, created_at, 
+			(SELECT COUNT(*) FROM team_members WHERE team_id = publisher_teams.id) AS member_count, 
+			(SELECT COUNT(*) FROM team_subscribers WHERE team_id = publisher_teams.id) AS subscribers_count 
+			FROM publisher_teams 
+			ORDER BY id DESC LIMIT $1 OFFSET $2`
 		rows, err = r.DB.QueryContext(ctx, query, limit, offset)
 	}
 
@@ -48,11 +62,14 @@ func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int,
 		var team db.PublisherTeam
 		var description sql.NullString
 		var avatarURL sql.NullString
+		var memberCount int
+		var subscribersCount int
 		
 		if err := rows.Scan(
 			&team.ID, &team.Name, &team.Slug, 
 			&description, &avatarURL, 
 			&team.OwnerID, &team.CreatedAt,
+			&memberCount, &subscribersCount,
 		); err != nil {
 			return nil, err
 		}
@@ -63,7 +80,9 @@ func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int,
 		if avatarURL.Valid {
 			team.AvatarURL = avatarURL.String
 		}
-		
+		team.MemberCount = memberCount
+		team.SubscribersCount = subscribersCount
+
 		teams = append(teams, &team)
 	}
 	

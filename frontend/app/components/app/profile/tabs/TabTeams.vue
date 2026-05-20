@@ -31,7 +31,7 @@ onMounted(async () => {
             <div v-for="i in 3" :key="i" class="h-[98px] rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 animate-pulse border border-zinc-200 dark:border-zinc-800"></div>
         </div>
 
-        <div v-else-if="teams.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div v-else-if="teams.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
             <NuxtLink 
                 v-for="team in teams" 
                 :key="team.id"
@@ -48,13 +48,23 @@ onMounted(async () => {
                     <div class="absolute inset-0 bg-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
                 
-                <div class="flex flex-col min-w-0 flex-1 justify-center">
+                <div class="flex flex-col min-w-1 flex-1 justify-center">
                     <span class="text-base font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:text-yellow-600 dark:group-hover:text-yellow-500 transition-colors">
                         {{ team.name }}
                     </span>
                     <span class="text-xs font-semibold tracking-wide text-zinc-500 dark:text-zinc-400 truncate mt-0.5 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors">
                         @{{ team.slug }}
                     </span>
+                    <div class="flex gap-2 text-xs font-semibold tracking-wide text-zinc-500 dark:text-zinc-400 truncate mt-0.5 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors">
+                        <span class="flex items-center gap-2">
+                            <Icon name="ph:users" size="12"/>
+                            <span>Участников: {{ team.member_count }}</span>
+                        </span>
+                        <span class="flex items-center gap-2">
+                            <Icon name="ph:users-three" size="12"/>
+                            <span>Подписчиков: {{ team.subscribers_count }}</span>
+                        </span>
+                    </div>
                 </div>
                 <Icon name="ph:caret-right-bold" size="16" class="text-zinc-300 dark:text-zinc-600 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
             </NuxtLink>

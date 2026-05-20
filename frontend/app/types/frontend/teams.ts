@@ -6,5 +6,7 @@ export interface Team {
 	description: string;
 	avatar_url: string;
 	banner_url?: string;
-	created_at: string;
+  created_at: string;
+  member_count: number;
+	subscribers_count: number;
 }
