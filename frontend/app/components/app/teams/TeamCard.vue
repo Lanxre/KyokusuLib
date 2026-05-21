@@ -142,7 +142,7 @@ const handleLeave = async () => {
                             v-else-if="authStore.isAuthenticated && (team.owner_id !== authStore.user?.id) && team.is_member"
                             @click="handleLeave"
                             :disabled="isLoading"
-                            class="px-4 py-1 mt-2 bg-zinc-200 hover:bg-red-500 dark:bg-zinc-800 dark:hover:bg-red-500/20 text-zinc-700 dark:text-zinc-300 hover:text-white dark:hover:text-red-500 font-bold rounded-full transition-colors duration-300 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                            class="px-4 py-1 mt-2 text-[12px] bg-zinc-200 hover:bg-red-500 dark:bg-zinc-800 dark:hover:bg-red-500/20 text-zinc-700 dark:text-zinc-300 hover:text-white dark:hover:text-red-500 font-bold rounded-full transition-colors duration-300 flex items-center gap-2 cursor-pointer disabled:opacity-50"
                         >
                             <Icon v-if="isLoading" name="ph:spinner-gap-bold" class="animate-spin" />
                             <Icon v-else name="ph:sign-out-bold" />

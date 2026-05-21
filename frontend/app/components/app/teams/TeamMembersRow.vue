@@ -32,6 +32,15 @@ const { data: members, pending: isLoading } = useAsyncData<TeamMember[]>(
                     <div class="h-1 w-1/2 bg-yellow-500 rounded-full"></div>
                 </div>
             </h2>
+            <div class="flex justify-center sm:justify-end">
+                <NuxtLink 
+                    :to="`/team/${slug}/members`"
+                    class="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-bold rounded-full transition-colors text-[12px] duration-300 flex items-center gap-2"
+                >
+                    Все участники
+                    <Icon name="ph:arrow-right-bold" />
+                </NuxtLink>
+            </div>
         </div>
 
         <div class="mt-2">
@@ -45,16 +54,6 @@ const { data: members, pending: isLoading } = useAsyncData<TeamMember[]>(
                     :key="member.user.id" 
                     :member="member" 
                 />
-            </div>
-            
-            <div class="mt-6 flex justify-center sm:justify-end">
-                <NuxtLink 
-                    :to="`/team/${slug}/members`"
-                    class="px-6 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-bold rounded-full transition-colors duration-300 flex items-center gap-2"
-                >
-                    Все участники
-                    <Icon name="ph:arrow-right-bold" />
-                </NuxtLink>
             </div>
         </div>
     </div>
