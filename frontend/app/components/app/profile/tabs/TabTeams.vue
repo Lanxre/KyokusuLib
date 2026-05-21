@@ -58,11 +58,11 @@ onMounted(async () => {
                     <div class="flex gap-2 text-xs font-semibold tracking-wide text-zinc-500 dark:text-zinc-400 truncate mt-0.5 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors">
                         <span class="flex items-center gap-2">
                             <Icon name="ph:users" size="12"/>
-                            <span>Участников: {{ team.member_count }}</span>
+                            <span>Участников: {{ team.stats.member_count }}</span>
                         </span>
                         <span class="flex items-center gap-2">
                             <Icon name="ph:users-three" size="12"/>
-                            <span>Подписчиков: {{ team.subscribers_count }}</span>
+                            <span>Подписчиков: {{ team.stats.subscribers_count }}</span>
                         </span>
                     </div>
                 </div>

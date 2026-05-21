@@ -67,8 +67,13 @@ func (h *TeamHandler) GetTeams(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TeamHandler) Get(w http.ResponseWriter, r *http.Request) {
+	userID := 0
+	if id, ok := r.Context().Value(middleware.UserIDKey).(int); ok {
+		userID = id
+	}
+
 	slug := mux.Vars(r)["slug"]
-	team, err := h.Service.Get(r.Context(), slug)
+	team, err := h.Service.Get(r.Context(), slug, userID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
@@ -78,6 +83,26 @@ func (h *TeamHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.JSON(w, http.StatusOK, team)
+}
+
+func (h *TeamHandler) GetMembers(w http.ResponseWriter, r *http.Request) {
+	slug := mux.Vars(r)["slug"]
+	limit := 20
+	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil {
+		limit = l
+	}
+	offset := 0
+	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil {
+		offset = o
+	}
+
+	members, err := h.Service.GetMembers(r.Context(), slug, limit, offset)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "Failed to get team members")
+		return
+	}
+
+	response.JSON(w, http.StatusOK, members)
 }
 
 func (h *TeamHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -100,6 +125,21 @@ func (h *TeamHandler) Update(w http.ResponseWriter, r *http.Request) {
 		input.Description = &description
 	}
 
+	ownerRoleName := r.FormValue("owner_role_name")
+	if ownerRoleName != "" {
+		input.OwnerRoleName = &ownerRoleName
+	}
+	
+	moderatorRoleName := r.FormValue("moderator_role_name")
+	if moderatorRoleName != "" {
+		input.ModeratorRoleName = &moderatorRoleName
+	}
+	
+	memberRoleName := r.FormValue("member_role_name")
+	if memberRoleName != "" {
+		input.MemberRoleName = &memberRoleName
+	}
+
 	var avatarURL string
 	file, header, err := r.FormFile("avatar")
 	if err == nil {
@@ -111,6 +151,19 @@ func (h *TeamHandler) Update(w http.ResponseWriter, r *http.Request) {
 		}
 		avatarURL = url
 		input.AvatarURL = &avatarURL
+	}
+
+	var bannerURL string
+	bannerFile, bannerHeader, err := r.FormFile("banner")
+	if err == nil {
+		defer bannerFile.Close()
+		url, uploadErr := h.Service.UploadBanner(r.Context(), bannerFile, bannerHeader, slug)
+		if uploadErr != nil {
+			response.Error(w, http.StatusInternalServerError, "Failed to upload banner")
+			return
+		}
+		bannerURL = url
+		input.BannerURL = &bannerURL
 	}
 
 	team, err := h.Service.Update(r.Context(), userID, slug, input)
@@ -130,4 +183,14 @@ func (h *TeamHandler) Join(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.JSON(w, http.StatusOK, map[string]string{"status": "joined"})
+}
+
+func (h *TeamHandler) Leave(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.UserIDKey).(int)
+	slug := mux.Vars(r)["slug"]
+	if err := h.Service.Leave(r.Context(), userID, slug); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.JSON(w, http.StatusOK, map[string]string{"status": "left"})
 }

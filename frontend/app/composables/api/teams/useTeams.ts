@@ -1,13 +1,27 @@
 import { ref } from "vue";
 import { useNotificationStore } from "~/stores/notification";
 import { useApi, $api } from "../useApi";
-import type { Team } from "~/types/frontend/teams";
+import type { Team, TeamMember } from "~/types/frontend/teams";
 
 export function useTeam() {
 	const { notify } = useNotificationStore();
 	const team = ref<Team | null>(null);
 	const isLoading = ref(false);
 	const error = ref<string | null>(null);
+
+	const getTeamBySlug = async (slug: string) => {
+		isLoading.value = true;
+		error.value = null;
+		try {
+			const data = await $api<Team>(`/api/teams/${slug}`);
+			return data;
+		} catch (e: any) {
+			error.value = e.message;
+			return null;
+		} finally {
+			isLoading.value = false;
+		}
+	};
 
 	const fetchTeam = async (slug: string) => {
 		isLoading.value = true;
@@ -85,6 +99,7 @@ export function useTeam() {
 	};
 
 	const joinTeam = async (slug: string) => {
+		isLoading.value = true;
 		try {
 			const { error: joinError } = await useApi(`/api/teams/${slug}/join`, {
 				method: "POST",
@@ -101,6 +116,31 @@ export function useTeam() {
 		} catch (e: any) {
 			notify({ type: "error", title: "Ошибка", content: e.message });
 			return false;
+		} finally {
+			isLoading.value = false;
+		}
+	};
+
+	const leaveTeam = async (slug: string) => {
+		isLoading.value = true;
+		try {
+			const { error: leaveError } = await useApi(`/api/teams/${slug}/leave`, {
+				method: "POST",
+			});
+
+			if (leaveError.value) throw new Error(leaveError.value.data?.error);
+
+			notify({
+				type: "success",
+				title: "Успешно",
+				content: "Вы покинули команду",
+			});
+			return true;
+		} catch (e: any) {
+			notify({ type: "error", title: "Ошибка", content: e.message });
+			return false;
+		} finally {
+			isLoading.value = false;
 		}
 	};
 
@@ -120,14 +160,33 @@ export function useTeam() {
 		}
 	};
 
+	const getTeamMembers = async (slug: string, limit: number = 20, offset: number = 0) => {
+		isLoading.value = true;
+		error.value = null;
+		try {
+			const data = await $api<TeamMember[]>(`/api/teams/${slug}/members`, {
+				query: { limit, offset }
+			});
+			return data || [];
+		} catch (e: any) {
+			error.value = e.message;
+			return [];
+		} finally {
+			isLoading.value = false;
+		}
+	};
+
 	return {
 		team,
 		isLoading,
 		error,
+		getTeamBySlug,
 		fetchTeam,
 		createTeam,
 		updateTeam,
 		joinTeam,
-		getUserTeams
+		leaveTeam,
+		getUserTeams,
+		getTeamMembers,
 	};
 }

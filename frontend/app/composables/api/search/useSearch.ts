@@ -11,6 +11,7 @@ export type SearchCategory = 'ranobe' | 'users' | 'teams' | 'authors';
 export type SearchResultItem = NovelaDetails | GetUserDto | Team | NovelaAuthorDetails | any;
 
 export function useSearch() {
+    const { user } = useAuthStore();
     const isOpen = useState('search-is-open', () => false);
     const searchQuery = useState('search-query', () => '');
     const activeCategory = useState<SearchCategory>('search-category', () => 'ranobe');
@@ -79,7 +80,7 @@ export function useSearch() {
                 searchResults.value = data || [];
             } else if (activeCategory.value === 'teams') {
                 const data = await $api<any[]>("/api/teams", {
-                    query: { search: query, limit: 10 }
+                    query: { search: query, limit: 10, user_id: user!.id ? user!.id : 0 }
                 });
                 searchResults.value = data || [];
             }

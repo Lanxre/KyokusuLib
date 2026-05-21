@@ -47,8 +47,8 @@ const getSubtitle = () => {
                 ]"
         >
             <img 
-                v-if="item.poster_url || item.picture || item.avatar || item.banner" 
-                :src="staticImage(item.poster_url || item.picture || item.avatar || item.banner)" 
+                v-if="item.poster_url || item.picture || item.avatar || item.banner || item.avatar_url" 
+                :src="staticImage(item.poster_url || item.picture || item.avatar || item.banner || item.avatar_url)" 
                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
             />
             <div v-else class="w-full h-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-400 group-hover:text-yellow-500 transition-colors duration-300">
@@ -58,10 +58,20 @@ const getSubtitle = () => {
         
         <div class="flex flex-col flex-1 min-w-0 py-0.5 justify-center">
             <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 min-w-0">
-                <span class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 line-clamp-2 sm:truncate group-hover:text-yellow-600 dark:group-hover:text-yellow-500 transition-colors duration-300">
+                <div class="flex items-center gap-2 text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 line-clamp-2 sm:truncate group-hover:text-yellow-600 dark:group-hover:text-yellow-500 transition-colors duration-300">
                     {{ getTitle() }}
-                </span>
-                
+                    
+                    <div v-if="item.slug" class="mt-0.5 text-[12px] text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-100 transition-colors">
+                        @{{ item.slug }}
+                    </div>
+                    <div v-if="item.stats !== null && item.stats !== undefined" class="flex items-center gap-2 mt-0.5 text-[12px] text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-100 transition-colors">
+                        <div class="flex items-center justify-center px-2 py-0.5 mt-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-4xl text-[10px] font-semibold">Участников: {{ item.stats.member_count }}</div>
+                        <div class="flex items-center justify-center px-2 py-0.5 mt-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-4xl text-[10px] font-semibold">Подписчиков: {{ item.stats.subscriber_count ? item.stats.subscriber_count : 0 }}</div>
+                        
+                        <div v-if="item.is_member" class="flex items-center justify-center px-2 py-0.5 mt-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-4xl text-[10px] font-semibold text-yellow-500">Участник</div>
+                    </div>
+                </div>
+
                 <div v-if="item.user_level" class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     <div class="relative flex items-center justify-center w-4 h-4 rounded-md bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm">
                         <span class="text-[10px] font-black italic leading-none">{{ item.user_level.level }}</span>
@@ -72,7 +82,6 @@ const getSubtitle = () => {
                     </div>
                 </div>
             </div>
-
             <div v-if="item.alternative_titles && item.alternative_titles.length" class="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 line-clamp-1 sm:truncate mt-0.5 sm:mt-1">
                 {{ item.alternative_titles.join(' • ') }}
             </div>
