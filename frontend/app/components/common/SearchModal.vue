@@ -140,7 +140,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Main Content Area -->
-            <div class="flex-1 overflow-y-auto min-h-[350px] p-6 custom-scrollbar relative">
+            <div class="flex-1 overflow-y-auto min-h-87.5 p-6 custom-scrollbar relative">
                 
                 <!-- Initial State (No Search) -->
                 <SearchHistory 

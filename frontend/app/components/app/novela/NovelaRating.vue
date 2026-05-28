@@ -40,7 +40,7 @@ const updateRating = (rating: number) => {
 <template>
     <div class="flex px-1 py-1.5 rounded-lg">
         <div class="flex flex-row gap-2 leading-none">
-            <span class="text-3xl font-bold text-zinc-900 dark:text-white text-right" :style="{ color: starColor }">{{ roundTo(rating, 1) }}</span>
+            <span class="text-3xl font-bold text-zinc-200 text-right" :style="{ color: starColor }">{{ roundTo(rating, 1) }}</span>
             <div class="flex flex-col">
                 <span class="text-[10px] text-white dark:text-zinc-400 uppercase">{{ count }} оценок</span>
                 <button 

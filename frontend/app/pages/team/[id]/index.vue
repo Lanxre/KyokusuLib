@@ -6,6 +6,7 @@ import { useTeam } from '~/composables/api/teams/useTeams';
 import TeamCard from '~/components/app/teams/TeamCard.vue';
 import TeamMembersRow from '~/components/app/teams/TeamMembersRow.vue';
 import type { Team } from '~/types/frontend/teams';
+import type { TeamMember } from '~/types/frontend/teams';
 
 const route = useRoute();
 const slug = computed(() => route.params.id as string)
@@ -20,6 +21,19 @@ const { data: team, status } = await useAsyncData(
 const updatedTeam = (payload: Team) => {
   if (!team.value) return;
   team.value = payload;
+};
+
+const joinedTeam = async (payload: Team) => {
+  updatedTeam(payload);
+  await refreshNuxtData(`team-members-${slug.value}-preview`);
+};
+
+const leaveTeam = async (payload: Team | null) => {
+  if (payload === null) {
+      return navigateTo('/profile');
+  }
+  updatedTeam(payload);
+  await refreshNuxtData(`team-members-${slug.value}-preview`);
 };
 
 useSeoMeta({
@@ -37,7 +51,7 @@ useSeoMeta({
             <Icon name="ph:spinner-gap-bold" size="48" class="animate-spin text-yellow-500 mb-4" />
         </div>
         <template v-else-if="team">
-            <TeamCard :team="team" @updated="updatedTeam" />
+            <TeamCard :team="team" @updated="updatedTeam" @join="joinedTeam" @leave="leaveTeam" />
             <TeamMembersRow :slug="team.slug" />
         </template>
         <div v-else class="flex flex-col items-center justify-center py-32 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl bg-white dark:bg-[#18181b]">

@@ -160,7 +160,10 @@ func (s *TeamService) Leave(ctx context.Context, userID int, slug string) error 
 		return fmt.Errorf("team not found")
 	}
 	if team.OwnerID == userID {
-		return fmt.Errorf("owner cannot leave")
+		if err := s.Repo.DeleteTeam(ctx, team.ID); err != nil {
+			return err
+		}
+		return nil
 	}
 	return s.Repo.RemoveMember(ctx, team.ID, userID)
 }
@@ -171,6 +174,10 @@ func (s *TeamService) UploadAvatar(ctx context.Context, file multipart.File, hea
 
 func (s *TeamService) UploadBanner(ctx context.Context, file multipart.File, header *multipart.FileHeader, slug string) (string, error) {
 	return files.UploadImage(ctx, file, header, fmt.Sprintf("teams/banners/%s", slug), 1200, 400)
+}
+
+func (s TeamService) DeleteTeam(ctx context.Context, teamID int) error {
+	return s.Repo.DeleteTeam(ctx, teamID)
 }
 
 func (s *TeamService) mapTeamToDTO(team *db.PublisherTeam) *dto.TeamDTO {

@@ -35,7 +35,7 @@ const { data: members, pending: isLoading } = useAsyncData<TeamMember[]>(
             <div class="flex justify-center sm:justify-end">
                 <NuxtLink 
                     :to="`/team/${slug}/members`"
-                    class="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-bold rounded-full transition-colors text-[12px] duration-300 flex items-center gap-2"
+                    class="px-4 py-2 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-bold rounded-full transition-colors text-[12px] duration-300 flex items-center gap-2"
                 >
                     Все участники
                     <Icon name="ph:arrow-right-bold" />

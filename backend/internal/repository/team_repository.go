@@ -22,7 +22,18 @@ func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int,
 	var rows *sql.Rows
 	var err error
 
-	if userID > 0 {
+	if search != "" {
+		query = `
+			SELECT pt.id, pt.name, pt.slug, pt.description, pt.avatar_url, pt.banner_url, pt.owner_role_name, pt.moderator_role_name, pt.member_role_name, pt.owner_id, pt.created_at,
+				(SELECT COUNT(*) FROM team_members WHERE team_id = pt.id) AS member_count,
+				(SELECT COUNT(*) FROM team_subscribers WHERE team_id = pt.id) AS subscribers_count,
+				CASE WHEN EXISTS (SELECT 1 FROM team_members WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS is_member
+			FROM publisher_teams pt
+			WHERE pt.name ILIKE $2::text OR pt.slug ILIKE $2::text
+			ORDER BY pt.id DESC LIMIT $3 OFFSET $4
+			`
+		rows, err = r.DB.QueryContext(ctx, query, userID, "%"+search+"%", limit, offset)
+	} else if userID > 0 {
 		query = `
 			SELECT pt.id, pt.name, pt.slug, pt.description, pt.avatar_url, pt.banner_url, pt.owner_role_name, pt.moderator_role_name, pt.member_role_name, pt.owner_id, pt.created_at,
 				(SELECT COUNT(*) FROM team_members WHERE team_id = pt.id) AS member_count,
@@ -34,20 +45,12 @@ func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int,
 			ORDER BY pt.id DESC LIMIT $2 OFFSET $3
 			`
 		rows, err = r.DB.QueryContext(ctx, query, userID, limit, offset)
-	} else if search != "" {
-		query = `
-			SELECT id, name, slug, description, avatar_url, banner_url, owner_role_name, moderator_role_name, member_role_name, owner_id, created_at, 
-			(SELECT COUNT(*) FROM team_members WHERE team_id = publisher_teams.id) AS member_count, 
-			(SELECT COUNT(*) FROM team_subscribers WHERE team_id = publisher_teams.id) AS subscribers_count 
-			FROM publisher_teams 
-			WHERE name ILIKE $1::text OR slug ILIKE $1::text 
-			ORDER BY id DESC LIMIT $2 OFFSET $3`
-		rows, err = r.DB.QueryContext(ctx, query, "%"+search+"%", limit, offset)
 	} else {
 		query = `
 			SELECT id, name, slug, description, avatar_url, banner_url, owner_role_name, moderator_role_name, member_role_name, owner_id, created_at, 
 			(SELECT COUNT(*) FROM team_members WHERE team_id = publisher_teams.id) AS member_count, 
-			(SELECT COUNT(*) FROM team_subscribers WHERE team_id = publisher_teams.id) AS subscribers_count 
+			(SELECT COUNT(*) FROM team_subscribers WHERE team_id = publisher_teams.id) AS subscribers_count,
+			false AS is_member
 			FROM publisher_teams 
 			ORDER BY id DESC LIMIT $1 OFFSET $2`
 		rows, err = r.DB.QueryContext(ctx, query, limit, offset)
@@ -334,5 +337,11 @@ func (r *TeamRepository) Subscribe(ctx context.Context, teamID, userID int) erro
 func (r *TeamRepository) Unsubscribe(ctx context.Context, teamID, userID int) error {
 	query := `DELETE FROM team_subscribers WHERE team_id = $1 AND user_id = $2`
 	_, err := r.DB.ExecContext(ctx, query, teamID, userID)
+	return err
+}
+
+func (r *TeamRepository) DeleteTeam(ctx context.Context, teamID int) error {
+	query := `DELETE FROM publisher_teams WHERE id = $1`
+	_, err := r.DB.ExecContext(ctx, query, teamID)
 	return err
 }

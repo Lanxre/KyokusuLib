@@ -1,24 +1,40 @@
 <script setup lang="ts">
-
+import { ref } from "vue";
 import { parseDateToLocale } from "@/utils/date";
 import { useUserComments } from "~/composables/api/profile/useUserComments";
+import FilterBar from '~/components/ui/FilterBar.vue';
+import type { FilterConfig } from '~/components/ui/FilterBar.vue';
+import type { UserCommentResponse } from "~/types/backend/comments";
 
 const props = defineProps<{ userId: number }>();
 const { comments, fetchUserComments } = useUserComments();
+const sortedComments = ref<UserCommentResponse[]>([]);
+
+const commentFilterConfig: FilterConfig = {
+    defaultField: 'created_at',
+    defaultOrder: 'desc',
+    sortOptions: [
+        { field: 'created_at', label: 'По дате', icon: 'ph:calendar', compare: (a, b) => new Date((a as UserCommentResponse).created_at).getTime() - new Date((b as UserCommentResponse).created_at).getTime() },
+        { field: 'novela_title', label: 'По новелле', icon: 'ph:book-open-bold', compare: (a, b) => (a as UserCommentResponse).novela_title.localeCompare((b as UserCommentResponse).novela_title) },
+        { field: 'content_length', label: 'По длине', icon: 'ph:text-align-left', compare: (a, b) => (a as UserCommentResponse).content.length - (b as UserCommentResponse).content.length },
+    ]
+};
 
 await useAsyncData(`user-comments-${props.userId}`, () => fetchUserComments(props.userId));
 </script>
 
 <template>
   <div class="space-y-6">
+    <FilterBar v-if="!!comments.length" :items="comments" v-model="sortedComments" :config="commentFilterConfig" />
+
     <div v-if="!!comments.length" class="flex flex-col gap-4">
       <div 
-        v-for="comment in comments" 
+        v-for="comment in sortedComments" 
         :key="comment.id"
         @click="navigateTo(`/novela/${comment.novela_id}?tab=comments#comment-${comment.id}`)"
         class="group relative bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 transition-all hover:border-yellow-500/30 hover:shadow-lg hover:shadow-yellow-500/5 cursor-pointer"
       >
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between mb-3 gap-8">
           <NuxtLink 
             :to="`/novela/${comment.novela_id}`"
             @click.stop

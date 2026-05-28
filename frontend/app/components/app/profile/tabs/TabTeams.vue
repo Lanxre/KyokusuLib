@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue';
 import { useTeam } from '@/composables/api/teams/useTeams';
 import type { Team } from '@/types/frontend/teams';
 import { staticImage } from '@/utils/str';
+import FilterBar from '~/components/ui/FilterBar.vue';
+import type { FilterConfig } from '~/components/ui/FilterBar.vue';
 
 const props = defineProps<{
     userId: number;
@@ -10,13 +12,25 @@ const props = defineProps<{
 
 const { getUserTeams } = useTeam();
 const teams = ref<Team[]>([]);
+const sortedTeams = ref<Team[]>([]);
 const isLoading = ref(true);
+
+const teamFilterConfig: FilterConfig = {
+    defaultField: 'name',
+    sortOptions: [
+        { field: 'name', label: 'По названию', icon: 'ph:text-aa', compare: (a, b) => (a as Team).name.localeCompare((b as Team).name) },
+        { field: 'member_count', label: 'По участникам', icon: 'ph:users', compare: (a, b) => (a as Team).stats.member_count - (b as Team).stats.member_count },
+        { field: 'subscribers_count', label: 'По подписчикам', icon: 'ph:users-three', compare: (a, b) => (a as Team).stats.subscribers_count - (b as Team).stats.subscribers_count },
+        { field: 'created_at', label: 'По дате создания', icon: 'ph:calendar', compare: (a, b) => new Date((a as Team).created_at).getTime() - new Date((b as Team).created_at).getTime() },
+    ]
+};
 
 onMounted(async () => {
     isLoading.value = true;
     try {
         const fetchedTeams = await getUserTeams(props.userId);
         teams.value = fetchedTeams || [];
+        sortedTeams.value = [...(fetchedTeams || [])];
     } catch (e) {
         console.error('Failed to fetch user teams', e);
     } finally {
@@ -27,13 +41,15 @@ onMounted(async () => {
 
 <template>
     <div class="space-y-6">
+        <FilterBar v-if="!isLoading && teams.length > 0" :items="teams" v-model="sortedTeams" :config="teamFilterConfig" />
+        
         <div v-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div v-for="i in 3" :key="i" class="h-[98px] rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 animate-pulse border border-zinc-200 dark:border-zinc-800"></div>
+            <div v-for="i in 3" :key="i" class="h-24.5 rounded-2xl bg-zinc-100 dark:bg-zinc-800/50 animate-pulse border border-zinc-200 dark:border-zinc-800"></div>
         </div>
 
-        <div v-else-if="teams.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+        <div v-else-if="sortedTeams.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
             <NuxtLink 
-                v-for="team in teams" 
+                v-for="team in sortedTeams" 
                 :key="team.id"
                 :to="`/team/${team.slug}`"
                 class="flex items-center gap-4 p-4 rounded-2xl bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-800 hover:border-yellow-500/50 hover:shadow-md transition-all duration-300 group cursor-pointer"
