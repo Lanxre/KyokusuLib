@@ -27,7 +27,8 @@ func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int,
 			SELECT pt.id, pt.name, pt.slug, pt.description, pt.avatar_url, pt.banner_url, pt.owner_role_name, pt.moderator_role_name, pt.member_role_name, pt.owner_id, pt.created_at,
 				(SELECT COUNT(*) FROM team_members WHERE team_id = pt.id) AS member_count,
 				(SELECT COUNT(*) FROM team_subscribers WHERE team_id = pt.id) AS subscribers_count,
-				CASE WHEN EXISTS (SELECT 1 FROM team_members WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS is_member
+				CASE WHEN EXISTS (SELECT 1 FROM team_members WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS is_member,
+				CASE WHEN EXISTS (SELECT 1 FROM team_subscribers WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS is_subscriber
 			FROM publisher_teams pt
 			WHERE pt.name ILIKE $2::text OR pt.slug ILIKE $2::text
 			ORDER BY pt.id DESC LIMIT $3 OFFSET $4
@@ -38,7 +39,8 @@ func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int,
 			SELECT pt.id, pt.name, pt.slug, pt.description, pt.avatar_url, pt.banner_url, pt.owner_role_name, pt.moderator_role_name, pt.member_role_name, pt.owner_id, pt.created_at,
 				(SELECT COUNT(*) FROM team_members WHERE team_id = pt.id) AS member_count,
 				(SELECT COUNT(*) FROM team_subscribers WHERE team_id = pt.id) AS subscribers_count,
-				CASE WHEN EXISTS (SELECT 1 FROM team_members WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS is_member
+				CASE WHEN EXISTS (SELECT 1 FROM team_members WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS is_member,
+				CASE WHEN EXISTS (SELECT 1 FROM team_subscribers WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS is_subscriber
 			FROM publisher_teams pt
 			WHERE EXISTS (SELECT 1 FROM team_members WHERE team_id = pt.id AND user_id = $1)
 			   OR EXISTS (SELECT 1 FROM team_subscribers WHERE team_id = pt.id AND user_id = $1)
@@ -50,7 +52,8 @@ func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int,
 			SELECT id, name, slug, description, avatar_url, banner_url, owner_role_name, moderator_role_name, member_role_name, owner_id, created_at, 
 			(SELECT COUNT(*) FROM team_members WHERE team_id = publisher_teams.id) AS member_count, 
 			(SELECT COUNT(*) FROM team_subscribers WHERE team_id = publisher_teams.id) AS subscribers_count,
-			false AS is_member
+			false AS is_member,
+			false AS is_subscriber
 			FROM publisher_teams 
 			ORDER BY id DESC LIMIT $1 OFFSET $2`
 		rows, err = r.DB.QueryContext(ctx, query, limit, offset)
@@ -76,7 +79,7 @@ func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int,
 			&team.OwnerRoleName, &team.ModeratorRoleName, &team.MemberRoleName,
 			&team.OwnerID, &team.CreatedAt,
 			&memberCount, &subscribersCount,
-			&team.IsMember,
+			&team.IsMember, &team.IsSubscriber,
 		); err != nil {
 			return nil, err
 		}
@@ -163,7 +166,8 @@ func (r *TeamRepository) GetBySlug(ctx context.Context, slug string, userID int)
 		SELECT id, owner_id, name, slug, description, avatar_url, banner_url, owner_role_name, moderator_role_name, member_role_name, created_at, updated_at,
 		(SELECT COUNT(*) FROM team_members WHERE team_id = publisher_teams.id) AS member_count,
 		(SELECT COUNT(*) FROM team_subscribers WHERE team_id = publisher_teams.id) AS subscribers_count,
-		EXISTS(SELECT 1 FROM team_members WHERE team_id = publisher_teams.id AND user_id = $2) AS is_member
+		EXISTS(SELECT 1 FROM team_members WHERE team_id = publisher_teams.id AND user_id = $2) AS is_member,
+		EXISTS(SELECT 1 FROM team_subscribers WHERE team_id = publisher_teams.id AND user_id = $2) AS is_subscriber
 		FROM publisher_teams WHERE slug = $1`
 
 	err := r.DB.QueryRowContext(ctx, query, slug, userID).Scan(
@@ -172,7 +176,7 @@ func (r *TeamRepository) GetBySlug(ctx context.Context, slug string, userID int)
 		&team.OwnerRoleName, &team.ModeratorRoleName, &team.MemberRoleName,
 		&team.CreatedAt, &team.UpdatedAt,
 		&team.MemberCount, &team.SubscribersCount,
-		&team.IsMember,
+		&team.IsMember, &team.IsSubscriber,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -310,6 +314,75 @@ func (r *TeamRepository) GetMembers(ctx context.Context, slug string, limit int,
 	return members, nil
 }
 
+func (r *TeamRepository) GetSubscribers(ctx context.Context, slug string, limit, offset int) ([]*db.TeamSubscriberUser, error) {
+	query := `
+		SELECT 
+			u.id, up.name, up.picture, up.name as tag, 
+			up.level, up.experience, ld.title, COALESCE(next_ld.total_xp_required, ld.total_xp_required) AS xp_for_next_level,
+			ts.created_at
+		FROM team_subscribers ts
+		JOIN publisher_teams pt ON ts.team_id = pt.id
+		JOIN users u ON ts.user_id = u.id
+		LEFT JOIN user_profiles up ON u.id = up.user_id
+		LEFT JOIN level_definitions ld ON up.level = ld.level
+		LEFT JOIN level_definitions next_ld ON next_ld.level = up.level + 1
+		WHERE pt.slug = $1
+		ORDER BY ts.created_at DESC
+		LIMIT $2 OFFSET $3`
+
+	rows, err := r.DB.QueryContext(ctx, query, slug, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var subscribers []*db.TeamSubscriberUser
+	for rows.Next() {
+		var s db.TeamSubscriberUser
+		var tag sql.NullString
+		var picture sql.NullString
+		var level, experience, xpForNextLevel sql.NullInt64
+		var levelTitle sql.NullString
+
+		if err := rows.Scan(
+			&s.User.ID, &s.User.Name, &picture, &tag,
+			&level, &experience, &levelTitle, &xpForNextLevel,
+			&s.SubscribedAt,
+		); err != nil {
+			return nil, err
+		}
+
+		if picture.Valid {
+			s.User.Picture = picture.String
+		}
+		if tag.Valid {
+			s.User.Tag = tag.String
+		}
+
+		if level.Valid {
+			s.User.UserLevel.Level = int(level.Int64)
+		}
+		if experience.Valid {
+			s.User.UserLevel.Experience = experience.Int64
+		}
+		if levelTitle.Valid {
+			s.User.UserLevel.LevelTitle = levelTitle.String
+		}
+		if xpForNextLevel.Valid && experience.Valid {
+			needed := max(xpForNextLevel.Int64 - experience.Int64, 0)
+			s.User.UserLevel.XPForNext = needed
+		}
+
+		subscribers = append(subscribers, &s)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return subscribers, nil
+}
+
 func (r *TeamRepository) Delete(ctx context.Context, id int) error {
 	query := `DELETE FROM publisher_teams WHERE id = $1`
 	_, err := r.DB.ExecContext(ctx, query, id)
@@ -338,6 +411,13 @@ func (r *TeamRepository) Unsubscribe(ctx context.Context, teamID, userID int) er
 	query := `DELETE FROM team_subscribers WHERE team_id = $1 AND user_id = $2`
 	_, err := r.DB.ExecContext(ctx, query, teamID, userID)
 	return err
+}
+
+func (r *TeamRepository) IsSubscribed(ctx context.Context, teamID, userID int) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM team_subscribers WHERE team_id = $1 AND user_id = $2)`
+	var exists bool
+	err := r.DB.QueryRowContext(ctx, query, teamID, userID).Scan(&exists)
+	return exists, err
 }
 
 func (r *TeamRepository) DeleteTeam(ctx context.Context, teamID int) error {

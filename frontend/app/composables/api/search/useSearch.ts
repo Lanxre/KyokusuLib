@@ -80,7 +80,7 @@ export function useSearch() {
                 searchResults.value = data || [];
             } else if (activeCategory.value === 'teams') {
                 const data = await $api<any[]>("/api/teams", {
-                    query: { search: query, limit: 10 }
+                    query: { search: query, limit: 10, user_id: user?.id ? user.id : 0 }
                 });
                 searchResults.value = data || [];
             }

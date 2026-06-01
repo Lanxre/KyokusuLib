@@ -105,6 +105,26 @@ func (h *TeamHandler) GetMembers(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusOK, members)
 }
 
+func (h *TeamHandler) GetSubscribers(w http.ResponseWriter, r *http.Request) {
+	slug := mux.Vars(r)["slug"]
+	limit := 20
+	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil {
+		limit = l
+	}
+	offset := 0
+	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil {
+		offset = o
+	}
+
+	subscribers, err := h.Service.GetSubscribers(r.Context(), slug, limit, offset)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "Failed to get team subscribers")
+		return
+	}
+
+	response.JSON(w, http.StatusOK, subscribers)
+}
+
 func (h *TeamHandler) Update(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
 	if !ok {
@@ -193,4 +213,45 @@ func (h *TeamHandler) Leave(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.JSON(w, http.StatusOK, map[string]string{"status": "left"})
+}
+
+func (h *TeamHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.UserIDKey).(int)
+
+	teamID, err := strconv.Atoi(r.URL.Query().Get("team_id"))
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Неверный ID команды")
+		return
+	}
+	
+	if err := h.Service.SubscribeToTeam(r.Context(), teamID, userID); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	
+	response.JSON(w, http.StatusOK, map[string]string{
+		"user_id":  strconv.Itoa(userID),
+		"team_id":  strconv.Itoa(teamID),
+		"status":   "subscribed",
+	})
+}
+
+func (h *TeamHandler) Unsubscribe(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.UserIDKey).(int)
+	teamID, err := strconv.Atoi(r.URL.Query().Get("team_id"))
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Wrong Team Id")
+		return
+	}
+
+	if err := h.Service.UnsubscribeFromTeam(r.Context(), teamID, userID); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.JSON(w, http.StatusOK, map[string]string{
+		"user_id":  strconv.Itoa(userID),
+		"team_id":  strconv.Itoa(teamID),
+		"status":   "unsubscribed",
+	})
 }

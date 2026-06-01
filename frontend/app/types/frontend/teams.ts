@@ -17,24 +17,32 @@ export interface Team {
 	member_count: number;
 	subscribers_count: number;
 	is_member: boolean;
+	is_subscriber: boolean;
 	stats: {
 		member_count: number;
 		subscribers_count: number;
 	};
 }
 
+export interface TeamUserMember {
+  id: number;
+	name: string;
+	picture: string;
+	active_tag: string;
+	user_level: {
+		level: number;
+		level_title: string;
+	}
+}
+
 export interface TeamMember {
-	user: {
-		id: number;
-		name: string;
-		picture: string;
-		active_tag: string;
-		user_level: {
-			level: number;
-			level_title: string;
-		}
-	};
+	user: TeamUserMember;
 	role: string;
 	role_name: string;
 	joined_at: string;
+}
+
+export interface TeamSubscriber {
+	user: TeamUserMember;
+	subscribed_at: string;
 }

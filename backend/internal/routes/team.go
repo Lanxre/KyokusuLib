@@ -18,7 +18,12 @@ func (tr *TeamRoutes) Register(cfg *config.Config, r *mux.Router) {
 	api.HandleFunc("", tr.Handler.GetTeams).Methods("GET")
 	api.HandleFunc("/{slug}", middleware.DefaultMiddleware(tr.Handler.Get, cfg.JWTSecret)).Methods("GET")
 	api.HandleFunc("/{slug}/members", tr.Handler.GetMembers).Methods("GET")
+	api.HandleFunc("/{slug}/subscribers", tr.Handler.GetSubscribers).Methods("GET")
 	api.HandleFunc("/{slug}", middleware.AuthMiddleware(tr.Handler.Update, cfg.JWTSecret)).Methods("PATCH")
 	api.HandleFunc("/{slug}/join", middleware.AuthMiddleware(tr.Handler.Join, cfg.JWTSecret)).Methods("POST")
 	api.HandleFunc("/{slug}/leave", middleware.AuthMiddleware(tr.Handler.Leave, cfg.JWTSecret)).Methods("POST")
+	
+	api.HandleFunc("/subscribe", middleware.AuthMiddleware(tr.Handler.Subscribe, cfg.JWTSecret)).Methods("POST")
+	api.HandleFunc("/unsubscribe", middleware.AuthMiddleware(tr.Handler.Unsubscribe, cfg.JWTSecret)).Methods("POST")
+
 }

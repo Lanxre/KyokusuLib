@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { type Team } from '@/types/frontend/teams';
-import type { TeamMember } from '~/types/frontend/teams';
 import { staticImage } from "@/utils/str";
 import { useAuthStore } from '@/stores/auth';
 import { useTeam } from '@/composables/api/teams/useTeams';
@@ -18,7 +17,7 @@ const props = defineProps<{
 const emit = defineEmits([ "updated", "join", "leave"]);
 
 const authStore = useAuthStore();
-const { joinTeam, leaveTeam, isLoading } = useTeam();
+const { joinTeam, leaveTeam, subscribeTeam, unsubscribeTeam, isLoading } = useTeam();
 const { hasPermission } = useRolePermissions();
 
 const isOpenTeamSettings = ref(false);
@@ -72,6 +71,16 @@ const handleLeave = async () => {
     } else if (success) {
         emit("leave", null)
     }
+};
+
+const handleSubscribe = async () => {
+  if (props.team.is_subscriber) {
+    await unsubscribeTeam(props.team.id);
+    emit("updated", { ...props.team, is_subscriber: false, stats: { ...props.team.stats, subscribers_count: props.team.stats.subscribers_count - 1 } });
+  } else {
+    await subscribeTeam(props.team.id);
+    emit("updated", { ...props.team, is_subscriber: true, stats: { ...props.team.stats, subscribers_count: props.team.stats.subscribers_count + 1 } });
+  }
 };
 
 </script>
@@ -130,7 +139,7 @@ const handleLeave = async () => {
                         </div>
                     </div>
                     
-                    <div class="flex flex-col sm:flex-row items-center gap-2 mt-4 sm:mt-0 relative">
+                    <div class="flex items-center gap-2 mt-4 sm:mt-0 relative">
                         <Tooltip position="top" text="Настройки">
                             <button 
                                 v-if="canEdit" 
@@ -138,6 +147,21 @@ const handleLeave = async () => {
                                 class="mt-2 p-1 cursor-pointer rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center text-zinc-400 hover:text-yellow-500 transition-colors duration-300"
                             >
                                 <Icon name="ph:gear-bold" size="16" />
+                            </button>
+                        </Tooltip>
+
+                        <Tooltip position="top" :text="team.is_subscriber ? 'Отписаться' : 'Подписаться на обновления'">
+                            <button 
+                                class="
+                                flex items-center
+                                mt-2 p-1 
+                                cursor-pointer 
+                                rounded-full 
+                                transition-colors duration-300"
+                                :class="[team.is_subscriber ? 'dark:bg-amber-400 bg-amber-200  text-zinc-700  hover:text-zinc-100' : 'dark:bg-zinc-800 bg-zinc-200 text-zinc-400  hover:text-yellow-500']"
+                                @click="handleSubscribe"
+                            >
+                                <Icon :name="team.is_subscriber ? 'ph:arrow-bend-left-down-bold' : 'ph:arrow-bend-right-up-bold'" size="16" />
                             </button>
                         </Tooltip>
 

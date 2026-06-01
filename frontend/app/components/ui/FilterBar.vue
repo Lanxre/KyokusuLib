@@ -97,7 +97,6 @@ watch([() => props.items, sortField, sortOrder], applySort, { immediate: true })
                     </div>
                 </Tooltip>
 
-                <!-- Sort Dropdown -->
                 <Transition name="dropdown">
                     <div
                         v-if="isSortOpen"

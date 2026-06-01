@@ -38,6 +38,7 @@ type TeamDTO struct {
 	CreatedAt   string        `json:"created_at"`
 	Stats       TeamStats     `json:"stats"`
 	IsMember    bool          `json:"is_member"`
+	IsSubscriber bool          `json:"is_subscriber"`
 }
 
 type TeamMemberUserDTO struct {
@@ -53,4 +54,9 @@ type TeamMemberDTO struct {
 	Role     string            `json:"role"`
 	RoleName string            `json:"role_name"`
 	JoinedAt string            `json:"joined_at"`
+}
+
+type TeamSubscriberDTO struct {
+	User         TeamMemberUserDTO `json:"user"`
+	SubscribedAt string            `json:"subscribed_at"`
 }

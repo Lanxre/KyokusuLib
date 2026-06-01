@@ -180,6 +180,46 @@ func (s TeamService) DeleteTeam(ctx context.Context, teamID int) error {
 	return s.Repo.DeleteTeam(ctx, teamID)
 }
 
+func (s *TeamService) SubscribeToTeam(ctx context.Context, teamID int, userID int) error {
+
+	isSubscribed, err := s.Repo.IsSubscribed(ctx, teamID, userID)
+	if err != nil {
+		return err
+	}
+	
+	if isSubscribed {
+		return fmt.Errorf("Вы уже подписаны")
+	}
+	
+	return s.Repo.Subscribe(ctx, teamID, userID)
+}
+
+func (s *TeamService) UnsubscribeFromTeam(ctx context.Context, teamID int, userID int) error {
+	isSubscribed, err := s.Repo.IsSubscribed(ctx, teamID, userID)
+	if err != nil {
+		return err
+	}
+	
+	if !isSubscribed {
+		return fmt.Errorf("Вы уже не подписаны")
+	}
+	return s.Repo.Unsubscribe(ctx, teamID, userID)
+}
+
+func (s *TeamService) GetSubscribers(ctx context.Context, slug string, limit, offset int) ([]*dto.TeamSubscriberDTO, error) {
+	subscribers, err := s.Repo.GetSubscribers(ctx, slug, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	dtos := make([]*dto.TeamSubscriberDTO, len(subscribers))
+	for i, sub := range subscribers {
+		dtos[i] = s.mapSubscriberToDTO(sub)
+	}
+
+	return dtos, nil
+}
+
 func (s *TeamService) mapTeamToDTO(team *db.PublisherTeam) *dto.TeamDTO {
 	return &dto.TeamDTO{
 		ID:          team.ID,
@@ -200,5 +240,24 @@ func (s *TeamService) mapTeamToDTO(team *db.PublisherTeam) *dto.TeamDTO {
 			SubscribersCount: team.SubscribersCount,
 		},
 		IsMember:     team.IsMember,
+		IsSubscriber: team.IsSubscriber,
+	}
+}
+
+func (s *TeamService) mapSubscriberToDTO(sub *db.TeamSubscriberUser) *dto.TeamSubscriberDTO {
+	return &dto.TeamSubscriberDTO{
+		User: dto.TeamMemberUserDTO{
+			ID:        sub.User.ID,
+			Name:      sub.User.Name,
+			Picture:   sub.User.Picture,
+			ActiveTag: sub.User.Tag,
+			UserLevel: dto.UserLevelDTO{
+				Level:      sub.User.UserLevel.Level,
+				Experience: sub.User.UserLevel.Experience,
+				LevelTitle: sub.User.UserLevel.LevelTitle,
+				XPForNext:  sub.User.UserLevel.XPForNext,
+			},
+		},
+		SubscribedAt: sub.SubscribedAt.Format(time.RFC3339),
 	}
 }

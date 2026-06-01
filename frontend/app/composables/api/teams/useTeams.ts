@@ -1,7 +1,7 @@
 import { ref } from "vue";
 import { useNotificationStore } from "~/stores/notification";
 import { useApi, $api } from "../useApi";
-import type { Team, TeamMember } from "~/types/frontend/teams";
+import type { Team, TeamMember, TeamSubscriber } from "~/types/frontend/teams";
 
 export function useTeam() {
 	const { notify } = useNotificationStore();
@@ -174,6 +174,70 @@ export function useTeam() {
 		} finally {
 			isLoading.value = false;
 		}
+  };
+
+	const getTeamSubscribers = async (slug: string, limit: number = 20, offset: number = 0) => {
+		isLoading.value = true;
+		error.value = null;
+		try {
+			const data = await $api<TeamSubscriber[]>(`/api/teams/${slug}/subscribers`, {
+				query: { limit, offset }
+			});
+			return data || [];
+		} catch (e: any) {
+			error.value = e.message;
+			return [];
+		} finally {
+			isLoading.value = false;
+		}
+  };
+
+	const subscribeTeam = async (teamId: number) => {
+		isLoading.value = true;
+		try {
+			const { error: subscribeError } = await useApi(`/api/teams/subscribe`, {
+				method: "POST",
+				query: { team_id: teamId }
+			});
+
+			if (subscribeError.value) throw new Error(subscribeError.value.data?.error);
+
+			notify({
+				type: "success",
+				title: "Успешно",
+				content: "Вы подписались на команду",
+			});
+			return true;
+		} catch (e: any) {
+			notify({ type: "error", title: "Ошибка", content: e.message });
+			return false;
+		} finally {
+			isLoading.value = false;
+		}
+  };
+
+	const unsubscribeTeam = async (teamId: number) => {
+		isLoading.value = true;
+		try {
+			const { error: unsubscribeError } = await useApi(`/api/teams/unsubscribe`, {
+				method: "POST",
+				query: { team_id: teamId }
+			});
+
+			if (unsubscribeError.value) throw new Error(unsubscribeError.value.data?.error);
+
+			notify({
+				type: "success",
+				title: "Успешно",
+				content: "Вы отписались от команды",
+			});
+			return true;
+		} catch (e: any) {
+			notify({ type: "error", title: "Ошибка", content: e.message });
+			return false;
+		} finally {
+			isLoading.value = false;
+		}
 	};
 
 	return {
@@ -187,6 +251,9 @@ export function useTeam() {
 		joinTeam,
 		leaveTeam,
 		getUserTeams,
-		getTeamMembers,
+    getTeamMembers,
+		getTeamSubscribers,
+		subscribeTeam,
+		unsubscribeTeam,
 	};
 }
