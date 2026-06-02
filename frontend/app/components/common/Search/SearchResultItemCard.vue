@@ -75,13 +75,15 @@ const getSubtitle = () => {
                         <div v-if="item.is_subscriber" class="flex items-center justify-center px-2 py-0.5 mt-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-4xl text-[10px] font-semibold text-yellow-500">Подписчик</div>
                     </div>
 
-                    <div v-if="getSubtitle() || (item.rating_details && item.rating_details.total_rating)" class="flex flex-wrap items-center gap-2 mt-1 sm:mt-1.5">
-                        <span v-if="getSubtitle()" class="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 min-w-0 max-w-full">
+                    <div v-if="activeCategory !== 'teams' && getSubtitle()" class="flex flex-wrap items-center gap-2 mt-1 sm:mt-1.5">
+                        <span class="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 min-w-0 max-w-full">
                             <span v-if="activeCategory === 'ranobe'" class="w-1.5 h-1.5 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-700 group-hover:bg-yellow-500/50 transition-colors duration-300"></span>
                             <span class="flex truncate">{{ getSubtitle() }}</span>
                         </span>
-        
-                        <span v-if="item.rating_details && item.rating_details.total_rating" class="flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 shrink-0">
+                    </div>
+                    
+                    <div v-if="item.rating_details && item.rating_details.total_rating" class="flex flex-wrap items-center gap-2 mt-1 sm:mt-1.5">
+                        <span class="flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 shrink-0">
                             <Icon name="ph:star-fill" class="text-yellow-500" />
                             {{ roundTo(item.rating_details.total_rating, 2) }}
                         </span>
@@ -102,7 +104,9 @@ const getSubtitle = () => {
                 {{ item.alternative_titles.join(' • ') }}
             </div>
 
-           
+            <div v-if="activeCategory === 'teams' && getSubtitle()" class="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                {{ getSubtitle() }}
+            </div>
         </div>
         
         <div class="flex items-center justify-center w-8 h-8 shrink-0 rounded-full bg-zinc-50 dark:bg-[#121214] border border-zinc-200 dark:border-zinc-800 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 sm:mr-1">

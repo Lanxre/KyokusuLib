@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
@@ -160,6 +161,11 @@ func (h *TeamHandler) Update(w http.ResponseWriter, r *http.Request) {
 		input.MemberRoleName = &memberRoleName
 	}
 
+	teamType := r.FormValue("team_type")
+	if teamType != "" {
+		input.TeamType = &teamType
+	}	
+
 	var avatarURL string
 	file, header, err := r.FormFile("avatar")
 	if err == nil {
@@ -198,11 +204,137 @@ func (h *TeamHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (h *TeamHandler) Join(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserIDKey).(int)
 	slug := mux.Vars(r)["slug"]
-	if err := h.Service.Join(r.Context(), userID, slug); err != nil {
+	status, err := h.Service.Join(r.Context(), userID, slug)
+	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	response.JSON(w, http.StatusOK, map[string]string{"status": "joined"})
+	response.JSON(w, http.StatusOK, map[string]string{"status": status})
+}
+
+func (h *TeamHandler) AddMember(w http.ResponseWriter, r *http.Request) {
+	modID := r.Context().Value(middleware.UserIDKey).(int)
+	slug := mux.Vars(r)["slug"]
+
+	var input struct {
+		UserID int `json:"user_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if err := h.Service.AddMemberByMod(r.Context(), modID, slug, input.UserID); err != nil {
+		if err.Error() == "forbidden: only moderator or creator can add members" {
+			response.Error(w, http.StatusForbidden, err.Error())
+			return
+		}
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.JSON(w, http.StatusOK, map[string]string{"status": "member_added"})
+}
+
+func (h *TeamHandler) UpdateMember(w http.ResponseWriter, r *http.Request) {
+	modID := r.Context().Value(middleware.UserIDKey).(int)
+	slug := mux.Vars(r)["slug"]
+	targetUserIDStr := mux.Vars(r)["user_id"]
+
+	targetUserID, err := strconv.Atoi(targetUserIDStr)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	var input dto.UpdateTeamMemberDTO
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if err := h.Service.UpdateMember(r.Context(), modID, slug, targetUserID, input); err != nil {
+		if strings.HasPrefix(err.Error(), "forbidden") {
+			response.Error(w, http.StatusForbidden, err.Error())
+			return
+		}
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.JSON(w, http.StatusOK, map[string]string{"status": "success"})
+}
+
+func (h *TeamHandler) AcceptJoinRequest(w http.ResponseWriter, r *http.Request) {
+	modID := r.Context().Value(middleware.UserIDKey).(int)
+	slug := mux.Vars(r)["slug"]
+
+	var input struct {
+		UserID int `json:"user_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if err := h.Service.AcceptJoinRequest(r.Context(), modID, slug, input.UserID); err != nil {
+		if err.Error() == "forbidden: only moderator or creator can accept requests" {
+			response.Error(w, http.StatusForbidden, err.Error())
+			return
+		}
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.JSON(w, http.StatusOK, map[string]string{"status": "request_accepted"})
+}
+
+func (h *TeamHandler) RejectJoinRequest(w http.ResponseWriter, r *http.Request) {
+	modID := r.Context().Value(middleware.UserIDKey).(int)
+	slug := mux.Vars(r)["slug"]
+
+	var input struct {
+		UserID int `json:"user_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if err := h.Service.RejectJoinRequest(r.Context(), modID, slug, input.UserID); err != nil {
+		if err.Error() == "forbidden: only moderator or creator can reject requests" {
+			response.Error(w, http.StatusForbidden, err.Error())
+			return
+		}
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.JSON(w, http.StatusOK, map[string]string{"status": "request_rejected"})
+}
+
+func (h *TeamHandler) GetJoinRequests(w http.ResponseWriter, r *http.Request) {
+	modID := r.Context().Value(middleware.UserIDKey).(int)
+	slug := mux.Vars(r)["slug"]
+
+	limit := 20
+	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil {
+		limit = l
+	}
+	offset := 0
+	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil {
+		offset = o
+	}
+
+	requests, err := h.Service.GetJoinRequests(r.Context(), modID, slug, limit, offset)
+	if err != nil {
+		if err.Error() == "forbidden: only moderator or creator can view requests" {
+			response.Error(w, http.StatusForbidden, err.Error())
+			return
+		}
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.JSON(w, http.StatusOK, requests)
 }
 
 func (h *TeamHandler) Leave(w http.ResponseWriter, r *http.Request) {

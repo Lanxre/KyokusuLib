@@ -10,6 +10,7 @@ type PublisherTeam struct {
 	Description       string    `json:"description"`
 	AvatarURL         string    `json:"avatar_url"`
 	BannerURL         string    `json:"banner_url"`
+	TeamType          string    `json:"team_type"`
 	OwnerRoleName     string    `json:"owner_role_name"`
 	ModeratorRoleName string    `json:"moderator_role_name"`
 	MemberRoleName    string    `json:"member_role_name"`
@@ -19,6 +20,7 @@ type PublisherTeam struct {
 	SubscribersCount  int       `json:"subscribers_count"`
 	IsMember          bool      `json:"is_member"`
 	IsSubscriber      bool      `json:"is_subscriber"`
+	HasRequested      bool      `json:"has_requested"`
 }
 
 type TeamMemberUser struct {
@@ -31,4 +33,9 @@ type TeamMemberUser struct {
 type TeamSubscriberUser struct {
 	User         User      `json:"user"`
 	SubscribedAt time.Time `json:"subscribed_at"`
+}
+
+type TeamJoinRequestUser struct {
+	User      User      `json:"user"`
+	CreatedAt time.Time `json:"created_at"`
 }

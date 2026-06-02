@@ -53,3 +53,7 @@ export const roleConv = (role: KyokusuAppRole, lang: string) => {
       return role;
   }
 }
+
+export const replaceTags = (text: string) => {
+  return text.replace(/<[^>]*>/g, "");
+}

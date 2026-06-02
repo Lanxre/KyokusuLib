@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useIntersectionObserver } from '@vueuse/core';
 import { useTeam } from '~/composables/api/teams/useTeams';
 import { staticImage } from "@/utils/str";
-import type { TeamMember } from '~/types/frontend/teams';
+import type { CustomRoleNames, TeamMember } from '~/types/frontend/teams';
 import TeamMemberCard from '~/components/app/teams/TeamMemberCard.vue';
 
 const route = useRoute();
@@ -12,6 +12,15 @@ const router = useRouter();
 const slug = computed(() => route.params.id as string);
 
 const { getTeamBySlug, getTeamMembers } = useTeam();
+
+const customRoleNames = computed<CustomRoleNames[]>(() => {
+    if (!team.value) return [];
+    return [
+        { value: "member", label: team.value.role_names.member },
+        { value: "moderator", label: team.value.role_names.moderator },
+        { value: "owner", label: team.value.role_names.owner },
+    ];
+});
 
 const { data: team, status: teamStatus } = await useAsyncData(
     `team-${slug.value}`,
@@ -69,6 +78,13 @@ useIntersectionObserver(
     { threshold: 0.1 }
 );
 
+const handleMemberUpdated = (updatedMember: TeamMember) => {
+    const idx = members.value.findIndex(m => m.user.id === updatedMember.user.id);
+    if (idx !== -1) {
+        members.value = members.value.map((m, i) => i === idx ? updatedMember : m);
+    }
+};
+
 onMounted(() => {
     loadMembers(false);
 });
@@ -115,7 +131,10 @@ useSeoMeta({
                 <TeamMemberCard 
                     v-for="member in members" 
                     :key="member.user.id" 
-                    :member="member" 
+                    :member="member"
+                    :customRoleNames="customRoleNames"
+                    :slug="slug"
+                    @updated="handleMemberUpdated"
                 />
             </div>
             

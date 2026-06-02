@@ -2,6 +2,7 @@
 import { ModalWindow, Input as BaseInput, RichText as BaseRichTextEditor } from "@kyokusu-ui/vue";
 import UploadIcon from "@/assets/images/special/add.png";
 import InnerBlock from "@/components/ui/InnerBlock.vue";
+import { Select, Separator } from "@kyokusu-ui/vue";
 
 import { useTeamSettings } from "@/composables/api/teams/useTeamSettings";
 import type { Team } from "@/types/frontend/teams";
@@ -41,6 +42,12 @@ const handleUpdate = async () => {
         emit("update:modelValue", false);
     }
 };
+
+const teamTypeOptions = [
+    { value: "open", label: "Открытая" },
+    { value: "private", label: "Закрытая" },
+];
+
 </script>
 
 <template>
@@ -97,7 +104,7 @@ const handleUpdate = async () => {
                    </InnerBlock>
                 </div>
 
-                <div class="grid grid-cols-1 gap-6 text-left">
+                <div class="grid grid-cols-1 gap-6 text-left">    
                     <div>
                         <h3 class="ml-1 text-base font-bold text-zinc-900 dark:text-white mb-3">Описание команды</h3>
                         <BaseRichTextEditor
@@ -111,7 +118,8 @@ const handleUpdate = async () => {
                     </div>
                 </div>
 
-                <div class="pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                <Separator />
+                <div class="pt-2">
                     <h3 class="ml-1 text-base font-bold text-zinc-900 dark:text-white mt-4 mb-3">Названия ролей</h3>
                     <InnerBlock class="p-4 sm:p-5">
                         <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-4 sm:gap-5 cursor-default">
@@ -156,9 +164,21 @@ const handleUpdate = async () => {
                             </div>
                         </div>
                     </InnerBlock>
-                </div>
 
-                <div class="flex flex-col sm:flex-row-reverse gap-3 pt-6 border-t border-zinc-100 dark:border-zinc-800">
+                    <Separator />
+                    
+                    <h3 class="ml-1 text-base font-bold text-zinc-900 dark:text-white mt-4 mb-3">Тип команды</h3>
+                    <InnerBlock class="mt-4">
+                        <Select
+                            id="team-type"
+                            v-model="form.team_type"
+                            :options="teamTypeOptions"
+                            :disabled="isUpdating"
+                        />
+                    </InnerBlock>
+                </div>
+                <Separator />
+                <div class="flex flex-col sm:flex-row-reverse gap-3 pt-6">
                     <button 
                         @click="handleUpdate"
                         :disabled="isUpdating"

@@ -6,7 +6,8 @@ import { useTeam } from '~/composables/api/teams/useTeams';
 import TeamCard from '~/components/app/teams/TeamCard.vue';
 import TeamMembersRow from '~/components/app/teams/TeamMembersRow.vue';
 import TeamSubscribersRow from '~/components/app/teams/TeamSubscribersRow.vue';
-import type { Team } from '~/types/frontend/teams';
+import TeamJoinRequestsRow from '~/components/app/teams/TeamJoinRequestsRow.vue';
+import type { CustomRoleNames, Team } from '~/types/frontend/teams';
 
 const route = useRoute();
 const slug = computed(() => route.params.id as string)
@@ -21,7 +22,10 @@ const { data: team, status } = await useAsyncData(
 const updatedTeam = (payload: Team) => {
   if (!team.value) return;
   team.value = payload;
-  console.log(team.value)
+};
+
+const updateMembers = () => {
+  refreshNuxtData(`team-members-${slug.value}-preview`);
 };
 
 const joinedTeam = async (payload: Team) => {
@@ -36,6 +40,15 @@ const leaveTeam = async (payload: Team | null) => {
   updatedTeam(payload);
   await refreshNuxtData(`team-members-${slug.value}-preview`);
 };
+
+const customRoleNames = computed<CustomRoleNames[]>(() => {
+  if (!team.value) return [];
+  return [
+    { value: "member", label: team.value.role_names.member },
+    { value: "moderator", label: team.value.role_names.moderator },
+    { value: "owner", label: team.value.role_names.owner },
+  ];
+});
 
 useSeoMeta({
     title: () => team.value?.name ? `${team.value.name} - Команды - KyokusuLib` : 'Команда - KyokusuLib',
@@ -53,7 +66,8 @@ useSeoMeta({
         </div>
         <template v-else-if="team">
             <TeamCard :team="team" @updated="updatedTeam" @join="joinedTeam" @leave="leaveTeam" />
-            <TeamMembersRow :slug="team.slug" />
+            <TeamJoinRequestsRow :slug="team.slug" :owner-id="team.owner_id" @update:members="updateMembers" />
+            <TeamMembersRow :customRoleNames="customRoleNames" :slug="team.slug" />
             <TeamSubscribersRow :slug="team.slug" />
         </template>
         <div v-else class="flex flex-col items-center justify-center py-32 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl bg-white dark:bg-[#18181b]">

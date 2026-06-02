@@ -8,7 +8,8 @@ export interface TeamSettingsState {
 	description: string;
 	owner_role_name: string;
 	moderator_role_name: string;
-	member_role_name: string;
+  member_role_name: string;
+	team_type: string;
 }
 
 export function useTeamSettings(initialTeam: Team) {
@@ -21,7 +22,8 @@ export function useTeamSettings(initialTeam: Team) {
 		description: initialTeam.description || "",
 		owner_role_name: initialTeam.role_names?.owner || "Владелец",
 		moderator_role_name: initialTeam.role_names?.moderator || "Модератор",
-		member_role_name: initialTeam.role_names?.member || "Участник",
+    member_role_name: initialTeam.role_names?.member || "Участник",
+    team_type: initialTeam.team_type || "open",
 	});
 
 	const fileInput = ref<HTMLInputElement | null>(null);
@@ -133,10 +135,11 @@ export function useTeamSettings(initialTeam: Team) {
 		if (!validate()) return null;
 
 		const formData = new FormData();
-		formData.append("description", form.description);
+		formData.append("description", replaceTags(form.description));
 		formData.append("owner_role_name", form.owner_role_name);
 		formData.append("moderator_role_name", form.moderator_role_name);
-		formData.append("member_role_name", form.member_role_name);
+    formData.append("member_role_name", form.member_role_name);
+    formData.append("team_type", form.team_type)
 
 		if (selectedFile.value) {
 			formData.append("avatar", selectedFile.value);

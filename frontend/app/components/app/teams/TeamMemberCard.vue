@@ -1,10 +1,29 @@
 <script setup lang="ts">
 import { staticImage } from "@/utils/str";
-import type { TeamMember } from "~/types/frontend/teams";
+import type { CustomRoleNames, TeamMember } from "@/types/frontend/teams";
+import { Tooltip } from "@kyokusu-ui/vue";
+import TeamMemberSettings from "./TeamMemberSettings.vue";
 
-defineProps<{
+const props = defineProps<{
     member: TeamMember;
+    customRoleNames: CustomRoleNames[];
+    slug: string;
 }>();
+
+const isOpenSettings = ref(false);
+
+const emit = defineEmits<{
+    updated: [member: TeamMember];
+}>();
+
+const openSettings = () => {
+  isOpenSettings.value = true;
+};
+
+const onMemberUpdated = (updatedMember: TeamMember) => {
+    emit('updated', updatedMember);
+};
+
 </script>
 
 <template>
@@ -32,5 +51,20 @@ defineProps<{
                 </div>
             </div>
         </NuxtLink>
+        <div v-if="member.role !== 'owner'" class="flex items-center">
+            <Tooltip text="Настройка участника">
+                <button class="px-2 py-1 bg-transparent rounded-full transition-colors cursor-pointer" @click="openSettings">
+                    <Icon name="ph:gear-bold" size="18" class="text-zinc-600 dark:text-zinc-400 hover:text-amber-400 transition-colors " />
+                </button>
+            </Tooltip>
+        </div>
     </div>
+
+    <TeamMemberSettings
+        v-model="isOpenSettings"
+        :member="member"
+        :customRoleNames="customRoleNames"
+        :slug="slug"
+        @updated="onMemberUpdated"
+    />
 </template>

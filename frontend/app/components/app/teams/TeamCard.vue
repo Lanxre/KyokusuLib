@@ -44,8 +44,8 @@ const openModalLeaveConfirm = () => {
 };
 
 const handleJoin = async () => {
-    const success = await joinTeam(props.team.slug);
-    if (success) {
+    const status = await joinTeam(props.team.slug);
+    if (status === "joined") {
         emit("join", {
           ...props.team,
           is_member: true,
@@ -53,6 +53,11 @@ const handleJoin = async () => {
             ...props.team.stats,
             member_count: props.team.stats.member_count + 1,
           }
+        })
+    } else if (status === "request_sent") {
+        emit("updated", {
+            ...props.team,
+            has_requested: true
         })
     }
 };
@@ -166,7 +171,7 @@ const handleSubscribe = async () => {
                         </Tooltip>
 
                         <button 
-                            v-if="authStore.isAuthenticated && (team.owner_id !== authStore.user?.id) && !team.is_member"
+                            v-if="authStore.isAuthenticated && (team.owner_id !== authStore.user?.id) && !team.is_member && !team.has_requested"
                             @click="handleJoin"
                             :disabled="isLoading"
                             class="px-4 py-1 mt-2 text-[12px] bg-yellow-500 hover:bg-yellow-400 text-zinc-900 font-bold rounded-full transition-colors duration-300 flex items-center gap-2 cursor-pointer disabled:opacity-50"
@@ -174,6 +179,14 @@ const handleSubscribe = async () => {
                             <Icon v-if="isLoading" name="ph:spinner-gap-bold" class="animate-spin" />
                             <Icon v-else name="ph:user-plus-bold" />
                             Вступить
+                        </button>
+                        <button 
+                            v-else-if="authStore.isAuthenticated && (team.owner_id !== authStore.user?.id) && !team.is_member && team.has_requested"
+                            disabled
+                            class="px-4 py-1 mt-2 text-[12px] bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 font-bold rounded-full flex items-center gap-2 opacity-70 cursor-not-allowed"
+                        >
+                            <Icon name="ph:clock-bold" />
+                            Заявка отправлена
                         </button>
                         <button
                             v-else-if="authStore.isAuthenticated  && team.is_member"

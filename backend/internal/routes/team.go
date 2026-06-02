@@ -21,6 +21,13 @@ func (tr *TeamRoutes) Register(cfg *config.Config, r *mux.Router) {
 	api.HandleFunc("/{slug}/subscribers", tr.Handler.GetSubscribers).Methods("GET")
 	api.HandleFunc("/{slug}", middleware.AuthMiddleware(tr.Handler.Update, cfg.JWTSecret)).Methods("PATCH")
 	api.HandleFunc("/{slug}/join", middleware.AuthMiddleware(tr.Handler.Join, cfg.JWTSecret)).Methods("POST")
+	api.HandleFunc("/{slug}/add_member", middleware.AuthMiddleware(tr.Handler.AddMember, cfg.JWTSecret)).Methods("POST")
+	api.HandleFunc("/{slug}/members/{user_id}", middleware.AuthMiddleware(tr.Handler.UpdateMember, cfg.JWTSecret)).Methods("PATCH")
+	
+	api.HandleFunc("/{slug}/requests", middleware.AuthMiddleware(tr.Handler.GetJoinRequests, cfg.JWTSecret)).Methods("GET")
+	api.HandleFunc("/{slug}/requests/accept", middleware.AuthMiddleware(tr.Handler.AcceptJoinRequest, cfg.JWTSecret)).Methods("POST")
+	api.HandleFunc("/{slug}/requests/reject", middleware.AuthMiddleware(tr.Handler.RejectJoinRequest, cfg.JWTSecret)).Methods("POST")
+
 	api.HandleFunc("/{slug}/leave", middleware.AuthMiddleware(tr.Handler.Leave, cfg.JWTSecret)).Methods("POST")
 	
 	api.HandleFunc("/subscribe", middleware.AuthMiddleware(tr.Handler.Subscribe, cfg.JWTSecret)).Methods("POST")

@@ -24,11 +24,12 @@ func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int,
 
 	if search != "" {
 		query = `
-			SELECT pt.id, pt.name, pt.slug, pt.description, pt.avatar_url, pt.banner_url, pt.owner_role_name, pt.moderator_role_name, pt.member_role_name, pt.owner_id, pt.created_at,
+			SELECT pt.id, pt.name, pt.slug, pt.description, pt.avatar_url, pt.banner_url, pt.team_type, pt.owner_role_name, pt.moderator_role_name, pt.member_role_name, pt.owner_id, pt.created_at,
 				(SELECT COUNT(*) FROM team_members WHERE team_id = pt.id) AS member_count,
 				(SELECT COUNT(*) FROM team_subscribers WHERE team_id = pt.id) AS subscribers_count,
 				CASE WHEN EXISTS (SELECT 1 FROM team_members WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS is_member,
-				CASE WHEN EXISTS (SELECT 1 FROM team_subscribers WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS is_subscriber
+				CASE WHEN EXISTS (SELECT 1 FROM team_subscribers WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS is_subscriber,
+				CASE WHEN EXISTS (SELECT 1 FROM team_join_requests WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS has_requested
 			FROM publisher_teams pt
 			WHERE pt.name ILIKE $2::text OR pt.slug ILIKE $2::text
 			ORDER BY pt.id DESC LIMIT $3 OFFSET $4
@@ -36,11 +37,12 @@ func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int,
 		rows, err = r.DB.QueryContext(ctx, query, userID, "%"+search+"%", limit, offset)
 	} else if userID > 0 {
 		query = `
-			SELECT pt.id, pt.name, pt.slug, pt.description, pt.avatar_url, pt.banner_url, pt.owner_role_name, pt.moderator_role_name, pt.member_role_name, pt.owner_id, pt.created_at,
+			SELECT pt.id, pt.name, pt.slug, pt.description, pt.avatar_url, pt.banner_url, pt.team_type, pt.owner_role_name, pt.moderator_role_name, pt.member_role_name, pt.owner_id, pt.created_at,
 				(SELECT COUNT(*) FROM team_members WHERE team_id = pt.id) AS member_count,
 				(SELECT COUNT(*) FROM team_subscribers WHERE team_id = pt.id) AS subscribers_count,
 				CASE WHEN EXISTS (SELECT 1 FROM team_members WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS is_member,
-				CASE WHEN EXISTS (SELECT 1 FROM team_subscribers WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS is_subscriber
+				CASE WHEN EXISTS (SELECT 1 FROM team_subscribers WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS is_subscriber,
+				CASE WHEN EXISTS (SELECT 1 FROM team_join_requests WHERE team_id = pt.id AND user_id = $1) THEN true ELSE false END AS has_requested
 			FROM publisher_teams pt
 			WHERE EXISTS (SELECT 1 FROM team_members WHERE team_id = pt.id AND user_id = $1)
 			   OR EXISTS (SELECT 1 FROM team_subscribers WHERE team_id = pt.id AND user_id = $1)
@@ -49,11 +51,12 @@ func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int,
 		rows, err = r.DB.QueryContext(ctx, query, userID, limit, offset)
 	} else {
 		query = `
-			SELECT id, name, slug, description, avatar_url, banner_url, owner_role_name, moderator_role_name, member_role_name, owner_id, created_at, 
+			SELECT id, name, slug, description, avatar_url, banner_url, team_type, owner_role_name, moderator_role_name, member_role_name, owner_id, created_at, 
 			(SELECT COUNT(*) FROM team_members WHERE team_id = publisher_teams.id) AS member_count, 
 			(SELECT COUNT(*) FROM team_subscribers WHERE team_id = publisher_teams.id) AS subscribers_count,
 			false AS is_member,
-			false AS is_subscriber
+			false AS is_subscriber,
+			false AS has_requested
 			FROM publisher_teams 
 			ORDER BY id DESC LIMIT $1 OFFSET $2`
 		rows, err = r.DB.QueryContext(ctx, query, limit, offset)
@@ -75,11 +78,12 @@ func (r *TeamRepository) GetTeams(ctx context.Context, search string, limit int,
 		
 		if err := rows.Scan(
 			&team.ID, &team.Name, &team.Slug, 
-			&description, &avatarURL, &bannerURL,
+			&description, &avatarURL, &bannerURL, &team.TeamType,
 			&team.OwnerRoleName, &team.ModeratorRoleName, &team.MemberRoleName,
 			&team.OwnerID, &team.CreatedAt,
 			&memberCount, &subscribersCount,
 			&team.IsMember, &team.IsSubscriber,
+			&team.HasRequested,
 		); err != nil {
 			return nil, err
 		}
@@ -134,8 +138,8 @@ func (r *TeamRepository) Create(ctx context.Context, team *db.PublisherTeam) err
 
 
 	query := `
-		INSERT INTO publisher_teams (owner_id, name, slug, description)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO publisher_teams (owner_id, name, slug, description, team_type)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, created_at, updated_at`
 
 	err = tx.QueryRowContext(ctx, query,
@@ -143,6 +147,7 @@ func (r *TeamRepository) Create(ctx context.Context, team *db.PublisherTeam) err
 		team.Name,
 		team.Slug,
 		team.Description,
+		team.TeamType,
 	).Scan(&team.ID, &team.CreatedAt, &team.UpdatedAt)
 	if err != nil {
 		return err
@@ -163,20 +168,22 @@ func (r *TeamRepository) GetBySlug(ctx context.Context, slug string, userID int)
 	var bannerURL sql.NullString
 
 	query := `
-		SELECT id, owner_id, name, slug, description, avatar_url, banner_url, owner_role_name, moderator_role_name, member_role_name, created_at, updated_at,
+		SELECT id, owner_id, name, slug, description, avatar_url, banner_url, team_type, owner_role_name, moderator_role_name, member_role_name, created_at, updated_at,
 		(SELECT COUNT(*) FROM team_members WHERE team_id = publisher_teams.id) AS member_count,
 		(SELECT COUNT(*) FROM team_subscribers WHERE team_id = publisher_teams.id) AS subscribers_count,
 		EXISTS(SELECT 1 FROM team_members WHERE team_id = publisher_teams.id AND user_id = $2) AS is_member,
-		EXISTS(SELECT 1 FROM team_subscribers WHERE team_id = publisher_teams.id AND user_id = $2) AS is_subscriber
+		EXISTS(SELECT 1 FROM team_subscribers WHERE team_id = publisher_teams.id AND user_id = $2) AS is_subscriber,
+		EXISTS(SELECT 1 FROM team_join_requests WHERE team_id = publisher_teams.id AND user_id = $2) AS has_requested
 		FROM publisher_teams WHERE slug = $1`
 
 	err := r.DB.QueryRowContext(ctx, query, slug, userID).Scan(
 		&team.ID, &team.OwnerID, &team.Name, &team.Slug,
-		&description, &avatarURL, &bannerURL, 
+		&description, &avatarURL, &bannerURL, &team.TeamType,
 		&team.OwnerRoleName, &team.ModeratorRoleName, &team.MemberRoleName,
 		&team.CreatedAt, &team.UpdatedAt,
 		&team.MemberCount, &team.SubscribersCount,
 		&team.IsMember, &team.IsSubscriber,
+		&team.HasRequested,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -209,12 +216,12 @@ func (r *TeamRepository) Update(ctx context.Context, team *db.PublisherTeam) err
 	query := `
 		UPDATE publisher_teams 
 		SET description = $1, avatar_url = $2, banner_url = $3, 
-		    owner_role_name = $4, moderator_role_name = $5, member_role_name = $6,
+		    team_type = $4, owner_role_name = $5, moderator_role_name = $6, member_role_name = $7,
 		    updated_at = NOW()
-		WHERE id = $7`
+		WHERE id = $8`
 	_, err := r.DB.ExecContext(ctx, query, 
 		team.Description, team.AvatarURL, team.BannerURL, 
-		team.OwnerRoleName, team.ModeratorRoleName, team.MemberRoleName, 
+		team.TeamType, team.OwnerRoleName, team.ModeratorRoleName, team.MemberRoleName, 
 		team.ID)
 	return err
 }
@@ -424,4 +431,176 @@ func (r *TeamRepository) DeleteTeam(ctx context.Context, teamID int) error {
 	query := `DELETE FROM publisher_teams WHERE id = $1`
 	_, err := r.DB.ExecContext(ctx, query, teamID)
 	return err
+}
+
+func (r *TeamRepository) CreateJoinRequest(ctx context.Context, teamID, userID int) error {
+	query := `INSERT INTO team_join_requests (team_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`
+	_, err := r.DB.ExecContext(ctx, query, teamID, userID)
+	return err
+}
+
+func (r *TeamRepository) DeleteJoinRequest(ctx context.Context, teamID, userID int) error {
+	query := `DELETE FROM team_join_requests WHERE team_id = $1 AND user_id = $2`
+	_, err := r.DB.ExecContext(ctx, query, teamID, userID)
+	return err
+}
+
+func (r *TeamRepository) UpdateMember(ctx context.Context, teamID, userID int, role string, customRoleName *string) error {
+	query := `
+		UPDATE team_members 
+		SET role = $1, custom_role_name = $2 
+		WHERE team_id = $3 AND user_id = $4`
+	_, err := r.DB.ExecContext(ctx, query, role, customRoleName, teamID, userID)
+	return err
+}
+
+func (r *TeamRepository) GetJoinRequests(ctx context.Context, slug string, limit, offset int) ([]*db.TeamJoinRequestUser, error) {
+	query := `
+		SELECT 
+			u.id, up.name, up.picture, up.name as tag, 
+			up.level, up.experience, ld.title, COALESCE(next_ld.total_xp_required, ld.total_xp_required) AS xp_for_next_level,
+			tr.created_at
+		FROM team_join_requests tr
+		JOIN publisher_teams pt ON tr.team_id = pt.id
+		JOIN users u ON tr.user_id = u.id
+		LEFT JOIN user_profiles up ON u.id = up.user_id
+		LEFT JOIN level_definitions ld ON up.level = ld.level
+		LEFT JOIN level_definitions next_ld ON next_ld.level = up.level + 1
+		WHERE pt.slug = $1
+		ORDER BY tr.created_at ASC
+		LIMIT $2 OFFSET $3`
+
+	rows, err := r.DB.QueryContext(ctx, query, slug, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var requests []*db.TeamJoinRequestUser
+	for rows.Next() {
+		var req db.TeamJoinRequestUser
+		var tag sql.NullString
+		var picture sql.NullString
+		var level, experience, xpForNextLevel sql.NullInt64
+		var levelTitle sql.NullString
+
+		if err := rows.Scan(
+			&req.User.ID, &req.User.Name, &picture, &tag,
+			&level, &experience, &levelTitle, &xpForNextLevel,
+			&req.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+
+		if picture.Valid {
+			req.User.Picture = picture.String
+		}
+		if tag.Valid {
+			req.User.Tag = tag.String
+		}
+
+		if level.Valid {
+			req.User.UserLevel.Level = int(level.Int64)
+		}
+		if experience.Valid {
+			req.User.UserLevel.Experience = experience.Int64
+		}
+		if levelTitle.Valid {
+			req.User.UserLevel.LevelTitle = levelTitle.String
+		}
+		if xpForNextLevel.Valid && experience.Valid {
+			needed := max(xpForNextLevel.Int64 - experience.Int64, 0)
+			req.User.UserLevel.XPForNext = needed
+		}
+
+		requests = append(requests, &req)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return requests, nil
+}
+
+func (r *TeamRepository) GetMemberRole(ctx context.Context, memberID, teamID int) (string, error) {
+	query := `SELECT role FROM team_members WHERE user_id = $1 AND team_id = $2`
+	var role string
+	err := r.DB.QueryRowContext(ctx, query, memberID, teamID).Scan(&role)
+	return role, err
+}
+
+func (r *TeamRepository) GetTeamMember(ctx context.Context, teamID, userID int) (*db.TeamMemberUser, error) {
+	query := `
+		SELECT 
+			u.id, up.name, up.picture, up.name as tag, 
+			up.level, up.experience, ld.title, COALESCE(next_ld.total_xp_required, ld.total_xp_required) AS xp_for_next_level,
+			tm.role, tm.custom_role_name, tm.joined_at,
+			pt.owner_role_name, pt.moderator_role_name, pt.member_role_name
+		FROM team_members tm
+		JOIN publisher_teams pt ON tm.team_id = pt.id
+		JOIN users u ON tm.user_id = u.id
+		LEFT JOIN user_profiles up ON u.id = up.user_id
+		LEFT JOIN level_definitions ld ON up.level = ld.level
+		LEFT JOIN level_definitions next_ld ON next_ld.level = up.level + 1
+		LEFT JOIN user_tags ut ON up.tag_id = ut.id
+		WHERE tm.team_id = $1 AND tm.user_id = $2`
+
+	var m db.TeamMemberUser
+	var tag sql.NullString
+	var picture sql.NullString
+	var level, experience, xpForNextLevel sql.NullInt64
+	var levelTitle sql.NullString
+	var customRoleName, ownerRoleName, moderatorRoleName, memberRoleName sql.NullString
+
+	if err := r.DB.QueryRowContext(ctx, query, teamID, userID).Scan(
+		&m.User.ID, &m.User.Name, &picture, &tag,
+		&level, &experience, &levelTitle, &xpForNextLevel,
+		&m.Role, &customRoleName, &m.JoinedAt,
+		&ownerRoleName, &moderatorRoleName, &memberRoleName,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	if picture.Valid {
+		m.User.Picture = picture.String
+	}
+	if tag.Valid {
+		m.User.Tag = tag.String
+	}
+
+	if level.Valid {
+		m.User.UserLevel.Level = int(level.Int64)
+	}
+	if experience.Valid {
+		m.User.UserLevel.Experience = experience.Int64
+	}
+	if levelTitle.Valid {
+		m.User.UserLevel.LevelTitle = levelTitle.String
+	}
+	if xpForNextLevel.Valid && experience.Valid {
+		needed := max(xpForNextLevel.Int64 - experience.Int64, 0)
+		m.User.UserLevel.XPForNext = needed
+	}
+
+	if customRoleName.Valid && customRoleName.String != "" {
+		m.CustomRole = customRoleName.String
+	} else {
+		switch m.Role {
+		case "owner":
+			m.CustomRole = ownerRoleName.String
+			if m.CustomRole == "" { m.CustomRole = "Владелец" }
+		case "moderator":
+			m.CustomRole = moderatorRoleName.String
+			if m.CustomRole == "" { m.CustomRole = "Модератор" }
+		default:
+			m.CustomRole = memberRoleName.String
+			if m.CustomRole == "" { m.CustomRole = "Участник" }
+		}
+	}
+
+	return &m, nil
 }

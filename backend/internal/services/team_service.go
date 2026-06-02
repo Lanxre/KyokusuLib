@@ -20,6 +20,15 @@ func NewTeamService(repo *repository.TeamRepository) *TeamService {
 	return &TeamService{Repo: repo}
 }
 
+const (
+	MemberRoleModerator = "moderator"
+	MemberRoleOwner     = "owner"
+	MemberRoleMember    = "member"
+
+	TeamTypePublic  = "open"
+	TeamTypePrivate = "private"
+)
+
 func (s *TeamService) GetTeams(ctx context.Context, search string, limit int, offset int, userID int) ([]*dto.TeamDTO, error) {
 	if limit <= 0 {
 		limit = 10
@@ -85,11 +94,16 @@ func (s *TeamService) Create(ctx context.Context, userID int, input dto.CreateTe
 		return nil, fmt.Errorf("Команда с таким Slug уже существует")
 	}
 
+	if input.TeamType == "" {
+		input.TeamType = TeamTypePublic
+	}
+
 	team := &db.PublisherTeam{
 		OwnerID:     userID,
 		Name:        input.Name,
 		Slug:        input.Slug,
 		Description: input.Description,
+		TeamType:    input.TeamType,
 	}
 
 	if err := s.Repo.Create(ctx, team); err != nil {
@@ -111,7 +125,7 @@ func (s *TeamService) Get(ctx context.Context, slug string, userID int) (*dto.Te
 	return s.mapTeamToDTO(team), nil
 }
 
-func (s *TeamService) Update(ctx context.Context, userID int, slug string, input dto.UpdateTeamDTO) (*db.PublisherTeam, error) {
+func (s *TeamService) Update(ctx context.Context, userID int, slug string, input dto.UpdateTeamDTO) (*dto.TeamDTO, error) {
 	team, err := s.Repo.GetBySlug(ctx, slug, userID)
 	if err != nil || team == nil {
 		return nil, fmt.Errorf("team not found")
@@ -130,6 +144,9 @@ func (s *TeamService) Update(ctx context.Context, userID int, slug string, input
 	if input.BannerURL != nil {
 		team.BannerURL = *input.BannerURL
 	}
+	if input.TeamType != nil {
+		team.TeamType = *input.TeamType
+	}
 	if input.OwnerRoleName != nil {
 		team.OwnerRoleName = *input.OwnerRoleName
 	}
@@ -143,21 +160,181 @@ func (s *TeamService) Update(ctx context.Context, userID int, slug string, input
 	if err := s.Repo.Update(ctx, team); err != nil {
 		return nil, err
 	}
-	return team, nil
+	return s.mapTeamToDTO(team), nil
 }
 
-func (s *TeamService) Join(ctx context.Context, userID int, slug string) error {
+func (s *TeamService) Join(ctx context.Context, userID int, slug string) (string, error) {
 	team, err := s.Repo.GetBySlug(ctx, slug, userID)
 	if err != nil || team == nil {
-		return fmt.Errorf("team not found")
+		return "", fmt.Errorf("Команда не найдена")
 	}
-	return s.Repo.AddMember(ctx, team.ID, userID)
+	if team.TeamType == TeamTypePrivate {
+		err := s.Repo.CreateJoinRequest(ctx, team.ID, userID)
+		if err != nil {
+			return "", err
+		}
+		return "request_sent", nil
+	}
+	err = s.Repo.AddMember(ctx, team.ID, userID)
+	if err != nil {
+		return "", err
+	}
+	return "joined", nil
+}
+
+func (s *TeamService) checkModPermission(ctx context.Context, team *db.PublisherTeam, modID int) (bool, error) {
+	if team.OwnerID == modID {
+		return true, nil
+	}
+
+	role, err := s.Repo.GetMemberRole(ctx, team.ID, modID)
+	if err != nil {
+		return false, err
+	}
+	
+	return role == MemberRoleModerator || role == MemberRoleOwner, nil
+}
+
+func (s *TeamService) AddMemberByMod(ctx context.Context, modID int, slug string, targetUserID int) error {
+	team, err := s.Repo.GetBySlug(ctx, slug, modID)
+	if err != nil || team == nil {
+		return fmt.Errorf("Команда не найдена")
+	}
+
+	isMod, err := s.checkModPermission(ctx, team, modID)
+	if err != nil {
+		return err
+	}
+	
+	if !isMod {
+		return fmt.Errorf("Доступ запрещен: только модератор или создатель могут добавлять участников")
+	}
+
+	return s.Repo.AddMember(ctx, team.ID, targetUserID)
+}
+
+func (s *TeamService) UpdateMember(ctx context.Context, modID int, slug string, targetUserID int, input dto.UpdateTeamMemberDTO) error {
+	team, err := s.Repo.GetBySlug(ctx, slug, modID)
+	if err != nil || team == nil {
+		return fmt.Errorf("Команда не найдена")
+	}
+
+	isMod, err := s.checkModPermission(ctx, team, modID)
+	if err != nil {
+		return err
+	}
+	if !isMod {
+		return fmt.Errorf("Доступ запрещен: только модератор или создатель могут обновлять участников")
+	}
+	
+	targetMember, err := s.Repo.GetTeamMember(ctx, team.ID, targetUserID)
+	
+	if err != nil {
+		return err
+	}
+	if targetMember == nil {
+		return fmt.Errorf("Пользователь не является участником этой команды")
+	}
+	
+	if targetMember.Role == MemberRoleOwner && modID != team.OwnerID {
+		return fmt.Errorf("Доступ запрещен: только владелец может изменять другого владельца")
+	}
+	
+	if input.Role != nil && *input.Role == MemberRoleOwner {
+		return fmt.Errorf("Доступ запрещен: нельзя назначить роль владельца")
+	}
+
+	roleToSave := targetMember.Role
+	if input.Role != nil {
+		roleToSave = *input.Role
+	}
+	
+	var customRoleToSave *string = input.CustomRoleName
+
+	return s.Repo.UpdateMember(ctx, team.ID, targetUserID, roleToSave, customRoleToSave)
+}
+
+func (s *TeamService) AcceptJoinRequest(ctx context.Context, modID int, slug string, targetUserID int) error {
+	team, err := s.Repo.GetBySlug(ctx, slug, modID)
+	if err != nil || team == nil {
+		return fmt.Errorf("Команда не найдена")
+	}
+
+	isMod, err := s.checkModPermission(ctx, team, modID)
+	if err != nil {
+		return err
+	}
+	if !isMod {
+		return fmt.Errorf("Доступ запрещен: только модератор или создатель могут добавлять участников")
+	}
+
+	if err := s.Repo.AddMember(ctx, team.ID, targetUserID); err != nil {
+		return err
+	}
+	return s.Repo.DeleteJoinRequest(ctx, team.ID, targetUserID)
+}
+
+func (s *TeamService) RejectJoinRequest(ctx context.Context, modID int, slug string, targetUserID int) error {
+	team, err := s.Repo.GetBySlug(ctx, slug, modID)
+	if err != nil || team == nil {
+		return fmt.Errorf("Команда не найдена")
+	}
+
+	isMod, err := s.checkModPermission(ctx, team, modID)
+	if err != nil {
+		return err
+	}
+	if !isMod {
+		return fmt.Errorf("Доступ запрещен: только модератор или создатель могут отклонять запросы")
+	}
+
+	return s.Repo.DeleteJoinRequest(ctx, team.ID, targetUserID)
+}
+
+func (s *TeamService) GetJoinRequests(ctx context.Context, modID int, slug string, limit, offset int) ([]*dto.TeamJoinRequestDTO, error) {
+	team, err := s.Repo.GetBySlug(ctx, slug, modID)
+	if err != nil || team == nil {
+		return nil, fmt.Errorf("team not found")
+	}
+
+	isMod, err := s.checkModPermission(ctx, team, modID)
+	if err != nil {
+		return nil, err
+	}
+	if !isMod {
+		return nil, fmt.Errorf("forbidden: only moderator or creator can view requests")
+	}
+
+	requests, err := s.Repo.GetJoinRequests(ctx, slug, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	dtos := make([]*dto.TeamJoinRequestDTO, len(requests))
+	for i, req := range requests {
+		dtos[i] = &dto.TeamJoinRequestDTO{
+			User: dto.TeamMemberUserDTO{
+				ID:        req.User.ID,
+				Name:      req.User.Name,
+				Picture:   req.User.Picture,
+				ActiveTag: req.User.Tag,
+				UserLevel: dto.UserLevelDTO{
+					Level:      req.User.UserLevel.Level,
+					Experience: req.User.UserLevel.Experience,
+					LevelTitle: req.User.UserLevel.LevelTitle,
+					XPForNext:  req.User.UserLevel.XPForNext,
+				},
+			},
+			CreatedAt: req.CreatedAt.Format(time.RFC3339),
+		}
+	}
+	return dtos, nil
 }
 
 func (s *TeamService) Leave(ctx context.Context, userID int, slug string) error {
 	team, err := s.Repo.GetBySlug(ctx, slug, userID)
 	if err != nil || team == nil {
-		return fmt.Errorf("team not found")
+		return fmt.Errorf("Команда не найдена")
 	}
 	if team.OwnerID == userID {
 		if err := s.Repo.DeleteTeam(ctx, team.ID); err != nil {
@@ -229,6 +406,7 @@ func (s *TeamService) mapTeamToDTO(team *db.PublisherTeam) *dto.TeamDTO {
 		Description: team.Description,
 		AvatarURL:   team.AvatarURL,
 		BannerURL:   team.BannerURL,
+		TeamType:    team.TeamType,
 		RoleNames: dto.TeamRoleNames{
 			Owner:     team.OwnerRoleName,
 			Moderator: team.ModeratorRoleName,
@@ -241,6 +419,7 @@ func (s *TeamService) mapTeamToDTO(team *db.PublisherTeam) *dto.TeamDTO {
 		},
 		IsMember:     team.IsMember,
 		IsSubscriber: team.IsSubscriber,
+		HasRequested: team.HasRequested,
 	}
 }
 

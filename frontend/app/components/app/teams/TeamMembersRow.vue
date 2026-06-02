@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useTeam } from '~/composables/api/teams/useTeams';
-import type { TeamMember } from '~/types/frontend/teams';
+import type { CustomRoleNames, TeamMember } from '~/types/frontend/teams';
 import TeamMemberCard from './TeamMemberCard.vue';
 
 const props = defineProps<{
     slug: string;
+    customRoleNames: CustomRoleNames[];
 }>();
 
 const { getTeamMembers } = useTeam();
@@ -21,6 +22,14 @@ const { data: members, pending: isLoading } = useAsyncData<TeamMember[]>(
     },
     { default: () => [] }
 );
+
+const handleMemberUpdated = (updatedMember: TeamMember) => {
+    if (!members.value) return;
+    const idx = members.value.findIndex(m => m.user.id === updatedMember.user.id);
+    if (idx !== -1) {
+        members.value = members.value.map((m, i) => i === idx ? updatedMember : m);
+    }
+};
 </script>
 
 <template>
@@ -52,7 +61,10 @@ const { data: members, pending: isLoading } = useAsyncData<TeamMember[]>(
                 <TeamMemberCard 
                     v-for="member in members" 
                     :key="member.user.id" 
-                    :member="member" 
+                    :member="member"
+                    :customRoleNames="customRoleNames"
+                    :slug="slug"
+                    @updated="handleMemberUpdated"
                 />
             </div>
         </div>
