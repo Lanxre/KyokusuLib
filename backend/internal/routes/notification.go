@@ -17,4 +17,5 @@ func (n *NotificationRoutes) Register(cfg *config.Config, r *mux.Router) {
 
 	s.Handle("/{id:[0-9]+}/read", middleware.AuthMiddleware(n.Handler.MarkRead, cfg.JWTSecret)).Methods("PATCH")
 	s.Handle("/read-all", middleware.AuthMiddleware(n.Handler.MarkAllRead, cfg.JWTSecret)).Methods("PATCH")
+	s.Handle("/{id:[0-9]+}", middleware.AuthMiddleware(n.Handler.Delete, cfg.JWTSecret)).Methods("DELETE")
 }

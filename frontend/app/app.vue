@@ -11,12 +11,19 @@ const activityStore = useActivityStore();
 const notificationStore = useNotificationStore();
 
 const { syncSettingWithBackend } = useInterfaceSettings();
-const { connect: connectNotifications } = useNotifications();
+const { connect: connectNotifications, disconnect } = useNotifications();
 
 if (import.meta.client) {
 	activityStore.initActivityTracking();
-	connectNotifications();
 }
+
+watch(() => authStore.isAuthenticated, (auth) => {
+	if (auth) {
+		connectNotifications();
+	} else {
+		disconnect();
+	}
+});
 
 onMounted(async () => {
 	if (authStore.isAuthenticated) {

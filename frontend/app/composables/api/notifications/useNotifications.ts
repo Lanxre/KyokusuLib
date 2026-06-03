@@ -1,46 +1,34 @@
 import { $api } from "~/composables/api/useApi";
 import type { BackendNotification, NotificationStats } from "@/types/backend/notification";
-import { useAuthStore } from "@/stores/auth";
 
 export function useNotifications() {
 	const list = useState<BackendNotification[]>("notifications-list", () => []);
 	const unreadCount = useState<number>("notifications-unread", () => 0);
 	const stream = useState<EventSource | null>("notifications-stream", () => null);
 
+	const config = useRuntimeConfig();
+	const apiBase = config.public.apiBase.replace(/\/+$/, "");
+
 	let reconnectAttempts = 0;
 	const MAX_RECONNECT_DELAY = 30000;
 
-	function getLastEventId(): string {
-		if (import.meta.server) return "";
-		return localStorage.getItem("notifications-last-id") ?? "";
-	}
-
-	function setLastEventId(id: number) {
-		if (import.meta.server) return;
-		localStorage.setItem("notifications-last-id", String(id));
-	}
-
-	const authStore = useAuthStore();
-
 	function connect() {
-		if (import.meta.server || !authStore.isAuthenticated) return;
+		if (import.meta.server) return;
 
 		disconnect();
+		reconnectAttempts = 0;
 
-		const url = getLastEventId()
-			? `/api/notifications/stream?lastEventId=${getLastEventId()}`
-			: "/api/notifications/stream";
-
-		const es = new EventSource(url);
+		const url = `${apiBase}/api/notifications/stream`;
+		const es = new EventSource(url, { withCredentials: true });
 
 		es.addEventListener("notification", (event: MessageEvent) => {
 			try {
 				const notification: BackendNotification = JSON.parse(event.data);
 				list.value = [notification, ...list.value];
+
 				if (!notification.isRead) {
 					unreadCount.value++;
 				}
-				setLastEventId(notification.id);
 			} catch {}
 		});
 
@@ -50,14 +38,10 @@ export function useNotifications() {
 		};
 
 		stream.value = es;
-		reconnectAttempts = 0;
 	}
 
 	function scheduleReconnect() {
-		const delay = Math.min(
-			1000 * 2 ** reconnectAttempts,
-			MAX_RECONNECT_DELAY,
-		);
+		const delay = Math.min(1000 * 2 ** reconnectAttempts, MAX_RECONNECT_DELAY);
 		reconnectAttempts++;
 		setTimeout(() => connect(), delay);
 	}
@@ -71,7 +55,7 @@ export function useNotifications() {
 
 	async function fetchList(limit?: number, offset?: number) {
 		try {
-			const data = await $api<BackendNotification[]>("/api/notifications", {
+			const data = await $api<BackendNotification[]>("/notifications", {
 				query: { limit, offset },
 			});
 			list.value = data;
@@ -83,7 +67,7 @@ export function useNotifications() {
 
 	async function fetchStats() {
 		try {
-			const data = await $api<NotificationStats>("/api/notifications/stats");
+			const data = await $api<NotificationStats>("/notifications/stats");
 			unreadCount.value = data.unreadCount ?? 0;
 			return data;
 		} catch {
@@ -93,7 +77,7 @@ export function useNotifications() {
 
 	async function markRead(id: number) {
 		try {
-			await $api(`/api/notifications/${id}/read`, { method: "PATCH" });
+			await $api(`/notifications/${id}/read`, { method: "PATCH" });
 			const item = list.value.find((n) => n.id === id);
 			if (item && !item.isRead) {
 				item.isRead = true;
@@ -104,9 +88,20 @@ export function useNotifications() {
 
 	async function markAllRead() {
 		try {
-			await $api("/api/notifications/read-all", { method: "PATCH" });
+			await $api("/notifications/read-all", { method: "PATCH" });
 			list.value.forEach((n) => { n.isRead = true; });
 			unreadCount.value = 0;
+		} catch {}
+	}
+
+	async function remove(id: number) {
+		try {
+			await $api(`/notifications/${id}`, { method: "DELETE" });
+			const item = list.value.find((n) => n.id === id);
+			if (item && !item.isRead) {
+				unreadCount.value = Math.max(0, unreadCount.value - 1);
+			}
+			list.value = list.value.filter((n) => n.id !== id);
 		} catch {}
 	}
 
@@ -119,5 +114,6 @@ export function useNotifications() {
 		fetchStats,
 		markRead,
 		markAllRead,
+		remove,
 	};
 }

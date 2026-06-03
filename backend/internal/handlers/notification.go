@@ -171,6 +171,34 @@ func (h *NotificationHandler) MarkAllRead(w http.ResponseWriter, r *http.Request
 	response.SuccessOkEmpty(w)
 }
 
+func (h *NotificationHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusUnauthorized, "User not found")
+		return
+	}
+
+	vars := mux.Vars(r)
+	idStr, ok := vars["id"]
+	if !ok {
+		response.Error(w, http.StatusBadRequest, "Notification ID is missing")
+		return
+	}
+
+	notificationID, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid notification ID")
+		return
+	}
+
+	if err := h.Service.Delete(r.Context(), notificationID, int64(userID)); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.SuccessOkEmpty(w)
+}
+
 func (h *NotificationHandler) NotificationStats(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
 	if !ok {

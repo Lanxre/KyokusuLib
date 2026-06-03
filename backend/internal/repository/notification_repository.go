@@ -105,3 +105,19 @@ func (r *NotificationRepository) MarkAllAsRead(ctx context.Context, userID int64
 	_, err := r.DB.ExecContext(ctx, query, userID)
 	return err
 }
+
+func (r *NotificationRepository) Delete(ctx context.Context, id, userID int64) error {
+	query := `DELETE FROM notifications WHERE id = $1 AND user_id = $2`
+	result, err := r.DB.ExecContext(ctx, query, id, userID)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}

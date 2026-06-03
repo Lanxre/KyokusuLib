@@ -17,7 +17,7 @@ const authStore = useAuthStore();
 const { user, isAuthenticated } = storeToRefs(authStore);
 const { hasPermission } = useRolePermissions();
 const { openSearch } = useSearch();
-const { unreadCount } = useNotifications();
+const { unreadCount, fetchStats } = useNotifications();
 
 const isMobileMenuOpen = ref(false);
 const isUserDropdownOpen = ref(false);
@@ -54,8 +54,9 @@ const handleGlobalSearchShortcut = (e: KeyboardEvent) => {
 	}
 };
 
-onMounted(() => {
+onMounted(async () => {
 	window.addEventListener("keydown", handleGlobalSearchShortcut);
+	await fetchStats();
 });
 
 onUnmounted(() => {
@@ -102,10 +103,12 @@ onUnmounted(() => {
           </div>
         </div>
         
-        <button class="relative p-3 rounded-full cursor-pointer bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors flex items-center justify-center">
-            <Icon name="ph:bell-bold" size="22" class="text-zinc-700 dark:text-zinc-200" />
-            <span v-if="unreadCount" class="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-4.5 h-4.5 px-1 rounded-full bg-red-600 text-[10px] font-bold text-white leading-none">{{ textMaxNumValue(unreadCount, MAX_UNREAD_COUNT) }}</span>
-        </button>
+        <NuxtLink to="/notifications">
+            <button class="relative p-3 rounded-full cursor-pointer bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700 transition-colors flex items-center justify-center">
+                <Icon name="ph:bell-bold" size="22" class="text-zinc-700 dark:text-zinc-200" />
+                <span v-if="unreadCount" class="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-4.5 h-4.5 px-1 rounded-full bg-red-600 text-[10px] font-bold text-white leading-none">{{ textMaxNumValue(unreadCount, MAX_UNREAD_COUNT) }}</span>
+            </button>
+        </NuxtLink>
 
         <NuxtLink to="/bookmarks" class="hidden sm:flex items-center gap-2 px-4 py-3 rounded-full bg-zinc-300 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors">
           <Icon name="ph:bookmarks-bold" size="16" class="text-zinc-700 dark:text-zinc-200" />

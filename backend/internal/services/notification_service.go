@@ -99,6 +99,10 @@ func (s *NotificationService) MarkAllAsRead(ctx context.Context, userID int64) e
 	return s.Repo.MarkAllAsRead(ctx, userID)
 }
 
+func (s *NotificationService) Delete(ctx context.Context, id, userID int64) error {
+	return s.Repo.Delete(ctx, id, userID)
+}
+
 func (s *NotificationService) GetNotificationStats(ctx context.Context, userID int64) (*dto.NotificationStats, error) {
 	unreadCount, err := s.Repo.GetUnreadCount(ctx, userID)
 	if err != nil {
