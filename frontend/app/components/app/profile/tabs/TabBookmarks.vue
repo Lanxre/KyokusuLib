@@ -106,7 +106,13 @@ const tabVisible = (cat: any) => {
                         <Icon :name="cat.icon" size="16" />
                         <div class="flex items-center gap-2">
                             <span>{{ cat.label }}</span>
-                            <span v-if="cat.count !== undefined" class="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded-md" :class="activeCategory === cat.id ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-200' : ''">{{ cat.count }}</span>
+                            <span v-if="cat.count !== undefined" 
+                                class="text-[10px] border border-zinc-500  bg-zinc-100 dark:bg-zinc-800 text-zinc-500 h-4 w-4 px-1.5 py-0.5 rounded-full"
+                                :class="activeCategory === cat.id ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-200' : ''">
+                                <div class="relative right-0.5 -top-0.5">
+                                    {{ cat.count }}
+                                </div>
+                            </span>
                         </div>
                     </div>
                 </button>

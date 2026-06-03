@@ -8,6 +8,7 @@ import (
 	"github.com/lanxre/kyokusulib/internal/repository"
 	"github.com/lanxre/kyokusulib/internal/routes"
 	service "github.com/lanxre/kyokusulib/internal/services"
+	"github.com/lanxre/kyokusulib/internal/sse"
 	"github.com/lanxre/kyokusulib/internal/storage"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
@@ -22,6 +23,9 @@ func main() {
 			app.NewValidator,
 			
 
+			sse.NewNotificationHub,
+
+			repository.NewNotificationRepository,
 			repository.NewUserRepository,
 			repository.NewUserProfileSettingRepository,
 			repository.NewUserSocialsRepository,
@@ -35,6 +39,7 @@ func main() {
 			repository.NewNovelaRepository,
 			repository.NewTeamRepository,
 
+			service.NewNotificationService,
 			service.NewAuthService,
 			service.NewUserService,
 			service.NewUserActivityService,
@@ -46,6 +51,7 @@ func main() {
 			service.NewTeamService,
 			app.NewEmailService,
 
+			handlers.NewNotificationHandler,
 			handlers.NewAuthHandler,
 			handlers.NewHealthHandler,
 			handlers.NewUserHandler,
@@ -75,6 +81,9 @@ func main() {
 			app.AsRoute(func(h *handlers.NovelaHandler) *routes.NovelaRoutes { return &routes.NovelaRoutes{Handler: h} }),
 			app.AsRoute(func(h *handlers.TeamHandler) *routes.TeamRoutes { return &routes.TeamRoutes{Handler: h} }),
 			app.AsRoute(func(h *handlers.CommentHandler) *routes.CommentRoutes { return &routes.CommentRoutes{Handler: h} }),
+			app.AsRoute(func(h *handlers.NotificationHandler) *routes.NotificationRoutes {
+				return &routes.NotificationRoutes{Handler: h}
+			}),
 
 			fx.Annotate(
 				app.NewMuxRouter,
@@ -85,6 +94,7 @@ func main() {
 		fx.Invoke(
 			app.RegisterStaticFiles,
 			app.StartBackgroundWorkers,
+			app.RegisterNotificationHubCleanup,
 			app.StartHTTPServer,
 		),
 		fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),

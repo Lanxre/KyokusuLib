@@ -57,3 +57,7 @@ export const roleConv = (role: KyokusuAppRole, lang: string) => {
 export const replaceTags = (text: string) => {
   return text.replace(/<[^>]*>/g, "");
 }
+
+export const textMaxNumValue = (value: number, max: number) => {
+  return value > max ? `${max}+` : value;
+}

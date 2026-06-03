@@ -3,6 +3,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useActivityStore } from "@/stores/activity";
 import { useNotificationStore } from "@/stores/notification";
 import { useInterfaceSettings } from "~/composables/api/settings/useInterfaceSettings";
+import { useNotifications } from "~/composables/api/notifications/useNotifications";
 import { NotificationContainer as TheNotifications } from "@kyokusu-ui/vue";
 
 const authStore = useAuthStore();
@@ -10,9 +11,11 @@ const activityStore = useActivityStore();
 const notificationStore = useNotificationStore();
 
 const { syncSettingWithBackend } = useInterfaceSettings();
+const { connect: connectNotifications } = useNotifications();
 
 if (import.meta.client) {
 	activityStore.initActivityTracking();
+	connectNotifications();
 }
 
 onMounted(async () => {

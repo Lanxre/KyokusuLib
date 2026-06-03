@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/lanxre/kyokusulib/internal/config"
 	service "github.com/lanxre/kyokusulib/internal/services"
+	"github.com/lanxre/kyokusulib/internal/sse"
 	"github.com/lanxre/kyokusulib/internal/utils/static"
 	"github.com/rs/cors"
 	"go.uber.org/fx"
@@ -27,6 +28,16 @@ func StartBackgroundWorkers(lc fx.Lifecycle, authService *service.AuthService) {
 		},
 		OnStop: func(_ context.Context) error {
 			cancel()
+			return nil
+		},
+	})
+}
+
+func RegisterNotificationHubCleanup(lc fx.Lifecycle, hub *sse.NotificationHub) {
+	lc.Append(fx.Hook{
+		OnStop: func(ctx context.Context) error {
+			log.Println("Closing notification hub...")
+			hub.Close()
 			return nil
 		},
 	})

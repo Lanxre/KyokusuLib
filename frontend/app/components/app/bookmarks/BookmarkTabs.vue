@@ -90,7 +90,11 @@ const handleTabClick = (e: Event, catId: BookmarkCategory) => {
                           text-zinc-500 px-1.5 py-0.5 h-4 w-4
                           text-[10px] 
                           rounded-full" 
-                          :class="activeCategory === cat.id ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-200' : ''">{{ cat.count }}</span>
+                          :class="activeCategory === cat.id ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-200' : ''">
+                              <div class="ml-[1px]">
+                                  {{ cat.count }}
+                              </div>
+                          </span>
                 </div>
             </div>
         </button>
