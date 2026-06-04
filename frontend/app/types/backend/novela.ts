@@ -5,17 +5,21 @@ export interface NovelaChapterImage {
 }
 
 export interface NovelaChapter {
-	id: number;
+	id: string;
 	title: string;
 	number: number;
+	status?: string;
+	created_by?: number;
 	content: string;
 	images: NovelaChapterImage[];
 }
 
 export interface NovelaVolume {
-	id: number;
+	id: string;
 	title: string;
 	number: number;
+	status?: string;
+	created_by?: number;
 	chapters: NovelaChapter[];
 }
 

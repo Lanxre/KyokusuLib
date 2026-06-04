@@ -164,3 +164,22 @@ func (r *NovelaBookmarkRepository) DeleteCategory(ctx context.Context, id int, u
 	}
 	return nil
 }
+
+func (r *NovelaBookmarkRepository) GetUsersWithNovelaBookmark(ctx context.Context, novelaID int) ([]int, error) {
+	query := `SELECT user_id FROM user_novela_bookmarks WHERE novela_id = $1`
+	rows, err := r.DB.QueryContext(ctx, query, novelaID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var userIDs []int
+	for rows.Next() {
+		var userID int
+		if err := rows.Scan(&userID); err != nil {
+			return nil, err
+		}
+		userIDs = append(userIDs, userID)
+	}
+	return userIDs, nil
+}

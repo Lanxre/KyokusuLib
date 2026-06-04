@@ -49,6 +49,7 @@ func main() {
 			service.NewNovelaService,
 			service.NewCommentService,
 			service.NewTeamService,
+			service.NewModerationService,
 			app.NewEmailService,
 
 			handlers.NewNotificationHandler,
@@ -63,6 +64,7 @@ func main() {
 			handlers.NewNovelaHandler,
 			handlers.NewCommentHandler,
 			handlers.NewTeamHandler,
+			handlers.NewModerationHandler,
 
 			app.AsRoute(func(h *handlers.HealthHandler) *routes.HealthRoutes { return &routes.HealthRoutes{Handler: h} }),
 			app.AsRoute(func(h *handlers.AuthHandler) *routes.AuthRoutes { return &routes.AuthRoutes{Handler: h} }),
@@ -83,6 +85,9 @@ func main() {
 			app.AsRoute(func(h *handlers.CommentHandler) *routes.CommentRoutes { return &routes.CommentRoutes{Handler: h} }),
 			app.AsRoute(func(h *handlers.NotificationHandler) *routes.NotificationRoutes {
 				return &routes.NotificationRoutes{Handler: h}
+			}),
+			app.AsRoute(func(h *handlers.ModerationHandler) *routes.ModerationRoutes {
+				return &routes.ModerationRoutes{Handler: h}
 			}),
 
 			fx.Annotate(

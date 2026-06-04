@@ -44,24 +44,29 @@ type NovelaAuthor struct {
 }
 
 type NovelaVolume struct {
-	ID       int             `json:"id"`
-	Title    string          `json:"title"`
-	Number   int             `json:"number"`
-	Chapters []NovelaChapter `json:"chapters"`
+	ID        string          `json:"id"`
+	Title     string          `json:"title"`
+	Number    int             `json:"number"`
+	Status    string          `json:"status"`
+	CreatedBy int             `json:"created_by"`
+	Chapters  []NovelaChapter `json:"chapters"`
 }
 
 type NovelaChapter struct {
-	ID     int    `json:"id"`
-	Title  string `json:"title"`
-	Number float64 `json:"number"`
-	Content string `json:"content,omitempty"`
-	Images  []NovelaChapterImage `json:"images"` 
+	ID        string               `json:"id"`
+	Title     string               `json:"title"`
+	Number    float64              `json:"number"`
+	Status    string               `json:"status"`
+	CreatedBy int                  `json:"created_by"`
+	Content   string               `json:"content,omitempty"`
+	Images    []NovelaChapterImage `json:"images"`
 }
 
 type NovelaChapterImage struct {
 	ID       int    `json:"id"`
 	ImageURL string `json:"image_url"`
 	Caption  string `json:"caption"`
+	Position int    `json:"position"`
 }
 type NovelaLike struct {
 	NovelaID int  `json:"novela_id"`

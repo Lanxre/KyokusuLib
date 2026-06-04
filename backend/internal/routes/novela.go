@@ -29,4 +29,9 @@ func (a *NovelaRoutes) Register(cfg *config.Config, r *mux.Router) {
 	novelaRouter.Handle("/bookmarks/categories", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.CreateBookmarkCategory), cfg.JWTSecret)).Methods("POST")
 	novelaRouter.Handle("/bookmarks/categories/{id:[0-9]+}", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.UpdateBookmarkCategory), cfg.JWTSecret)).Methods("PUT")
 	novelaRouter.Handle("/bookmarks/categories/{id:[0-9]+}", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.DeleteBookmarkCategory), cfg.JWTSecret)).Methods("DELETE")
+
+	novelaRouter.Handle("/novela/{id:[0-9]+}/teams", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.AddTeamToNovela), cfg.JWTSecret)).Methods("POST")
+	novelaRouter.Handle("/novela/{id:[0-9]+}/volumes", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.AddVolume), cfg.JWTSecret)).Methods("POST")
+	novelaRouter.Handle("/novela/volumes/{id:[a-fA-F0-9-]+}/chapters", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.AddChapter), cfg.JWTSecret)).Methods("POST")
+	novelaRouter.Handle("/novela/chapters/{id:[a-fA-F0-9-]+}/images", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.AddChapterImage), cfg.JWTSecret)).Methods("POST")
 }

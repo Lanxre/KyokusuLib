@@ -457,3 +457,94 @@ func (h *NovelaHandler) DeleteBookmarkCategory(w http.ResponseWriter, r *http.Re
 
 	response.SuccessOkEmpty(w)
 }
+
+func (h *NovelaHandler) AddTeamToNovela(w http.ResponseWriter, r *http.Request) {
+	novelaID, _ := strconv.Atoi(mux.Vars(r)["id"])
+	var req dto.AddNovelaTeamRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if err := h.Validator.Struct(req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Validation error: "+err.Error())
+		return
+	}
+	if err := h.service.AddTeamToNovela(r.Context(), novelaID, req.TeamID); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.SuccessOkEmpty(w)
+}
+
+func (h *NovelaHandler) AddVolume(w http.ResponseWriter, r *http.Request) {
+	novelaID, _ := strconv.Atoi(mux.Vars(r)["id"])
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
+
+	var req dto.AddVolumeRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if err := h.Validator.Struct(req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Validation error: "+err.Error())
+		return
+	}
+	id, status, err := h.service.AddVolume(r.Context(), novelaID, userID, req)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	msg := "Successfully added"
+	if status == "pending" {
+		msg = "Sent for moderation"
+	}
+
+	response.JSON(w, http.StatusCreated, map[string]any{"id": id, "message": msg, "status": status})
+}
+
+func (h *NovelaHandler) AddChapter(w http.ResponseWriter, r *http.Request) {
+	volumeID := mux.Vars(r)["id"]
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
+
+	var req dto.AddChapterRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if err := h.Validator.Struct(req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Validation error: "+err.Error())
+		return
+	}
+	id, status, err := h.service.AddChapter(r.Context(), volumeID, userID, req)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	msg := "Successfully added"
+	if status == "pending" {
+		msg = "Sent for moderation"
+	}
+
+	response.JSON(w, http.StatusCreated, map[string]any{"id": id, "message": msg, "status": status})
+}
+
+func (h *NovelaHandler) AddChapterImage(w http.ResponseWriter, r *http.Request) {
+	chapterID := mux.Vars(r)["id"]
+	var req dto.AddChapterImageRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if err := h.Validator.Struct(req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Validation error: "+err.Error())
+		return
+	}
+	id, err := h.service.AddChapterImage(r.Context(), chapterID, req)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.JSON(w, http.StatusCreated, map[string]any{"id": id, "message": "Image added"})
+}

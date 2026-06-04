@@ -52,7 +52,6 @@ const changeRating = (delta: number) => {
 
 <template>
   <ModalWindow 
-    v-if="modelValue"
     :model-value="modelValue" 
     @update:model-value="$emit('update:modelValue', $event)"
     title="Оцените произведение" 

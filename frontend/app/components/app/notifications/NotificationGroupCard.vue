@@ -34,7 +34,6 @@ const groupHasUnread = computed(() => unreadCountIn(props.notifications) > 0);
 	<div class="group bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-3xl transition-all hover:border-yellow-500/30">
 		<div class="flex items-center justify-between px-5 py-4">
 			<div class="flex items-center gap-3 min-w-0">
-				<!-- Group checkbox -->
 				<label
 					@click.stop="emit('toggleSelectGroup', title)"
 					class="shrink-0 cursor-pointer"
@@ -54,7 +53,6 @@ const groupHasUnread = computed(() => unreadCountIn(props.notifications) > 0);
 					</div>
 				</label>
 
-				<!-- Expand button -->
 				<button
 					@click="emit('toggleExpand', title)"
 					class="flex items-center gap-3 min-w-0 cursor-pointer"

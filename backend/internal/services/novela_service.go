@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"mime/multipart"
 	"strconv"
 	"time"
@@ -15,22 +16,28 @@ import (
 )
 
 type NovelaService struct {
-	Repo         *repository.NovelaRepository
-	RatingRepo   *repository.NovelaRatingRepository
-	BookmarkRepo *repository.NovelaBookmarkRepository
-	LikeRepo     *repository.NovelaLikeRepository
+	Repo                *repository.NovelaRepository
+	RatingRepo          *repository.NovelaRatingRepository
+	BookmarkRepo        *repository.NovelaBookmarkRepository
+	LikeRepo            *repository.NovelaLikeRepository
+	UserRepo            *repository.UserRepository
+	NotificationService *NotificationService
 }
 
 func NewNovelaService(repo *repository.NovelaRepository,
 	novelaRatingRepo *repository.NovelaRatingRepository,
 	novelaBookmarkRepo *repository.NovelaBookmarkRepository,
 	novelaLikeRepo *repository.NovelaLikeRepository,
+	userRepo *repository.UserRepository,
+	notificationService *NotificationService,
 ) *NovelaService {
 	return &NovelaService{
-		Repo:         repo,
-		RatingRepo:   novelaRatingRepo,
-		BookmarkRepo: novelaBookmarkRepo,
-		LikeRepo:     novelaLikeRepo,
+		Repo:                repo,
+		RatingRepo:          novelaRatingRepo,
+		BookmarkRepo:        novelaBookmarkRepo,
+		LikeRepo:            novelaLikeRepo,
+		UserRepo:            userRepo,
+		NotificationService: notificationService,
 	}
 }
 
@@ -214,7 +221,7 @@ func (s *NovelaService) novelaToDto(n *db.Novela) *dto.NovelaResponse {
 		for _, ch := range v.Chapters {
 			imgs := make([]dto.NovelaChapterImage, 0)
 			for _, img := range ch.Images {
-				imgs = append(imgs, dto.NovelaChapterImage{ID: img.ID, ImageURL: img.ImageURL, Caption: img.Caption})
+				imgs = append(imgs, dto.NovelaChapterImage{ID: img.ID, ImageURL: img.ImageURL, Caption: img.Caption, Position: img.Position})
 			}
 			chapters = append(chapters, dto.NovelaChapter{ID: ch.ID, Title: ch.Title, Number: ch.Number, Images: imgs})
 		}
@@ -279,4 +286,86 @@ func (s *NovelaService) UpdateBookmarkCategory(ctx context.Context, id int, user
 
 func (s *NovelaService) DeleteBookmarkCategory(ctx context.Context, id int, userID int) error {
 	return s.BookmarkRepo.DeleteCategory(ctx, id, userID)
+}
+
+func (s *NovelaService) AddTeamToNovela(ctx context.Context, novelaID, teamID int) error {
+	count, err := s.Repo.CountNovelaTeams(ctx, novelaID)
+	if err != nil {
+		return err
+	}
+	if count >= 5 {
+		return errors.New("maximum 5 teams can be added to a novela")
+	}
+	return s.Repo.AddTeamToNovela(ctx, novelaID, teamID)
+}
+
+func (s *NovelaService) AddVolume(ctx context.Context, novelaID int, userID int, req dto.AddVolumeRequest) (string, string, error) {
+	user, err := s.UserRepo.GetByID(userID)
+	if err != nil {
+		return "", "", err
+	}
+
+	hasTeamPermission, err := s.Repo.CheckUserNovelaTeamPermission(ctx, userID, novelaID)
+	if err != nil {
+		return "", "", err
+	}
+
+	status := "pending"
+	if user.Role == "admin" || user.Role == "moderator" || hasTeamPermission {
+		status = "approved"
+	}
+
+	id, err := s.Repo.AddVolume(ctx, novelaID, req.VolumeNumber, req.Title, status, userID)
+	if err == nil && status == "approved" {
+		go s.sendNovelaNotification(novelaID, "Обновление", "В новеллу '%s' добавлен новый том!")
+	}
+	return id, status, err
+}
+
+func (s *NovelaService) AddChapter(ctx context.Context, volumeID string, userID int, req dto.AddChapterRequest) (string, string, error) {
+	novelaID, err := s.Repo.GetNovelaIDByVolumeID(ctx, volumeID)
+	if err != nil {
+		return "", "", err
+	}
+
+	user, err := s.UserRepo.GetByID(userID)
+	if err != nil {
+		return "", "", err
+	}
+
+	hasTeamPermission, err := s.Repo.CheckUserNovelaTeamPermission(ctx, userID, novelaID)
+	if err != nil {
+		return "", "", err
+	}
+
+	status := "pending"
+	if user.Role == "admin" || user.Role == "moderator" || hasTeamPermission {
+		status = "approved"
+	}
+
+	id, err := s.Repo.AddChapter(ctx, volumeID, req.ChapterNumber, req.Title, req.Content, status, userID)
+	if err == nil && status == "approved" {
+		go s.sendNovelaNotification(novelaID, "Обновление", "В новеллу '%s' добавлена новая глава!")
+	}
+	return id, status, err
+}
+
+func (s *NovelaService) sendNovelaNotification(novelaID int, title, messageFmt string) {
+	bgCtx := context.Background()
+	novelaTitle, err := s.Repo.GetTitleByID(bgCtx, novelaID)
+	if err != nil {
+		return
+	}
+	userIDs, err := s.BookmarkRepo.GetUsersWithNovelaBookmark(bgCtx, novelaID)
+	if err != nil {
+		return
+	}
+	message := fmt.Sprintf(messageFmt, novelaTitle)
+	for _, userID := range userIDs {
+		s.NotificationService.Create(bgCtx, int64(userID), title, message)
+	}
+}
+
+func (s *NovelaService) AddChapterImage(ctx context.Context, chapterID string, req dto.AddChapterImageRequest) (int, error) {
+	return s.Repo.AddChapterImage(ctx, chapterID, req.ImageURL, req.Caption, req.Position)
 }

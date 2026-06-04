@@ -45,3 +45,7 @@ type CommentRoutes struct {
 type NotificationRoutes struct {
 	Handler *handlers.NotificationHandler
 }
+
+type ModerationRoutes struct {
+	Handler *handlers.ModerationHandler
+}

@@ -139,15 +139,15 @@ func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, user
 									'number', ch.chapter_number,
 									'images', COALESCE((
 										SELECT json_agg(
-											json_build_object('id', img.id, 'image_url', img.image_url, 'caption', img.caption)
-											ORDER BY img.id
+											json_build_object('id', img.id, 'image_url', img.image_url, 'caption', img.caption, 'position', img.position)
+											ORDER BY img.position ASC
 										) FROM novela_chapter_images img WHERE img.chapter_id = ch.id
 									), '[]'::json)
 								) ORDER BY ch.chapter_number
-							) FROM novela_chapters ch WHERE ch.novela_volume_id = v.id
+							) FROM novela_chapters ch WHERE ch.novela_volume_id = v.id AND ch.status = 'approved'
 						), '[]'::json)
 					) ORDER BY v.volume_number
-				) FROM novela_volumes v WHERE v.novela_id = n.id
+				) FROM novela_volumes v WHERE v.novela_id = n.id AND v.status = 'approved'
 			), '[]'),
 
 			CASE 
@@ -339,21 +339,21 @@ func (r *NovelaRepository) linkTags(ctx context.Context, tx *sql.Tx, novelaID in
 	return nil
 }
 
-func (r *NovelaRepository) CreateVolume(ctx context.Context, novelaID int, title string, number int) (int, error) {
+func (r *NovelaRepository) CreateVolume(ctx context.Context, novelaID int, title string, number int) (string, error) {
 	query := `
 		INSERT INTO novela_volumes (novela_id, title, volume_number) 
 		VALUES ($1, $2, $3) 
 		RETURNING id`
 
-	var id int
+	var id string
 	err := r.DB.QueryRowContext(ctx, query, novelaID, title, number).Scan(&id)
 	if err != nil {
-		return 0, fmt.Errorf("failed to create volume: %w", err)
+		return "", fmt.Errorf("failed to create volume: %w", err)
 	}
 	return id, nil
 }
 
-func (r *NovelaRepository) CreateChapter(ctx context.Context, volumeID int, ch *db.NovelaChapter) error {
+func (r *NovelaRepository) CreateChapter(ctx context.Context, volumeID string, ch *db.NovelaChapter) error {
 	tx, err := r.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -371,7 +371,7 @@ func (r *NovelaRepository) CreateChapter(ctx context.Context, volumeID int, ch *
 	}
 
 	if len(ch.Images) > 0 {
-		imgQuery := `INSERT INTO novela_chapter_images (chapter_id, image_url, caption) VALUES ($1, $2, $3)`
+		imgQuery := `INSERT INTO novela_chapter_images (chapter_id, image_url, caption, position) VALUES ($1, $2, $3, $4)`
 		stmt, err := tx.PrepareContext(ctx, imgQuery)
 		if err != nil {
 			return err
@@ -379,7 +379,7 @@ func (r *NovelaRepository) CreateChapter(ctx context.Context, volumeID int, ch *
 		defer stmt.Close()
 
 		for _, img := range ch.Images {
-			if _, err := stmt.ExecContext(ctx, ch.ID, img.ImageURL, img.Caption); err != nil {
+			if _, err := stmt.ExecContext(ctx, ch.ID, img.ImageURL, img.Caption, img.Position); err != nil {
 				return fmt.Errorf("failed to save image: %w", err)
 			}
 		}
@@ -388,7 +388,7 @@ func (r *NovelaRepository) CreateChapter(ctx context.Context, volumeID int, ch *
 	return tx.Commit()
 }
 
-func (r *NovelaRepository) GetChapterByID(ctx context.Context, chapterID int) (*db.NovelaChapter, error) {
+func (r *NovelaRepository) GetChapterByID(ctx context.Context, chapterID string) (*db.NovelaChapter, error) {
 	ch := &db.NovelaChapter{}
 
 	query := `SELECT id, title, chapter_number, content FROM novela_chapters WHERE id = $1`
@@ -400,18 +400,18 @@ func (r *NovelaRepository) GetChapterByID(ctx context.Context, chapterID int) (*
 		return nil, err
 	}
 
-	imgQuery := `SELECT id, image_url, caption FROM novela_chapter_images WHERE chapter_id = $1 ORDER BY id`
+	imgQuery := `SELECT id, image_url, caption, position FROM novela_chapter_images WHERE chapter_id = $1 ORDER BY position ASC`
 	rows, err := r.DB.QueryContext(ctx, imgQuery, chapterID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-
+ 
 	for rows.Next() {
 		var img db.NovelaChapterImage
 		var caption sql.NullString
-
-		if err := rows.Scan(&img.ID, &img.ImageURL, &caption); err != nil {
+ 
+		if err := rows.Scan(&img.ID, &img.ImageURL, &caption, &img.Position); err != nil {
 			return nil, err
 		}
 		img.Caption = caption.String
@@ -492,7 +492,7 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
         COALESCE((SELECT array_agg(g.name) FROM novela_genres ng JOIN genres g ON ng.genre_id = g.id WHERE ng.novela_id = n.id), '{}')::text[],
         COALESCE((SELECT array_agg(c.name) FROM novela_categories nc JOIN categories c ON nc.category_id = c.id WHERE nc.novela_id = n.id), '{}')::text[],
         COALESCE((SELECT AVG(rating) FROM novela_ratings WHERE novela_id = n.id), 0) as avg_rating,
-        (SELECT MAX(created_at) FROM novela_chapters ch JOIN novela_volumes v ON ch.novela_volume_id = v.id WHERE v.novela_id = n.id) as last_chapter_at,
+        (SELECT MAX(ch.created_at) FROM novela_chapters ch JOIN novela_volumes v ON ch.novela_volume_id = v.id WHERE v.novela_id = n.id AND ch.status = 'approved' AND v.status = 'approved') as last_chapter_at,
         
         -- Поля пользователя
         (SELECT c.name FROM user_novela_bookmarks b JOIN bookmark_categories c ON b.category_id = c.id WHERE b.novela_id = n.id AND b.user_id = $1) as user_bookmark,
@@ -576,4 +576,151 @@ func (r *NovelaRepository) GetUserNovelaBookmarks(ctx context.Context, userID in
 	}
 
 	return novelas, nil
+}
+
+func (r *NovelaRepository) CountNovelaTeams(ctx context.Context, novelaID int) (int, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM novela_teams WHERE novela_id = $1`
+	err := r.DB.QueryRowContext(ctx, query, novelaID).Scan(&count)
+	return count, err
+}
+
+func (r *NovelaRepository) AddTeamToNovela(ctx context.Context, novelaID, teamID int) error {
+	query := `INSERT INTO novela_teams (novela_id, team_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`
+	_, err := r.DB.ExecContext(ctx, query, novelaID, teamID)
+	return err
+}
+
+func (r *NovelaRepository) AddVolume(ctx context.Context, novelaID int, volumeNumber int, title string, status string, userID int) (string, error) {
+	query := `INSERT INTO novela_volumes (novela_id, volume_number, title, status, created_by) VALUES ($1, $2, $3, $4, $5) RETURNING id`
+	var id string
+	err := r.DB.QueryRowContext(ctx, query, novelaID, volumeNumber, title, status, userID).Scan(&id)
+	return id, err
+}
+
+func (r *NovelaRepository) AddChapter(ctx context.Context, volumeID string, chapterNumber float64, title, content string, status string, userID int) (string, error) {
+	query := `INSERT INTO novela_chapters (novela_volume_id, chapter_number, title, content, status, created_by) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
+	var id string
+	err := r.DB.QueryRowContext(ctx, query, volumeID, chapterNumber, title, content, status, userID).Scan(&id)
+	return id, err
+}
+
+func (r *NovelaRepository) AddChapterImage(ctx context.Context, chapterID string, imageURL, caption string, position int) (int, error) {
+	query := `INSERT INTO novela_chapter_images (chapter_id, image_url, caption, position) VALUES ($1, $2, $3, $4) RETURNING id`
+	var id int
+	err := r.DB.QueryRowContext(ctx, query, chapterID, imageURL, caption, position).Scan(&id)
+	return id, err
+}
+
+func (r *NovelaRepository) GetTitleByID(ctx context.Context, id int) (string, error) {
+	query := `SELECT title FROM novela WHERE id = $1`
+	var title string
+	err := r.DB.QueryRowContext(ctx, query, id).Scan(&title)
+	return title, err
+}
+
+func (r *NovelaRepository) GetNovelaIDByVolumeID(ctx context.Context, volumeID string) (int, error) {
+	query := `SELECT novela_id FROM novela_volumes WHERE id = $1`
+	var novelaID int
+	err := r.DB.QueryRowContext(ctx, query, volumeID).Scan(&novelaID)
+	return novelaID, err
+}
+
+func (r *NovelaRepository) CheckUserNovelaTeamPermission(ctx context.Context, userID, novelaID int) (bool, error) {
+	query := `
+		SELECT EXISTS (
+			SELECT 1 
+			FROM novela_teams nt
+			JOIN team_members tm ON nt.team_id = tm.team_id
+			WHERE nt.novela_id = $1 
+			  AND tm.user_id = $2 
+			  AND tm.role IN ('owner', 'admin', 'moderator')
+		)`
+	var exists bool
+	err := r.DB.QueryRowContext(ctx, query, novelaID, userID).Scan(&exists)
+	return exists, err
+}
+
+func (r *NovelaRepository) GetPendingVolumes(ctx context.Context) ([]db.NovelaVolume, error) {
+	query := `SELECT id, novela_id, volume_number, title, status, created_by FROM novela_volumes WHERE status = 'pending'`
+	rows, err := r.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var volumes []db.NovelaVolume
+	for rows.Next() {
+		var v db.NovelaVolume
+		var novelaID int
+		if err := rows.Scan(&v.ID, &novelaID, &v.Number, &v.Title, &v.Status, &v.CreatedBy); err != nil {
+			return nil, err
+		}
+		volumes = append(volumes, v)
+	}
+	return volumes, nil
+}
+
+func (r *NovelaRepository) GetPendingChapters(ctx context.Context) ([]db.NovelaChapter, error) {
+	query := `SELECT id, novela_volume_id, chapter_number, title, status, created_by FROM novela_chapters WHERE status = 'pending'`
+	rows, err := r.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var chapters []db.NovelaChapter
+	for rows.Next() {
+		var ch db.NovelaChapter
+		var volumeID string
+		if err := rows.Scan(&ch.ID, &volumeID, &ch.Number, &ch.Title, &ch.Status, &ch.CreatedBy); err != nil {
+			return nil, err
+		}
+		chapters = append(chapters, ch)
+	}
+	return chapters, nil
+}
+
+func (r *NovelaRepository) UpdateVolumeStatus(ctx context.Context, id string, status string) error {
+	query := `UPDATE novela_volumes SET status = $1 WHERE id = $2`
+	_, err := r.DB.ExecContext(ctx, query, status, id)
+	return err
+}
+
+func (r *NovelaRepository) UpdateChapterStatus(ctx context.Context, id string, status string) error {
+	query := `UPDATE novela_chapters SET status = $1 WHERE id = $2`
+	_, err := r.DB.ExecContext(ctx, query, status, id)
+	return err
+}
+
+func (r *NovelaRepository) GetVolumeByID(ctx context.Context, id string) (*db.NovelaVolume, error) {
+	v := &db.NovelaVolume{}
+	var novelaID int
+	query := `SELECT id, novela_id, volume_number, title, status, created_by FROM novela_volumes WHERE id = $1`
+	err := r.DB.QueryRowContext(ctx, query, id).Scan(&v.ID, &novelaID, &v.Number, &v.Title, &v.Status, &v.CreatedBy)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return v, nil
+}
+
+func (r *NovelaRepository) GetNovelaIDByChapterID(ctx context.Context, chapterID string) (int, error) {
+	query := `
+		SELECT v.novela_id 
+		FROM novela_chapters c
+		JOIN novela_volumes v ON c.novela_volume_id = v.id
+		WHERE c.id = $1`
+	var novelaID int
+	err := r.DB.QueryRowContext(ctx, query, chapterID).Scan(&novelaID)
+	return novelaID, err
+}
+
+func (r *NovelaRepository) GetVolumeIDByChapterID(ctx context.Context, chapterID string) (string, error) {
+	query := `SELECT novela_volume_id FROM novela_chapters WHERE id = $1`
+	var volumeID string
+	err := r.DB.QueryRowContext(ctx, query, chapterID).Scan(&volumeID)
+	return volumeID, err
 }

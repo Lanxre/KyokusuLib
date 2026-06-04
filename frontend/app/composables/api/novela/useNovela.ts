@@ -60,6 +60,52 @@ export function useNovela() {
 		}
 	};
 
+	const addVolume = async (novelaId: number, volumeNumber: number, title: string) => {
+		try {
+			const res = await $api<{message: string}>(`/api/novela/${novelaId}/volumes`, {
+				method: "POST",
+				body: { volume_number: volumeNumber, title },
+			});
+			notify({
+				type: "success",
+				title: "Успех",
+				content: res.message || "Том успешно добавлен",
+			});
+			await fetchNovela(novelaId);
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
+	const addChapter = async (novelaId: number, volumeId: number, chapterNumber: number, title: string, content: string) => {
+		try {
+			const res = await $api<{id: string; message: string; status: string}>(`/api/novela/volumes/${volumeId}/chapters`, {
+				method: "POST",
+				body: { chapter_number: chapterNumber, title, content },
+			});
+			notify({
+				type: "success",
+				title: "Успех",
+				content: res.message || "Глава успешно добавлена",
+			});
+			await fetchNovela(novelaId);
+			return res;
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
+	const addChapterImage = async (chapterId: string, imageUrl: string, caption: string, position: number) => {
+		try {
+			await $api(`/api/novela/chapters/${chapterId}/images`, {
+				method: "POST",
+				body: { image_url: imageUrl, caption, position },
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
 	return {
 		novela,
 		isLoading,
@@ -67,5 +113,8 @@ export function useNovela() {
 		fetchNovela,
 		fetchNovels,
 		updateNovela,
+		addVolume,
+		addChapter,
+		addChapterImage,
 	};
 }

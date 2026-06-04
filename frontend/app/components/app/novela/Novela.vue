@@ -383,7 +383,11 @@ watch(() => route.query.tab, (newTab) => {
                                     </div>
                                 </div>
                                 <div v-else-if="activeTab === NovelaActiveTabsEnum.CHAPTERS" :key="NovelaActiveTabsEnum.CHAPTERS">
-                                    <ChapterList :volumes="novela.volumes" />
+                                    <ChapterList 
+                                        :volumes="novela.volumes" 
+                                        :can-manage="!!user"
+                                        :novela-id="novela.id"
+                                    />
                                 </div>
                                 <div v-else-if="activeTab === NovelaActiveTabsEnum.COMMENTS" :key="NovelaActiveTabsEnum.COMMENTS">
                                     <NovelaComments :novela-id="novela.id" :novela-title="novela.title"/>

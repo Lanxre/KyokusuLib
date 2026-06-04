@@ -71,14 +71,14 @@ type NovelaAuthor struct {
 }
 
 type NovelaVolume struct {
-	ID       int             `json:"id"`
+	ID       string          `json:"id"`
 	Title    string          `json:"title"`
 	Number   int             `json:"number"`
 	Chapters []NovelaChapter `json:"chapters"`
 }
 
 type NovelaChapter struct {
-	ID     int    `json:"id"`
+	ID     string    `json:"id"`
 	Title  string `json:"title"`
 	Number float64 `json:"number"`
 	Content string `json:"content,omitempty"`
@@ -89,6 +89,7 @@ type NovelaChapterImage struct {
 	ID       int    `json:"id"`
 	ImageURL string `json:"image_url"`
 	Caption  string `json:"caption"`
+	Position int    `json:"position"`
 }
 
 type UpdateNovelaRequest struct {
@@ -124,4 +125,25 @@ type UserNovelaBookmark struct {
 	PosterURL 	string 		`json:"poster_url"`
 	Type 		string 		`json:"type"`
 	Rating     	float64     `json:"rating"`
+}
+
+type AddNovelaTeamRequest struct {
+	TeamID int `json:"team_id" validate:"required"`
+}
+
+type AddVolumeRequest struct {
+	VolumeNumber int    `json:"volume_number" validate:"required"`
+	Title        string `json:"title"`
+}
+
+type AddChapterRequest struct {
+	ChapterNumber float64 `json:"chapter_number" validate:"required"`
+	Title         string  `json:"title"`
+	Content       string  `json:"content" validate:"required"`
+}
+
+type AddChapterImageRequest struct {
+	ImageURL string `json:"image_url" validate:"required"`
+	Caption  string `json:"caption"`
+	Position int    `json:"position"`
 }
