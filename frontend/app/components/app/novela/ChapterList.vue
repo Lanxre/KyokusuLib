@@ -47,7 +47,7 @@ function goToAddChapter() {
 			/>
 		</div>
 
-		<ChapterListContent :chapters="filteredChapters" />
+		<ChapterListContent :chapters="filteredChapters" :novela-id="novelaId" />
 
 		<NovelaAddVolumeModal
 			v-if="canManage"

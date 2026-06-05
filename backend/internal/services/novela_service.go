@@ -369,3 +369,7 @@ func (s *NovelaService) sendNovelaNotification(novelaID int, title, messageFmt s
 func (s *NovelaService) AddChapterImage(ctx context.Context, chapterID string, req dto.AddChapterImageRequest) (int, error) {
 	return s.Repo.AddChapterImage(ctx, chapterID, req.ImageURL, req.Caption, req.Position)
 }
+
+func (s *NovelaService) GetChapterReaderDetails(ctx context.Context, chapterID string) (*dto.ChapterReaderResponse, error) {
+	return s.Repo.GetChapterReaderDetails(ctx, chapterID)
+}

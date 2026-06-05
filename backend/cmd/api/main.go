@@ -5,6 +5,7 @@ import (
 	"github.com/lanxre/kyokusulib/internal/config"
 	"github.com/lanxre/kyokusulib/internal/handlers"
 	"github.com/lanxre/kyokusulib/internal/lib/logger"
+	rhService "github.com/lanxre/kyokusulib/internal/parse/service/ranobehub"
 	"github.com/lanxre/kyokusulib/internal/repository"
 	"github.com/lanxre/kyokusulib/internal/routes"
 	service "github.com/lanxre/kyokusulib/internal/services"
@@ -50,6 +51,7 @@ func main() {
 			service.NewCommentService,
 			service.NewTeamService,
 			service.NewModerationService,
+			rhService.NewRanobeHubParseService,
 			app.NewEmailService,
 
 			handlers.NewNotificationHandler,
@@ -65,6 +67,7 @@ func main() {
 			handlers.NewCommentHandler,
 			handlers.NewTeamHandler,
 			handlers.NewModerationHandler,
+			handlers.NewParseHandler,
 
 			app.AsRoute(func(h *handlers.HealthHandler) *routes.HealthRoutes { return &routes.HealthRoutes{Handler: h} }),
 			app.AsRoute(func(h *handlers.AuthHandler) *routes.AuthRoutes { return &routes.AuthRoutes{Handler: h} }),
@@ -88,6 +91,9 @@ func main() {
 			}),
 			app.AsRoute(func(h *handlers.ModerationHandler) *routes.ModerationRoutes {
 				return &routes.ModerationRoutes{Handler: h}
+			}),
+			app.AsRoute(func(h *handlers.ParseHandler) *routes.ParseRoutes {
+				return &routes.ParseRoutes{Handler: h}
 			}),
 
 			fx.Annotate(

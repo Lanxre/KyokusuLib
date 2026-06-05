@@ -2,6 +2,20 @@ export interface NovelaChapterImage {
 	id: number;
 	image_url: string;
 	caption: string;
+	position: number;
+}
+
+export interface ChapterReaderResponse {
+	id: string;
+	title: string;
+	number: number;
+	content: string;
+	images: NovelaChapterImage[];
+	novela_id: number;
+	novela_title: string;
+	volume_number: number;
+	prev_chapter_id: string | null;
+	next_chapter_id: string | null;
 }
 
 export interface NovelaChapter {

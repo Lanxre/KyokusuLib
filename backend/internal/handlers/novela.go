@@ -548,3 +548,17 @@ func (h *NovelaHandler) AddChapterImage(w http.ResponseWriter, r *http.Request) 
 	}
 	response.JSON(w, http.StatusCreated, map[string]any{"id": id, "message": "Image added"})
 }
+
+func (h *NovelaHandler) GetChapter(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	res, err := h.service.GetChapterReaderDetails(r.Context(), id)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if res == nil {
+		response.Error(w, http.StatusNotFound, "Chapter not found")
+		return
+	}
+	response.JSON(w, http.StatusOK, res)
+}

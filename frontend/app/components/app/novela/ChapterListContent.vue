@@ -4,6 +4,7 @@ import ChapterListItem from "./ChapterListItem.vue";
 
 defineProps<{
 	chapters: NovelaChapter[];
+	novelaId: number;
 }>();
 </script>
 
@@ -15,6 +16,7 @@ defineProps<{
 			v-for="chapter in chapters"
 			:key="chapter.id"
 			:chapter="chapter"
+			:novela-id="novelaId"
 		/>
 
 		<div v-if="!chapters.length" class="p-8 text-center text-zinc-500">

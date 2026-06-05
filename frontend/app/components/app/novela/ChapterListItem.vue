@@ -3,11 +3,13 @@ import type { NovelaChapter } from "~/types/backend/novela";
 
 defineProps<{
 	chapter: NovelaChapter;
+	novelaId: number;
 }>();
 </script>
 
 <template>
-	<div
+	<NuxtLink
+		:to="`/novela/reader/${novelaId}/${chapter.id}`"
 		class="flex justify-between items-center p-4 border-b border-zinc-100 dark:border-zinc-800/50 last:border-0 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer group"
 	>
 		<div class="flex justify-center items-center gap-3">
@@ -18,5 +20,5 @@ defineProps<{
 				{{ chapter.title }}
 			</span>
 		</div>
-	</div>
+	</NuxtLink>
 </template>

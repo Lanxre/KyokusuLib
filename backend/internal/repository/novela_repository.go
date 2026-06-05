@@ -421,10 +421,89 @@ func (r *NovelaRepository) GetChapterByID(ctx context.Context, chapterID string)
 	return ch, nil
 }
 
+func (r *NovelaRepository) GetChapterReaderDetails(ctx context.Context, chapterID string) (*dto.ChapterReaderResponse, error) {
+	res := &dto.ChapterReaderResponse{}
+
+	query := `
+		WITH current_chapter AS (
+			SELECT c.id, c.chapter_number, v.volume_number, v.novela_id, n.title as novela_title
+			FROM novela_chapters c
+			JOIN novela_volumes v ON c.novela_volume_id = v.id
+			JOIN novela n ON v.novela_id = n.id
+			WHERE c.id = $1
+		)
+		SELECT 
+			c.id, c.title, c.chapter_number, c.content, cc.novela_id, cc.novela_title, cc.volume_number,
+			(SELECT c2.id 
+			 FROM novela_chapters c2 
+			 JOIN novela_volumes v2 ON c2.novela_volume_id = v2.id 
+			 CROSS JOIN current_chapter cc
+			 WHERE v2.novela_id = cc.novela_id 
+			   AND (v2.volume_number < cc.volume_number OR (v2.volume_number = cc.volume_number AND c2.chapter_number < cc.chapter_number))
+			   AND c2.status = 'approved' AND v2.status = 'approved'
+			 ORDER BY v2.volume_number DESC, c2.chapter_number DESC
+			 LIMIT 1) as prev_id,
+			 
+			(SELECT c3.id 
+			 FROM novela_chapters c3 
+			 JOIN novela_volumes v3 ON c3.novela_volume_id = v3.id 
+			 CROSS JOIN current_chapter cc
+			 WHERE v3.novela_id = cc.novela_id 
+			   AND (v3.volume_number > cc.volume_number OR (v3.volume_number = cc.volume_number AND c3.chapter_number > cc.chapter_number))
+			   AND c3.status = 'approved' AND v3.status = 'approved'
+			 ORDER BY v3.volume_number ASC, c3.chapter_number ASC
+			 LIMIT 1) as next_id
+		FROM novela_chapters c
+		JOIN current_chapter cc ON c.id = cc.id`
+
+	err := r.DB.QueryRowContext(ctx, query, chapterID).Scan(
+		&res.ID, &res.Title, &res.Number, &res.Content, &res.NovelaID, &res.NovelaTitle, &res.VolumeNumber,
+		&res.PrevChapterID, &res.NextChapterID,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	imgQuery := `SELECT id, image_url, caption, position FROM novela_chapter_images WHERE chapter_id = $1 ORDER BY position ASC`
+	rows, err := r.DB.QueryContext(ctx, imgQuery, chapterID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var img dto.NovelaChapterImage
+		var caption sql.NullString
+
+		if err := rows.Scan(&img.ID, &img.ImageURL, &caption, &img.Position); err != nil {
+			return nil, err
+		}
+		img.Caption = caption.String
+		res.Images = append(res.Images, img)
+	}
+
+	return res, nil
+}
+
 func (r *NovelaRepository) UpdatePoster(ctx context.Context, id int, posterURL string) error {
 	query := `UPDATE novela SET poster_url = $2 WHERE id = $1`
 	_, err := r.DB.ExecContext(ctx, query, id, posterURL)
 	return err
+}
+
+func (r *NovelaRepository) GetIDByTitle(ctx context.Context, title string) (int, error) {
+	query := `
+		SELECT id FROM novela 
+		WHERE title ILIKE $1 
+		   OR $1 ILIKE ANY(alternative_titles)
+		LIMIT 1`
+	var id int
+	err := r.DB.QueryRowContext(ctx, query, title).Scan(&id)
+	return id, err
 }
 
 func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID int, f dto.NovelaFilters) ([]db.Novela, int, error) {

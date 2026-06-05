@@ -147,3 +147,16 @@ type AddChapterImageRequest struct {
 	Caption  string `json:"caption"`
 	Position int    `json:"position"`
 }
+
+type ChapterReaderResponse struct {
+	ID             string               `json:"id"`
+	Title          string               `json:"title"`
+	Number         float64              `json:"number"`
+	Content        string               `json:"content"`
+	Images         []NovelaChapterImage `json:"images"`
+	NovelaID       int                  `json:"novela_id"`
+	NovelaTitle    string               `json:"novela_title"`
+	VolumeNumber   int                  `json:"volume_number"`
+	PrevChapterID  *string              `json:"prev_chapter_id"`
+	NextChapterID  *string              `json:"next_chapter_id"`
+}

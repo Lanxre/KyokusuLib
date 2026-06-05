@@ -244,8 +244,15 @@ watch(() => route.query.tab, (newTab) => {
                         </div>
 
                         <div class="flex flex-col gap-3">
-                            <button class="w-full py-1.5 cursor-pointer rounded-xl font-bold shadow-lg transition-all active:scale-95 bg-white text-zinc-900 hover:bg-yellow-500">
+                            <NuxtLink 
+                                v-if="novela.volumes?.length && novela.volumes[0].chapters?.length"
+                                :to="`/novela/reader/${novela.id}/${novela.volumes[0].chapters[0].id}`"
+                                class="w-full py-1.5 text-center cursor-pointer rounded-xl font-bold shadow-lg transition-all active:scale-95 bg-white text-zinc-900 hover:bg-yellow-500"
+                            >
                                 Читать
+                            </NuxtLink>
+                            <button v-else class="w-full py-1.5 cursor-not-allowed opacity-50 rounded-xl font-bold shadow-lg bg-white text-zinc-900">
+                                Нет глав
                             </button>
                             <div class="grid grid-cols-2 gap-3">
                                 <NovelaBookmarkButton 

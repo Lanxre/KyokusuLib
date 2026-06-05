@@ -51,10 +51,9 @@ const maxVolumeNumber = computed(() => {
     >
         <div class="py-6 space-y-4">
             <div class="space-y-2 flex flex-col gap-0.5">
-                <label
-                    class="text-sm font-semibold text-zinc-700 dark:text-zinc-300 ml-1"
-                    >Номер тома</label
-                >
+                <label class="text-sm font-semibold text-zinc-700 dark:text-zinc-300 ml-1">
+                        Номер тома
+                </label>
                 <input
                     v-model.number="maxVolumeNumber"
                     type="number"
@@ -66,9 +65,9 @@ const maxVolumeNumber = computed(() => {
 
             <div class="space-y-2 flex flex-col gap-0.5">
                 <label
-                    class="text-sm font-semibold text-zinc-700 dark:text-zinc-300 ml-1"
-                    >Название (опционально)</label
-                >
+                    class="text-sm font-semibold text-zinc-700 dark:text-zinc-300 ml-1">
+                    Название (опционально)
+                </label>
                 <input
                     v-model="title"
                     type="text"
