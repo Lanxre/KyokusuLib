@@ -27,7 +27,7 @@ func (s *RanobeHubParseService) Parse(ctx context.Context, rhNovela *rhModels.Ra
 	alternativeTitles := []string{rhNovela.Names.Eng}
 	releaseDate := time.Date(rhNovela.Year, 1, 1, 0, 0, 0, 0, time.UTC)
 
-	status := "ongoing"
+	status := ""
 	if rhNovela.Status.Title == "Завершено" {
 		status = "completed"
 	}
