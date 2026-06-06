@@ -14,6 +14,7 @@ func (a *NovelaRoutes) Register(cfg *config.Config, r *mux.Router) {
 	novelaRouter.Handle("/novela", middleware.DefaultMiddleware(http.HandlerFunc(a.Handler.GetNovelas), cfg.JWTSecret)).Methods("GET")
 	novelaRouter.Handle("/novela/{id:[0-9]+}", middleware.DefaultMiddleware(http.HandlerFunc(a.Handler.GetNovela), cfg.JWTSecret)).Methods("GET")
 	novelaRouter.Handle("/novela/{id:[0-9]+}", middleware.DefaultMiddleware(http.HandlerFunc(a.Handler.UpdateNovela), cfg.JWTSecret)).Methods("PUT")
+	novelaRouter.Handle("/novela/{id:[0-9]+}", middleware.AuthMiddleware(middleware.RoleGuard(a.Handler.DeleteNovela, middleware.RoleAdmin), cfg.JWTSecret)).Methods("DELETE")
 
 	novelaRouter.Handle("/novela", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.CreateNovela), cfg.JWTSecret)).Methods("POST")
 

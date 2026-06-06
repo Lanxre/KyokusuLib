@@ -21,6 +21,11 @@ func (r *AuthorRepository) GetAuthors(ctx context.Context, search string, limit 
 	var rows *sql.Rows
 	var err error
 
+	var country sql.NullString
+	var metier sql.NullString
+	var picture sql.NullString
+	var bio sql.NullString
+
 	if search != "" {
 		query = "SELECT id, name, country, metier, picture, bio FROM authors WHERE name ILIKE $1 ORDER BY id DESC LIMIT $2 OFFSET $3"
 		rows, err = r.DB.QueryContext(ctx, query, "%"+search+"%", limit, offset)
@@ -37,9 +42,23 @@ func (r *AuthorRepository) GetAuthors(ctx context.Context, search string, limit 
 	var authors []*db.Author
 	for rows.Next() {
 		var author db.Author
-		if err := rows.Scan(&author.ID, &author.Name, &author.Country, &author.Metier, &author.Picture, &author.Bio); err != nil {
+		if err := rows.Scan(&author.ID, &author.Name, &country, &metier, &picture, &bio); err != nil {
 			return nil, err
 		}
+
+		if country.Valid {
+			author.Country = country.String
+		}
+		if metier.Valid {
+			author.Metier = metier.String
+		}
+		if picture.Valid {
+			author.Picture = picture.String
+		}
+		if bio.Valid {
+			author.Bio = bio.String
+		}
+		
 		authors = append(authors, &author)
 	}
 	if err := rows.Err(); err != nil {
@@ -65,6 +84,11 @@ func (r *AuthorRepository) CreateAuthor(ctx context.Context, author *db.Author) 
 }
 
 func (r *AuthorRepository) GetAuthorByName(ctx context.Context, name string) (*db.Author, error) {
+	var country sql.NullString
+	var metier sql.NullString
+	var picture sql.NullString
+	var bio sql.NullString
+	
 	query := `
 		SELECT id, name, country, metier, picture, bio
 		FROM authors
@@ -74,10 +98,10 @@ func (r *AuthorRepository) GetAuthorByName(ctx context.Context, name string) (*d
 	err := r.DB.QueryRowContext(ctx, query, name).Scan(
 		&authorDb.ID, 
 		&authorDb.Name, 
-		&authorDb.Country, 
-		&authorDb.Metier, 
-		&authorDb.Picture, 
-		&authorDb.Bio,
+		&country, 
+		&metier, 
+		&picture, 
+		&bio,
 	)
 	
 	if err != nil {
@@ -87,10 +111,28 @@ func (r *AuthorRepository) GetAuthorByName(ctx context.Context, name string) (*d
 		return nil, err
 	}
 
+	if country.Valid {
+		authorDb.Country = country.String
+	}
+	if metier.Valid {
+		authorDb.Metier = metier.String
+	}
+	if picture.Valid {
+		authorDb.Picture = picture.String
+	}
+	if bio.Valid {
+		authorDb.Bio = bio.String
+	}
+
 	return &authorDb, nil
 }
 
 func (r *AuthorRepository) GetAuthorById(ctx context.Context, id string) (*db.Author, error) {
+	var country sql.NullString
+	var metier sql.NullString
+	var picture sql.NullString
+	var bio sql.NullString
+	
 	query := `
 		SELECT id, name, country, metier, picture, bio
 		FROM authors
@@ -100,10 +142,10 @@ func (r *AuthorRepository) GetAuthorById(ctx context.Context, id string) (*db.Au
 	err := r.DB.QueryRowContext(ctx, query, id).Scan(
 		&authorDb.ID, 
 		&authorDb.Name, 
-		&authorDb.Country, 
-		&authorDb.Metier, 
-		&authorDb.Picture, 
-		&authorDb.Bio,
+		&country, 
+		&metier, 
+		&picture, 
+		&bio,
 	)
 
 	if err != nil {
@@ -111,6 +153,19 @@ func (r *AuthorRepository) GetAuthorById(ctx context.Context, id string) (*db.Au
 			return nil, err
 		}
 		return nil, err
+	}
+
+	if country.Valid {
+		authorDb.Country = country.String
+	}
+	if metier.Valid {
+		authorDb.Metier = metier.String
+	}
+	if picture.Valid {
+		authorDb.Picture = picture.String
+	}
+	if bio.Valid {
+		authorDb.Bio = bio.String
 	}
 
 	return &authorDb, nil

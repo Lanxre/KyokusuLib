@@ -316,9 +316,14 @@ func (r *NovelaRepository) LinkAuthor(ctx context.Context, novelaID int, authorN
 
 func (r *NovelaRepository) linkTags(ctx context.Context, tx *sql.Tx, novelaID int, tags []string, tableName, linkTable, fkCol string) error {
 	for _, name := range tags {
+		name = strings.TrimSpace(name)
+		if name == "" {
+			continue
+		}
+
 		var tagID int
 		upsertQuery := fmt.Sprintf(`
-			INSERT INTO %s (name) VALUES ($1) 
+			INSERT INTO %s (name) VALUES (TRIM($1)) 
 			ON CONFLICT (name) DO UPDATE SET name=EXCLUDED.name 
 			RETURNING id`, tableName)
 

@@ -42,7 +42,7 @@ func (s *RanobeHubParseService) Parse(ctx context.Context, rhNovela *rhModels.Ra
 		AgeRating:         "16+",
 		ReleaseDate:       releaseDate,
 		Status:            status,
-		TranslationStatus: "ongoing",
+		TranslationStatus: rhNovela.Status.Title,
 		PosterURL:         rhNovela.Posters.Big,
 		Country:           "Япония",
 	}
@@ -61,29 +61,43 @@ func (s *RanobeHubParseService) Parse(ctx context.Context, rhNovela *rhModels.Ra
 	}
 
 	for _, author := range rhNovela.Authors {
-		err = s.NovelaService.Repo.LinkAuthor(ctx, novela.ID, author.Name, "Author")
+		name := author.Name
+		if name == "" {
+			name = author.NameEng
+		}
+		err = s.NovelaService.Repo.LinkAuthor(ctx, novela.ID, name, "Author")
 		if err != nil {
-			fmt.Printf("failed to link author %s: %v\n", author.Name, err)
+			fmt.Printf("failed to link author %s: %v\n", name, err)
 		}
 	}
 
 	for _, vol := range rhNovela.Volumes {
 		volID, _, err := s.NovelaService.AddVolume(ctx, novela.ID, userID, dto.AddVolumeRequest{
-			VolumeNumber: vol.Num,
+			VolumeNumber: int(vol.Num),
 			Title:        vol.Name,
 		})
 		if err != nil {
-			return fmt.Errorf("failed to add volume %d: %w", vol.Num, err)
+			return fmt.Errorf("failed to add volume %f: %w", vol.Num, err)
 		}
 
 		for _, ch := range vol.Chapters {
-			_, _, err = s.NovelaService.AddChapter(ctx, volID, userID, dto.AddChapterRequest{
-				ChapterNumber: float64(ch.Num),
+			chapterID, _, err := s.NovelaService.AddChapter(ctx, volID, userID, dto.AddChapterRequest{
+				ChapterNumber: ch.Num,
 				Title:         ch.Name,
 				Content:       ch.Text,
 			})
 			if err != nil {
-				return fmt.Errorf("failed to add chapter %d in volume %d: %w", ch.Num, vol.Num, err)
+				return fmt.Errorf("failed to add chapter %f in volume %f: %w", ch.Num, vol.Num, err)
+			}
+
+			for imgIdx, imgURL := range ch.Images {
+				_, imgErr := s.NovelaService.AddChapterImage(ctx, chapterID, dto.AddChapterImageRequest{
+					ImageURL: imgURL,
+					Position: imgIdx,
+				})
+				if imgErr != nil {
+					fmt.Printf("failed to add chapter image %d for chapter %s: %v\n", imgIdx, chapterID, imgErr)
+				}
 			}
 		}
 	}

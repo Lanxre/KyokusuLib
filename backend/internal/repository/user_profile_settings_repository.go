@@ -22,7 +22,7 @@ func (r *UserProfileSettingRepository) GetUserProfileSettings(ctx context.Contex
 	settings := &db.UserProfileSetting{}
 
 	query := `
-		SELECT theme, is_app_notify, is_new_published_notify, is_show_tag, is_show_bookmark
+		SELECT theme, is_app_notify, is_new_published_notify, is_show_tag, is_show_bookmark, font_size, line_weight, font_family, auto_scroll
 		FROM user_profile_settings
 		WHERE user_id = $1`
 
@@ -32,6 +32,10 @@ func (r *UserProfileSettingRepository) GetUserProfileSettings(ctx context.Contex
 		&settings.IsNewPublishedNotify,
 		&settings.IsShowTag,
 		&settings.IsShowBookmark,
+		&settings.FontSize,
+		&settings.LineWeight,
+		&settings.FontFamily,
+		&settings.AutoScroll,
 	)
 	if err != nil {
 		return nil, err
@@ -146,6 +150,66 @@ func (r *UserProfileSettingRepository) UpdateNotifySettings(ctx context.Context,
 	
 	rowsAffected, err := result.RowsAffected()
 	
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return nil
+	}
+
+	return nil
+}
+
+func (r *UserProfileSettingRepository) UpdateReaderSettings(ctx context.Context, userID int, settings dto.ReaderSettingsPatchDTO) error {
+	var (
+		setClauses []string
+		args       []any
+		argID      = 1
+	)
+
+	if settings.FontSize != nil {
+		setClauses = append(setClauses, fmt.Sprintf("font_size = $%d", argID))
+		args = append(args, *settings.FontSize)
+		argID++
+	}
+
+	if settings.LineWeight != nil {
+		setClauses = append(setClauses, fmt.Sprintf("line_weight = $%d", argID))
+		args = append(args, *settings.LineWeight)
+		argID++
+	}
+
+	if settings.FontFamily != nil {
+		setClauses = append(setClauses, fmt.Sprintf("font_family = $%d", argID))
+		args = append(args, *settings.FontFamily)
+		argID++
+	}
+
+	if settings.AutoScroll != nil {
+		setClauses = append(setClauses, fmt.Sprintf("auto_scroll = $%d", argID))
+		args = append(args, *settings.AutoScroll)
+		argID++
+	}
+
+	if len(setClauses) == 0 {
+		return nil
+	}
+
+	args = append(args, userID)
+
+	query := fmt.Sprintf(
+		"UPDATE user_profile_settings SET %s WHERE user_id = $%d",
+		strings.Join(setClauses, ", "),
+		argID,
+	)
+
+	result, err := r.DB.ExecContext(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return err
 	}

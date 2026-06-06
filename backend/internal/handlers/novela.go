@@ -125,7 +125,7 @@ func (h *NovelaHandler) UpdateNovela(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.UpdateNovelaRequest
 	if err := json.Unmarshal([]byte(r.FormValue("data")), &req); err != nil {
-		response.Error(w, http.StatusBadRequest, "Invalid JSON")
+		response.Error(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -547,6 +547,19 @@ func (h *NovelaHandler) AddChapterImage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	response.JSON(w, http.StatusCreated, map[string]any{"id": id, "message": "Image added"})
+}
+
+func (h *NovelaHandler) DeleteNovela(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+
+	if err := h.service.DeleteNovela(r.Context(), id); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.JSON(w, http.StatusOK, map[string]string{
+		"message": "Новела успешно удалена",
+	})
 }
 
 func (h *NovelaHandler) GetChapter(w http.ResponseWriter, r *http.Request) {

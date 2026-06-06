@@ -288,6 +288,10 @@ func (s *NovelaService) DeleteBookmarkCategory(ctx context.Context, id int, user
 	return s.BookmarkRepo.DeleteCategory(ctx, id, userID)
 }
 
+func (s *NovelaService) DeleteNovela(ctx context.Context, id int) error {
+	return s.Repo.Delete(ctx, id)
+}
+
 func (s *NovelaService) AddTeamToNovela(ctx context.Context, novelaID, teamID int) error {
 	count, err := s.Repo.CountNovelaTeams(ctx, novelaID)
 	if err != nil {

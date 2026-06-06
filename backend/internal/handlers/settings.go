@@ -308,3 +308,24 @@ func (h *ProfileSettingHandler) UpdateUserInterface(w http.ResponseWriter, r *ht
 	
 	response.Success(w, http.StatusOK, "Interface settings was updated")
 }
+
+func (h *ProfileSettingHandler) UpdateReaderSettings(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		http.Error(w, "User not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	var req dto.ReaderSettingsPatchDTO
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	
+	if err := h.Service.UpdateReaderSettings(r.Context(), userID, req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	response.Success(w, http.StatusOK, "Reader settings was updated")
+}

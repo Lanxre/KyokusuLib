@@ -44,6 +44,13 @@ type UserInterfacePatchDTO struct {
 	IsShowBookmark *bool `json:"is_show_bookmark"`
 }
 
+type ReaderSettingsPatchDTO struct {
+	FontSize   *int     `json:"font_size"`
+	LineWeight *float64 `json:"line_weight"`
+	FontFamily *string  `json:"font_family"`
+	AutoScroll *bool    `json:"auto_scroll"`
+}
+
 func (d *UpdateProfileDTO) Validate() error {
 	if err := validation.LoginValidate(d.Nickname); err != nil {
 		return err

@@ -43,7 +43,12 @@ func (h *ParseHandler) ParseRanobeHub(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.rhService.Parse(r.Context(), &rhResp.Data, userID); err != nil {
+	if rhResp.Data == nil {
+		response.Error(w, http.StatusNotFound, "No novela data returned from RanobeHub")
+		return
+	}
+
+	if err := h.rhService.Parse(r.Context(), rhResp.Data, userID); err != nil {
 		response.Error(w, http.StatusInternalServerError, "Failed to parse novela: "+err.Error())
 		return
 	}

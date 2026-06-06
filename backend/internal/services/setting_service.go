@@ -201,3 +201,7 @@ func (s *ProfileSettingService) ResetSettings(ctx context.Context, userID int) e
 func (s *ProfileSettingService) UpdateInterfaceSettings(ctx context.Context, userID int, settings dto.UserInterfacePatchDTO) error {
 	return s.ProfileSettingsRepo.UpdateUserInterfaceSettings(ctx, userID, settings)
 }
+
+func (s *ProfileSettingService) UpdateReaderSettings(ctx context.Context, userID int, settings dto.ReaderSettingsPatchDTO) error {
+	return s.ProfileSettingsRepo.UpdateReaderSettings(ctx, userID, settings)
+}

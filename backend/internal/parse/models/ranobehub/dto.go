@@ -1,14 +1,14 @@
 package ranobehub
 
 type RanobeHubResponse struct {
-	Status int             `json:"status"`
-	Data   RanobeHubNovela `json:"data"`
+	Status int              `json:"status"`
+	Data   *RanobeHubNovela `json:"data"`
 }
 
 type RanobeHubNovela struct {
-	ID     		int `json:"id"`
-	Rating 		int `json:"rating"`
-	Names  		RanobeHubNovelaNames `json:"names"`
+	ID          int                   `json:"id"`
+	Rating      float64               `json:"rating"`
+	Names       RanobeHubNovelaNames  `json:"names"`
 	Year   		int `json:"year"`
 	Synopsis	string `json:"synopsis"`
 	Status 		RanobeHubNovelaStatus `json:"status"`
@@ -39,24 +39,25 @@ type RanobeHubNovelaPosters struct {
 }
 
 type RanobeHubNovelaAuthors struct {
-	Name string `json:"name_eng"`
-	Pivot struct {
+	Name    string `json:"name"`
+	NameEng string `json:"name_eng"`
+	Pivot   struct {
 		RanobeID int `json:"ranobe_id"`
 		AuthorID int `json:"author_id"`
 	} `json:"pivot"`
 }
 
 type RanobeHubNovelaVolume struct {
-	ID   int `json:"id"`
-	Num  int `json:"num"`
-	Name string `json:"name"`
-	Status RanobeHubNovelaStatus `json:"status"`
+	ID       int                   `json:"id"`
+	Num      float64               `json:"num"`
+	Name     string                `json:"name"`
+	Status   RanobeHubNovelaStatus `json:"status"`
 	Chapters []RanobeHubNovelaChapter `json:"chapters"`
 }
 
 type RanobeHubNovelaChapter struct {
 	ID   int `json:"id"`
-	Num  int `json:"num"`
+	Num  float64 `json:"num"`
 	Name string `json:"name"`
 	URL  string `json:"url"`
 	HasImages bool `json:"has_images"`

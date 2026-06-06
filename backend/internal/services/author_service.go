@@ -48,14 +48,9 @@ func (s *AuthorService) GetAuthors(ctx context.Context, search string, limit int
 	}
 	
 	authorsDb, err := s.repo.GetAuthors(ctx, search, limit, offset)
-	
+
 	if err != nil {
 		return nil, err
-	}
-
-	authorsDto := make([]*dto.AuthorDTO, len(authorsDb))
-	for i, author := range authorsDb {
-		authorsDto[i] = s.toDTO(author)
 	}
 
 	return authorsDb, nil
