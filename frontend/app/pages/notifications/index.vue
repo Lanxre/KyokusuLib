@@ -3,9 +3,6 @@ import { watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationManager } from "~/composables/notifications/useNotificationManager";
-import NotificationHeader from "~/components/app/notifications/NotificationHeader.vue";
-import NotificationToolbar from "~/components/app/notifications/NotificationToolbar.vue";
-import NotificationList from "~/components/app/notifications/NotificationList.vue";
 
 definePageMeta({ middleware: ["auth"] });
 
@@ -45,36 +42,38 @@ watch(isAuthenticated, (auth) => {
 <template>
 	<div class="min-h-screen bg-zinc-50 dark:bg-[#0f0f0f] transition-colors duration-300">
 		<div class="max-w-3xl mx-auto px-4 py-8 space-y-6">
-			<NotificationHeader :unread-count="unreadCount" />
+			<ClientOnly>
+				<AppNotificationsNotificationHeader :unread-count="unreadCount" />
 
-			<NotificationToolbar
-				v-if="list.length"
-				:total-count="list.length"
-				:selected-count="selectedCount"
-				:all-selected="allSelected"
-				:sort-field="sortField"
-				:sort-order="sortOrder"
-				@update:all-selected="toggleSelectAll"
-				@mark-all-read="handleMarkAllRead"
-				@delete-selected="handleDeleteSelected"
-				@update:sort-field="toggleSortField($event)"
-				@update:sort-order="toggleSortOrder"
-			/>
+				<AppNotificationsNotificationToolbar
+					v-if="list.length"
+					:total-count="list.length"
+					:selected-count="selectedCount"
+					:all-selected="allSelected"
+					:sort-field="sortField"
+					:sort-order="sortOrder"
+					@update:all-selected="toggleSelectAll"
+					@mark-all-read="handleMarkAllRead"
+					@delete-selected="handleDeleteSelected"
+					@update:sort-field="toggleSortField($event)"
+					@update:sort-order="toggleSortOrder"
+				/>
 
-			<NotificationList
-				:loading="isLoading"
-				:items="list"
-				:group-entries="groupEntries"
-				:selected-ids="selectedIds"
-				:expanded-groups="expandedGroups"
-				@toggle-expand="toggleExpand"
-				@update:selected="toggleSelect"
-				@mark-read="handleMarkRead"
-				@delete="handleDelete"
-				@toggle-select-group="toggleSelectGroup"
-				@group-mark-read="handleGroupMarkRead"
-				@group-delete="handleGroupDelete"
-			/>
+				<AppNotificationsNotificationList
+					:loading="isLoading"
+					:items="list"
+					:group-entries="groupEntries"
+					:selected-ids="selectedIds"
+					:expanded-groups="expandedGroups"
+					@toggle-expand="toggleExpand"
+					@update:selected="toggleSelect"
+					@mark-read="handleMarkRead"
+					@delete="handleDelete"
+					@toggle-select-group="toggleSelectGroup"
+					@group-mark-read="handleGroupMarkRead"
+					@group-delete="handleGroupDelete"
+				/>
+			</ClientOnly>
 		</div>
 	</div>
 </template>

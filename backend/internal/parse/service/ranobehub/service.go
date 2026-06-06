@@ -14,13 +14,11 @@ import (
 
 type RanobeHubParseService struct {
 	NovelaService       *service.NovelaService
-	NotificationService *service.NotificationService
 }
 
-func NewRanobeHubParseService(novelaService *service.NovelaService, notificationService *service.NotificationService) *RanobeHubParseService {
+func NewRanobeHubParseService(novelaService *service.NovelaService) *RanobeHubParseService {
 	return &RanobeHubParseService{
 		NovelaService:       novelaService,
-		NotificationService: notificationService,
 	}
 }
 

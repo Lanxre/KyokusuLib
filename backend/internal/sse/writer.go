@@ -21,6 +21,9 @@ func NewSSEWriter(w http.ResponseWriter) (*SSEWriter, bool) {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("X-Accel-Buffering", "no")
+	
+	w.WriteHeader(http.StatusOK)
+	flusher.Flush()
 
 	return &SSEWriter{w: w, flusher: flusher}, true
 }

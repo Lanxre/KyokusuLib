@@ -61,6 +61,10 @@ func (h *NotificationHandler) StreamNotifications(w http.ResponseWriter, r *http
 	client := h.Hub.Subscribe(int64(userID))
 	defer h.Hub.Unsubscribe(int64(userID), client)
 
+	if err := sw.SendHeartbeat(); err != nil {
+		return
+	}
+
 	ctx := r.Context()
 
 	ticker := time.NewTicker(30 * time.Second)

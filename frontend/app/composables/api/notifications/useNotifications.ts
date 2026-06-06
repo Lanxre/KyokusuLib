@@ -24,8 +24,8 @@ export function useNotifications() {
 		es.addEventListener("notification", (event: MessageEvent) => {
 			try {
 				const notification: BackendNotification = JSON.parse(event.data);
-				list.value = [notification, ...list.value];
-
+        list.value = [notification, ...list.value];
+				
 				if (!notification.isRead) {
 					unreadCount.value++;
 				}

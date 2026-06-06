@@ -11,26 +11,21 @@ const activityStore = useActivityStore();
 const notificationStore = useNotificationStore();
 
 const { syncSettingWithBackend } = useInterfaceSettings();
-const { connect: connectNotifications, disconnect } = useNotifications();
-
-if (import.meta.client) {
-	activityStore.initActivityTracking();
-}
+const { connect: connectNotifications, disconnect, fetchStats } = useNotifications();
 
 watch(() => authStore.isAuthenticated, async (auth) => {
 	if (auth) {
 		connectNotifications();
-		await syncSettingWithBackend();
+		await Promise.all([
+			syncSettingWithBackend(),
+			fetchStats()
+		]);
 	} else {
 		disconnect();
 	}
-});
+}, { immediate: true });
 
 onMounted(async () => {
-	if (authStore.isAuthenticated) {
-		await syncSettingWithBackend();
-	}
-
 	setTimeout(() => {
 		const loader = document.getElementById("app-loading-style");
 		if (loader) loader.remove();

@@ -45,9 +45,11 @@ func RegisterNotificationHubCleanup(lc fx.Lifecycle, hub *sse.NotificationHub) {
 
 func StartHTTPServer(lc fx.Lifecycle, r *mux.Router, cfg *config.Config) {
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowOriginFunc: func(origin string) bool {
+			return true // Allow all origins in development
+		},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With", "Cookie"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With", "Cookie", "Last-Event-ID"},
 		AllowCredentials: true,
 		Debug:            false,
 	})
