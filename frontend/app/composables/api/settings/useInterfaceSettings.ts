@@ -1,14 +1,12 @@
-import { watch, computed } from "vue"; // Добавьте импорты
 import { ThemeSetting } from "@/types/enums/theme-enum";
 import { useAuthStore } from "@/stores/auth";
-import type {
-	UserInterfaceSettings,
-	UserInterfaceSettingsPatch,
-} from "@/types/backend/profile_settings";
-import { useApi } from "../useApi";
+import { useReaderSettings } from "@/composables/ui/useReaderSettings";
+
+import { useApi, $api } from "../useApi";
 
 export function useInterfaceSettings() {
-	const colorMode = useColorMode();
+  const colorMode = useColorMode();
+	const readerSettings = useReaderSettings();
 	const authStore = useAuthStore();
 
 	const isShowTag = useState<boolean>("settings-is-show-tag", () => false);
@@ -27,30 +25,6 @@ export function useInterfaceSettings() {
 		},
 	});
 
-	const updateBackendTheme = async (theme: string) => {
-		if (!authStore.isAuthenticated) return;
-		try {
-			await useApi("/api/profile/settings", {
-				method: "PUT",
-				body: { theme },
-			});
-		} catch (e) {
-			console.error("Failed to save theme", e);
-		}
-	};
-
-	const updateInterfaceSettings = async (settings: any) => {
-		if (!authStore.isAuthenticated) return;
-		try {
-			await useApi("/api/profile/settings/interface", {
-				method: "PATCH",
-				body: settings,
-			});
-		} catch (e) {
-			console.error(e);
-		}
-	};
-
 	const syncSettingWithBackend = async () => {
 		if (isInitialized.value || !authStore.isAuthenticated) return;
 
@@ -61,7 +35,15 @@ export function useInterfaceSettings() {
 				if (data.value.is_show_tag !== undefined)
 					isShowTag.value = data.value.is_show_tag;
 				if (data.value.is_show_bookmark !== undefined)
-					isShowBookmark.value = data.value.is_show_bookmark;
+          isShowBookmark.value = data.value.is_show_bookmark;
+        if (data.value.font_size !== undefined)
+          readerSettings.fontSize.value = data.value.font_size;
+        if (data.value.line_weight !== undefined)
+          readerSettings.lineWeight.value = data.value.line_weight;
+        if (data.value.font_family !== undefined)
+          readerSettings.fontFamily.value = data.value.font_family;
+        if (data.value.auto_scroll !== undefined)
+          readerSettings.isAutoScrollEnabled.value = data.value.auto_scroll;
 
 				isInitialized.value = true;
 			}
@@ -70,21 +52,81 @@ export function useInterfaceSettings() {
 		}
 	};
 
-	watch(isShowTag, (newVal) => {
+	watch(isShowTag, async (newVal) => {
 		if (import.meta.client && isInitialized.value) {
-			useApi("/api/profile/settings/interface", {
-				method: "PATCH",
-				body: { is_show_tag: newVal },
-			});
+			try {
+				await $api("/api/profile/settings/interface", {
+					method: "PATCH",
+					body: { is_show_tag: newVal },
+				});
+			} catch (e) {
+				console.error("Failed to save is_show_tag", e);
+			}
 		}
 	});
 
-	watch(isShowBookmark, (newVal) => {
+	watch(isShowBookmark, async (newVal) => {
 		if (import.meta.client && isInitialized.value) {
-			useApi("/api/profile/settings/interface", {
-				method: "PATCH",
-				body: { is_show_bookmark: newVal },
-			});
+			try {
+				await $api("/api/profile/settings/interface", {
+					method: "PATCH",
+					body: { is_show_bookmark: newVal },
+				});
+			} catch (e) {
+				console.error("Failed to save is_show_bookmark", e);
+			}
+		}
+	});
+
+	watch(readerSettings.fontSize, async (newVal) => {
+		if (import.meta.client && isInitialized.value) {
+			try {
+				await $api("/api/profile/settings/reader", {
+					method: "PATCH",
+					body: { font_size: newVal },
+				});
+			} catch (e) {
+				console.error("Failed to save font_size", e);
+			}
+		}
+	});
+
+	watch(readerSettings.lineWeight, async (newVal) => {
+		if (import.meta.client && isInitialized.value) {
+			try {
+				await $api("/api/profile/settings/reader", {
+					method: "PATCH",
+					body: { line_weight: newVal },
+				});
+			} catch (e) {
+				console.error("Failed to save line_weight", e);
+			}
+		}
+	});
+
+	watch(readerSettings.isAutoScrollEnabled, async (newVal) => {
+		if (import.meta.client && isInitialized.value) {
+			try {
+				await $api("/api/profile/settings/reader", {
+					method: "PATCH",
+					body: { auto_scroll: newVal },
+				});
+			} catch (e) {
+				console.error("Failed to save auto_scroll", e);
+			}
+		}
+	});
+
+	watch(readerSettings.fontFamily, async (newVal) => {
+		if (import.meta.client && isInitialized.value) {
+			try {
+				await $api("/api/profile/settings/reader", {
+					method: "PATCH",
+					body: { font_family: newVal },
+				});
+			} catch (e) {
+				console.error("Failed to save font_family", e);
+			}
 		}
 	});
 

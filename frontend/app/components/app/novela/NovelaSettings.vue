@@ -2,6 +2,8 @@
 import { computed } from "vue";
 import { ModalWindow, Input as BaseInput, SearchSelect, MultiSelect as BaseMultiSelect, RichText as BaseRichTextEditor } from "@kyokusu-ui/vue";
 
+import { useNotificationStore } from "~/stores/notification";
+
 defineOptions({
   inheritAttrs: false
 });
@@ -31,6 +33,8 @@ interface Props {
 const props = defineProps<Props>();
 const emit = defineEmits(["update:modelValue", "updated"]);
 
+const { notify } = useNotificationStore();
+
 const { updateNovela, isUpdating } = useNovela();
 const { searchAuthors, foundAuthors, isSearching } = useAuthors();
 const {
@@ -53,6 +57,13 @@ const authorsOptions = computed(() => {
 	return Array.from(map.values());
 });
 
+const arrStrWOutObjects = (arr: any[]) => {
+  return arr.map(s => {
+    if (typeof s === "object") return s.id;
+    return s;
+  })
+}
+
 const handleUpdate = async () => {
 	const payload = {
 		...form,
@@ -60,6 +71,8 @@ const handleUpdate = async () => {
 		age_rating: form.ageRating,
 		release_date: form.releaseYear,
 		translation_status: form.translationStatus,
+		genres: arrStrWOutObjects(form.genres),
+		categories: arrStrWOutObjects(form.categories),
 		alternative_titles:
 			typeof form.alternativeTitles === "string"
 				? form.alternativeTitles
@@ -68,16 +81,21 @@ const handleUpdate = async () => {
 						.filter(Boolean)
 				: form.alternativeTitles,
 	};
-
+	
 	try {
 		await updateNovela(props.novela.id, payload, selectedFile.value);
         const uiUpdatePayload = {
 			...payload,
-			authors: form.authors.map((a: any) => ({ id: a.id, name: a.label }))
+            alternative_titles: payload.alternative_titles,
+			authors: form.authors.map((a: any) => ({ id: a.id, name: a.label, role: "Author" }))
 		};
 		emit("updated", uiUpdatePayload);
 	} catch (e) {
-		console.error(e);
+		notify({
+			type: "error",
+			title: "Ошибка",
+			content: e instanceof Error ? e.message : String(e),
+		});
 	}
 };
 </script>

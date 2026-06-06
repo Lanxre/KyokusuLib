@@ -25,13 +25,10 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 
 <template>
 	<Transition name="slide-fade">
-		<div v-if="modelValue" class="fixed inset-0 z-[100] flex justify-end">
-			<!-- Backdrop -->
+		<div v-if="modelValue" class="fixed inset-0 z-100 flex justify-end">
 			<div class="absolute inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-[2px]" @click="close"></div>
 
-			<!-- Settings Panel -->
 			<div class="relative w-80 h-full bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col">
-				<!-- Header -->
 				<div class="shrink-0 px-5 pt-5 pb-3 border-b border-zinc-100 dark:border-zinc-800">
 					<div class="flex items-center justify-between">
 						<div class="flex items-center gap-3">
@@ -51,7 +48,6 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 					</div>
 				</div>
 
-				<!-- Content -->
 				<div class="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-3">
 					<ReaderSettingsFontSize />
 					<ReaderSettingsLineWeight />

@@ -17,7 +17,7 @@ const { isAutoScrollEnabled } = useReaderSettings();
 
 			<button
 				@click="isAutoScrollEnabled = !isAutoScrollEnabled"
-				class="relative w-11 h-6 rounded-full transition-colors duration-300 shrink-0"
+				class="relative w-11 h-6 rounded-full transition-colors duration-300 shrink-0 cursor-pointer"
 				role="switch"
 				:class="isAutoScrollEnabled ? 'bg-yellow-500' : 'bg-zinc-200 dark:bg-zinc-700'"
 				:aria-checked="isAutoScrollEnabled"

@@ -17,6 +17,9 @@ import { ACTIVITY_TYPES } from "~/constants/user-activity";
 import { KyokusuAppRole } from "~/types/enums/role-enum";
 import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
 import type { NovelaDetails } from "~/types/backend/novela";
+import { $api } from "~/composables/api/useApi";
+import { useNotificationStore } from "~/stores/notification";
+import ModalConfirm from "~/components/common/ModalConfirm.vue";
 
 import {
 	getBookmarkCategoryLabel,
@@ -41,6 +44,28 @@ await useAsyncData(`novela-${novelaId.value}`, () =>
 const bookmarkInitial = ref(Boolean(novela.value?.bookmark));
 const currentBookmarkCategory = ref(novela.value?.bookmark || null);
 const isOpenNovelaSettings = ref(false);
+const isOpenDeleteConfirm = ref(false);
+
+const { notify } = useNotificationStore();
+
+const deleteNovela = async () => {
+	if (!novela.value) return;
+	try {
+		await $api(`/api/novela/${novela.value.id}`, { method: "DELETE" });
+		notify({
+			type: "success",
+			title: "Новела удалена",
+			content: `«${novela.value.title}» успешно удалена`,
+		});
+		await navigateTo("/");
+	} catch (e: any) {
+		notify({
+			type: "error",
+			title: "Ошибка",
+			content: e?.message || "Не удалось удалить новелу",
+		});
+	}
+};
 
 const openedSections = ref<string[]>([]);
 
@@ -305,13 +330,20 @@ watch(() => route.query.tab, (newTab) => {
                                 </div>
                                <div 
                                     v-if="hasPermission(KyokusuAppRole.MODERATOR)" 
-                                    class="flex items-start mt-3 px-4 w-auto"
+                                    class="flex items-start mt-4.5 px-12 w-auto gap-6"
                                 >
                                         <button 
                                             class="p-2 -m-4 cursor-pointer group outline-none"
                                             @click="isOpenNovelaSettings = true"
                                         >
                                             <Icon name="ph:gear" size="24" class="text-zinc-200 group-hover:text-zinc-400 transition-colors duration-300" />
+                                        </button>
+                                        <button
+                                            v-if="hasPermission(KyokusuAppRole.ADMIN)"
+                                            class="p-2 -m-4 cursor-pointer group outline-none"
+                                            @click="isOpenDeleteConfirm = true"
+                                        >
+                                            <Icon name="ph:trash" size="24" class="text-zinc-200 group-hover:text-zinc-400 transition-colors duration-300" />
                                         </button>
                                 </div>
 
@@ -415,6 +447,16 @@ watch(() => route.query.tab, (newTab) => {
             v-model="isOpenNovelaSettings"
             :novela="novela"
             @updated="updatedNovela"
+        />
+
+        <ModalConfirm
+            v-if="novela"
+            v-model="isOpenDeleteConfirm"
+            title="Удаление новелы"
+            :description="`Вы уверены, что хотите удалить «${novela.title}»? Это действие необратимо — все тома, главы, изображения и комментарии будут удалены.`"
+            confirm-text="Удалить"
+            cancel-text="Отмена"
+            @confirm="deleteNovela"
         />
     </div>
 </template>

@@ -17,9 +17,10 @@ if (import.meta.client) {
 	activityStore.initActivityTracking();
 }
 
-watch(() => authStore.isAuthenticated, (auth) => {
+watch(() => authStore.isAuthenticated, async (auth) => {
 	if (auth) {
 		connectNotifications();
+		await syncSettingWithBackend();
 	} else {
 		disconnect();
 	}

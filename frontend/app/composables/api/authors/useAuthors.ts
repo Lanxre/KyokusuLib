@@ -21,6 +21,7 @@ export function useAuthors() {
 			foundAuthors.value = data.map((a) => ({
 				id: a.id,
 				name: a.name,
+				label: a.name,
 				country: a.country,
 				picture: a.picture,
 				metier: a.metier,

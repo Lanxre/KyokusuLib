@@ -18,7 +18,7 @@ const { fontFamily } = useReaderSettings();
 				v-for="font in READER_FONTS"
 				:key="font.value"
 				@click="fontFamily = font.value"
-				class="group flex items-center justify-between px-4 py-3 rounded-xl border transition-all duration-200"
+				class="group flex items-center justify-between px-4 py-3 rounded-xl border transition-all duration-200 cursor-pointer"
 				:class="fontFamily === font.value
 					? 'border-yellow-500 bg-yellow-500/5 text-yellow-600 dark:text-yellow-400 shadow-sm shadow-yellow-500/10'
 					: 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-700/50'"

@@ -156,7 +156,7 @@ const textColor = ref("text-zinc-900 dark:text-zinc-200");
 							@click="onContentClick"
 						></div>
 
-						<div v-if="ch.images?.length" class="mt-12 space-y-8">
+						<div v-if="ch.images !== null && ch.images?.length" class="mt-12 space-y-8">
 							<div v-for="img in ch.images" :key="img.id" class="flex flex-col items-center gap-2">
 								<img :src="staticImage(img.image_url)" :alt="img.caption" class="w-full max-w-md h-full object-cover rounded-xl shadow-lg cursor-pointer" @click="openLightbox(staticImage(img.image_url))" />
 								<p v-if="img.caption" class="text-sm text-zinc-500 italic">{{ img.caption }}</p>
