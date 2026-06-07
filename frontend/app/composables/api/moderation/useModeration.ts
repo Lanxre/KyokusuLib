@@ -1,6 +1,6 @@
-import { useApi, $api } from "~/composables/api/useApi";
-import type { NovelaVolume, NovelaChapter } from "~/types/backend/novela";
-import { useNotificationStore } from "~/stores/notification";
+import { $api } from "@/composables/api/useApi";
+import type { NovelaVolume, NovelaChapter } from "@/types/backend/novela";
+import { useNotificationStore } from "@/stores/notification";
 
 export interface PendingContent {
 	volumes: NovelaVolume[];
@@ -16,11 +16,8 @@ export function useModeration() {
 	const fetchPending = async () => {
 		isLoading.value = true;
 		try {
-			const { data, error } = await useApi<PendingContent>("/api/moderation/pending");
-			if (error.value) throw error.value;
-			if (data.value) {
-				pendingContent.value = data.value;
-			}
+			const data = await $api<PendingContent>("/api/moderation/pending");
+			pendingContent.value = data;
 		} catch (e: any) {
 			console.error(e);
 			notify({

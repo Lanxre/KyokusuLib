@@ -15,9 +15,11 @@ export default defineNuxtConfig({
 
 	modules: ["@pinia/nuxt", "@vueuse/nuxt", "@nuxtjs/color-mode", "@nuxt/icon"],
 
-	routeRules: {
-		"/api/**": { proxy: "http://localhost:8080/api/**" },
-	},
+  routeRules: {
+    "/api/**": { 
+      proxy: (process.env.NUXT_PUBLIC_API_BASE || "http://localhost:8080") + "/api/**" 
+    },
+  },
 
 	colorMode: {
 		preference: "dark",

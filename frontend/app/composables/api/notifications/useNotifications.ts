@@ -18,7 +18,7 @@ export function useNotifications() {
 		disconnect();
 		reconnectAttempts = 0;
 
-		const url = `${apiBase}/api/notifications/stream`;
+		const url = "/api/notifications/stream";
 		const es = new EventSource(url, { withCredentials: true });
 
 		es.addEventListener("notification", (event: MessageEvent) => {

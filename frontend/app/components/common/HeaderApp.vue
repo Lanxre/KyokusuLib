@@ -153,6 +153,11 @@ onUnmounted(() => {
                    <span>Настройки</span>
                    <Icon name="ph:gear-six-bold" size="18" />
                  </NuxtLink>
+
+                 <NuxtLink v-if="hasPermission(KyokusuAppRole.MODERATOR)" to="/dashboard" class="flex justify-between items-center rounded-full px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors" @click="isUserDropdownOpen = false">
+                   <span>Панель управления</span>
+                   <Icon name="ph:chalkboard-simple-bold" size="18" />
+                 </NuxtLink>    
            
                  <div class="relative" @mouseenter="isContentSubmenuOpen = true" @mouseleave="isContentSubmenuOpen = false">
                      <div v-if="isAuthenticated" class="flex justify-between items-center rounded-full cursor-pointer px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white transition-colors">
@@ -233,7 +238,13 @@ onUnmounted(() => {
           </NuxtLink>
 
           <div v-if="hasPermission(KyokusuAppRole.MODERATOR)" class="flex flex-col items-center gap-2 mt-2">
-            <p class="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-1">Добавить контент</p>
+            <p class="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-1">Управление</p>
+            <NuxtLink to="/dashboard" class="flex justify-center items-center gap-3 px-6 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-900/30 w-full" @click="closeMobileMenu">
+                <Icon name="ph:layout-bold" size="20" class="opacity-70" />
+                <span>Дашборд</span>
+            </NuxtLink>
+            
+            <p class="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-1 mt-2">Добавить контент</p>
             <NuxtLink to="/novela/add" class="flex justify-center items-center gap-3 px-6 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-900/30 w-full" @click="closeMobileMenu">
                 <Icon name="ph:book-open-bold" size="20" class="opacity-70" />
                 <span>Ранобэ</span>

@@ -2,6 +2,8 @@ package ranobehub
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -70,31 +72,46 @@ func (s *RanobeHubParseService) Parse(ctx context.Context, rhNovela *rhModels.Ra
 	}
 
 	for _, vol := range rhNovela.Volumes {
-		volID, _, err := s.NovelaService.AddVolume(ctx, novela.ID, userID, dto.AddVolumeRequest{
-			VolumeNumber: int(vol.Num),
-			Title:        vol.Name,
-		})
+		volumeNumber := int(vol.Num)
+		volID, err := s.NovelaService.Repo.GetVolumeIDByNumber(ctx, novela.ID, volumeNumber)
 		if err != nil {
-			return fmt.Errorf("failed to add volume %f: %w", vol.Num, err)
+			if errors.Is(err, sql.ErrNoRows) {
+				volID, _, err = s.NovelaService.AddVolume(ctx, novela.ID, userID, dto.AddVolumeRequest{
+					VolumeNumber: volumeNumber,
+					Title:        vol.Name,
+				})
+				if err != nil {
+					return fmt.Errorf("failed to add volume %f: %w", vol.Num, err)
+				}
+			} else {
+				return fmt.Errorf("failed to check volume existence: %w", err)
+			}
 		}
 
 		for _, ch := range vol.Chapters {
-			chapterID, _, err := s.NovelaService.AddChapter(ctx, volID, userID, dto.AddChapterRequest{
-				ChapterNumber: ch.Num,
-				Title:         ch.Name,
-				Content:       ch.Text,
-			})
+			chapterID, err := s.NovelaService.Repo.GetChapterIDByNumber(ctx, volID, ch.Num)
 			if err != nil {
-				return fmt.Errorf("failed to add chapter %f in volume %f: %w", ch.Num, vol.Num, err)
-			}
+				if errors.Is(err, sql.ErrNoRows) {
+					chapterID, _, err = s.NovelaService.AddChapter(ctx, volID, userID, dto.AddChapterRequest{
+						ChapterNumber: ch.Num,
+						Title:         ch.Name,
+						Content:       ch.Text,
+					})
+					if err != nil {
+						return fmt.Errorf("failed to add chapter %f in volume %f: %w", ch.Num, vol.Num, err)
+					}
 
-			for imgIdx, imgURL := range ch.Images {
-				_, imgErr := s.NovelaService.AddChapterImage(ctx, chapterID, dto.AddChapterImageRequest{
-					ImageURL: imgURL,
-					Position: imgIdx,
-				})
-				if imgErr != nil {
-					fmt.Printf("failed to add chapter image %d for chapter %s: %v\n", imgIdx, chapterID, imgErr)
+					for imgIdx, imgURL := range ch.Images {
+						_, imgErr := s.NovelaService.AddChapterImage(ctx, chapterID, dto.AddChapterImageRequest{
+							ImageURL: imgURL,
+							Position: imgIdx,
+						})
+						if imgErr != nil {
+							fmt.Printf("failed to add chapter image %d for chapter %s: %v\n", imgIdx, chapterID, imgErr)
+						}
+					}
+				} else {
+					return fmt.Errorf("failed to check chapter existence: %w", err)
 				}
 			}
 		}

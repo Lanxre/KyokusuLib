@@ -703,6 +703,20 @@ func (r *NovelaRepository) GetTitleByID(ctx context.Context, id int) (string, er
 	return title, err
 }
 
+func (r *NovelaRepository) GetVolumeIDByNumber(ctx context.Context, novelaID int, volumeNumber int) (string, error) {
+	query := `SELECT id FROM novela_volumes WHERE novela_id = $1 AND volume_number = $2`
+	var id string
+	err := r.DB.QueryRowContext(ctx, query, novelaID, volumeNumber).Scan(&id)
+	return id, err
+}
+
+func (r *NovelaRepository) GetChapterIDByNumber(ctx context.Context, volumeID string, chapterNumber float64) (string, error) {
+	query := `SELECT id FROM novela_chapters WHERE novela_volume_id = $1 AND chapter_number = $2`
+	var id string
+	err := r.DB.QueryRowContext(ctx, query, volumeID, chapterNumber).Scan(&id)
+	return id, err
+}
+
 func (r *NovelaRepository) GetNovelaIDByVolumeID(ctx context.Context, volumeID string) (int, error) {
 	query := `SELECT novela_id FROM novela_volumes WHERE id = $1`
 	var novelaID int

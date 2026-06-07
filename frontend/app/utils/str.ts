@@ -61,3 +61,14 @@ export const replaceTags = (text: string) => {
 export const textMaxNumValue = (value: number, max: number) => {
   return value > max ? `${max}+` : value;
 }
+
+export const isStringInt = (str: string) => {
+  const trimmed = str.trim();
+  if (!trimmed) return false;
+
+  const num = Number(trimmed);
+
+  if (isNaN(num) || num < 0) return false;
+  
+  return Number.isInteger(num);
+}

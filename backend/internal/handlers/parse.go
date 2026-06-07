@@ -27,31 +27,31 @@ func (h *ParseHandler) ParseRanobeHub(w http.ResponseWriter, r *http.Request) {
 	apiURL := fmt.Sprintf("http://localhost:3005/api/novela/%s", idStr)
 	resp, err := http.Get(apiURL)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, "Failed to fetch from RanobeHubParser: "+err.Error())
+		response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка при получении данных от RanobeHubParser: %s", err.Error()))
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		response.Error(w, resp.StatusCode, "API returned error status")
+		response.Error(w, resp.StatusCode, fmt.Sprintf("API вернул ошибочный статус: %d", resp.StatusCode))
 		return
 	}
 
 	var rhResp rhModels.RanobeHubResponse
 	if err := json.NewDecoder(resp.Body).Decode(&rhResp); err != nil {
-		response.Error(w, http.StatusInternalServerError, "Failed to decode RanobeHub response: "+err.Error())
+		response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка при декодировании ответа RanobeHub: %s", err.Error()))
 		return
 	}
 
 	if rhResp.Data == nil {
-		response.Error(w, http.StatusNotFound, "No novela data returned from RanobeHub")
+		response.Error(w, http.StatusNotFound, "Новелла не найдена")
 		return
 	}
 
 	if err := h.rhService.Parse(r.Context(), rhResp.Data, userID); err != nil {
-		response.Error(w, http.StatusInternalServerError, "Failed to parse novela: "+err.Error())
+		response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка при сохранении новеллы: %s", err.Error()))
 		return
 	}
 
-	response.Success(w, http.StatusOK, "Novela parsed and saved successfully")
+	response.Success(w, http.StatusOK, fmt.Sprintf("Новелла %s успешно сохраненна", rhResp.Data.Names.Rus))
 }
