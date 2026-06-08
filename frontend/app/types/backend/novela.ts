@@ -22,6 +22,7 @@ export interface NovelaChapter {
 	id: string;
 	title: string;
 	number: number;
+	is_read?: boolean;
 	status?: string;
 	created_by?: number;
 	content: string;
@@ -95,8 +96,16 @@ export interface NovelaDetails {
 	user_rating: number;
 	rating_details: NovelaRatingCategory;
 	bookmark_details: NovelaBookmarkCategory;
-	country: string;
+  country: string;
+	last_readed?: NovelaLastReaded;
 }
+
+export interface NovelaLastReaded {
+	chapter_id: string;
+	chapter_number: number;
+	chapter_scroll: number;
+}
+
 
 interface NovelaCommentUserResponse {
 	id: number;

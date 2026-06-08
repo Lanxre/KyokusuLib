@@ -562,9 +562,37 @@ func (h *NovelaHandler) DeleteNovela(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (h *NovelaHandler) SaveChapterReadPosition(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		response.Error(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	var req dto.SaveReadPositionRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if err := h.Validator.Struct(req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Validation error: "+err.Error())
+		return
+	}
+
+	if err := h.service.SaveChapterReadPosition(r.Context(), userID, req); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.SuccessOkEmpty(w)
+}
+
 func (h *NovelaHandler) GetChapter(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	res, err := h.service.GetChapterReaderDetails(r.Context(), id)
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
+
+	res, err := h.service.GetChapterReaderDetails(r.Context(), id, userID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())
 		return

@@ -38,7 +38,6 @@ const formatChapterNumber = (num: number) => {
 			</div>
 
 			<div v-else class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-				<!-- Volumes Queue -->
 				<div v-if="pendingContent.volumes && pendingContent.volumes.length > 0" class="space-y-4">
 					<div class="flex items-center gap-2 mb-6">
 						<div class="w-8 h-8 rounded-xl bg-yellow-500/10 text-yellow-500 flex items-center justify-center">

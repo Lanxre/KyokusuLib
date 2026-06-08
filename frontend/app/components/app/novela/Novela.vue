@@ -13,6 +13,7 @@ import NovelaComments from "./NovelaComments.vue";
 import NovelaBookmarkButton from "./NovelaBookmarkButton.vue";
 import NovelaLikeButton from "./NovelaLikeButton.vue";
 import { useUserActivity } from "~/composables/api/profile/useUserActivity";
+import { useReadProgress } from "~/composables/api/novela/useReadProgress";
 import { ACTIVITY_TYPES } from "~/constants/user-activity";
 import { KyokusuAppRole } from "~/types/enums/role-enum";
 import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
@@ -33,6 +34,16 @@ const { user } = useAuthStore();
 const { novela, fetchNovela } = useNovela();
 const { createUserActivity } = useUserActivity();
 const { hasPermission } = useRolePermissions();
+const { getContinueReadingUrl, getLastReadChapterNumber } = useReadProgress();
+
+const continueReadingUrl = computed(() =>
+	novela.value ? getContinueReadingUrl(novela.value) : null
+);
+
+const lastReadChapterLabel = computed(() => {
+  if (!novela.value?.last_readed?.chapter_id) return null;
+	return `Глава ${novela.value.last_readed.chapter_number}`;
+});
 
 const activeTab = ref<NovelaActiveTabs>(route.query.tab === NovelaActiveTabsEnum.COMMENTS ? NovelaActiveTabsEnum.COMMENTS : NovelaActiveTabsEnum.ABOUT);
 
@@ -270,11 +281,12 @@ watch(() => route.query.tab, (newTab) => {
 
                         <div class="flex flex-col gap-3">
                             <NuxtLink 
-                                v-if="novela.volumes?.length && novela.volumes[0].chapters?.length"
-                                :to="`/novela/reader/${novela.id}/${novela.volumes[0].chapters[0].id}`"
-                                class="w-full py-1.5 text-center cursor-pointer rounded-xl font-bold shadow-lg transition-all active:scale-95 bg-white text-zinc-900 hover:bg-yellow-500"
+                                v-if="continueReadingUrl"
+                                :to="{ path: continueReadingUrl, query: { scroll: novela.last_readed!.chapter_scroll } }"
+                                class="w-full py-1.5 text-center cursor-pointer rounded-xl font-bold shadow-lg transition-all active:scale-95 bg-yellow-500 text-white hover:bg-yellow-600 flex flex-col items-center leading-tight"
                             >
-                                Читать
+                                <span>{{ novela.last_readed ? 'Продолжить' : 'Читать' }}</span>
+                                <span v-if="lastReadChapterLabel" class="text-[10px] font-medium opacity-80">{{ lastReadChapterLabel }}</span>
                             </NuxtLink>
                             <button v-else class="w-full py-1.5 cursor-not-allowed opacity-50 rounded-xl font-bold shadow-lg bg-white text-zinc-900">
                                 Нет глав

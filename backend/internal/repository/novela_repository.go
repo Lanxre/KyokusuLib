@@ -80,13 +80,15 @@ func (r *NovelaRepository) Create(ctx context.Context, n *db.Novela) error {
 
 	return tx.Commit()
 }
+
 func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, userID int) (*db.Novela, error) {
 	n := &db.Novela{}
 	var (
-		authorsJSON []byte
-		volumesJSON []byte
-		userRating  sql.NullInt32
-		bookmark    sql.NullString
+		authorsJSON      []byte
+		volumesJSON      []byte
+		userRating       sql.NullInt32
+		bookmark         sql.NullString
+		lastReadChapter  sql.NullString
 	)
 
 	query := `
@@ -137,6 +139,7 @@ func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, user
 									'id', ch.id,
 									'title', ch.title,
 									'number', ch.chapter_number,
+									'is_read', CASE WHEN $2 > 0 THEN COALESCE((SELECT true FROM read_chapters rc WHERE rc.chapter_id = ch.id AND rc.user_id = $2), false) ELSE false END,
 									'images', COALESCE((
 										SELECT json_agg(
 											json_build_object('id', img.id, 'image_url', img.image_url, 'caption', img.caption, 'position', img.position)
@@ -165,7 +168,20 @@ func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, user
 			CASE
 				WHEN $2 > 0 THEN (SELECT rating FROM novela_ratings WHERE novela_id = n.id AND user_id = $2)
 				ELSE 0
-			END as user_rating
+			END as user_rating,
+
+			CASE
+				WHEN $2 > 0 THEN (
+					SELECT json_build_object('id', c.id, 'number', c.chapter_number, 'scroll_position', rc.scroll_position)::text
+					FROM read_chapters rc
+					JOIN novela_chapters c ON rc.chapter_id = c.id
+					JOIN novela_volumes v ON c.novela_volume_id = v.id
+					WHERE v.novela_id = n.id AND rc.user_id = $2
+					ORDER BY rc.created_at DESC
+					LIMIT 1
+				)
+				ELSE NULL
+			END as last_read_chapter
 
 		FROM novela n
 		WHERE n.id = $1`
@@ -191,6 +207,7 @@ func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, user
 		&n.HasLiked,
 		&n.LikeCount,
 		&userRating,
+		&lastReadChapter,
 	)
 
 	if err != nil {
@@ -218,6 +235,14 @@ func (r *NovelaRepository) GetFullByID(tx *sql.Tx, ctx context.Context, id, user
 
 	if userRating.Valid {
 		n.UserRating = int(userRating.Int32)
+	}
+
+	if lastReadChapter.Valid {
+		var lc db.LastReadChapter
+		if err := json.Unmarshal([]byte(lastReadChapter.String), &lc); err != nil {
+			return nil, err
+		}
+		n.LastReadChapter = &lc
 	}
 
 	return n, nil
@@ -426,7 +451,7 @@ func (r *NovelaRepository) GetChapterByID(ctx context.Context, chapterID string)
 	return ch, nil
 }
 
-func (r *NovelaRepository) GetChapterReaderDetails(ctx context.Context, chapterID string) (*dto.ChapterReaderResponse, error) {
+func (r *NovelaRepository) GetChapterReaderDetails(ctx context.Context, chapterID string, userID int) (*dto.ChapterReaderResponse, error) {
 	res := &dto.ChapterReaderResponse{}
 
 	query := `
@@ -439,6 +464,7 @@ func (r *NovelaRepository) GetChapterReaderDetails(ctx context.Context, chapterI
 		)
 		SELECT 
 			c.id, c.title, c.chapter_number, c.content, cc.novela_id, cc.novela_title, cc.volume_number,
+			COALESCE((SELECT rc.scroll_position FROM read_chapters rc WHERE rc.chapter_id = c.id AND rc.user_id = $2), 0),
 			(SELECT c2.id 
 			 FROM novela_chapters c2 
 			 JOIN novela_volumes v2 ON c2.novela_volume_id = v2.id 
@@ -461,8 +487,9 @@ func (r *NovelaRepository) GetChapterReaderDetails(ctx context.Context, chapterI
 		FROM novela_chapters c
 		JOIN current_chapter cc ON c.id = cc.id`
 
-	err := r.DB.QueryRowContext(ctx, query, chapterID).Scan(
+	err := r.DB.QueryRowContext(ctx, query, chapterID, userID).Scan(
 		&res.ID, &res.Title, &res.Number, &res.Content, &res.NovelaID, &res.NovelaTitle, &res.VolumeNumber,
+		&res.ScrollPosition,
 		&res.PrevChapterID, &res.NextChapterID,
 	)
 
@@ -471,6 +498,12 @@ func (r *NovelaRepository) GetChapterReaderDetails(ctx context.Context, chapterI
 			return nil, nil
 		}
 		return nil, err
+	}
+
+	if userID > 0 {
+		if err := r.MarkChapterAsRead(ctx, userID, chapterID); err != nil {
+			fmt.Printf("failed to mark chapter as read: %v\n", err)
+		}
 	}
 
 	imgQuery := `SELECT id, image_url, caption, position FROM novela_chapter_images WHERE chapter_id = $1 ORDER BY position ASC`
@@ -635,6 +668,7 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 
 	return novelas, total, nil
 }
+
 func (r *NovelaRepository) GetUserNovelaBookmarks(ctx context.Context, userID int, categoryID int) ([]db.UserNovelaBookmark, error) {
 	query := `
 		SELECT n.id, n.title, n.poster_url, n.type,
@@ -821,4 +855,48 @@ func (r *NovelaRepository) GetVolumeIDByChapterID(ctx context.Context, chapterID
 	var volumeID string
 	err := r.DB.QueryRowContext(ctx, query, chapterID).Scan(&volumeID)
 	return volumeID, err
+}
+
+func (r *NovelaRepository) MarkChapterAsRead(ctx context.Context, userID int, chapterID string) error {
+	query := `
+		INSERT INTO read_chapters (user_id, chapter_id) 
+		VALUES ($1, $2) 
+		ON CONFLICT (user_id, chapter_id) DO NOTHING`
+	_, err := r.DB.ExecContext(ctx, query, userID, chapterID)
+	return err
+}
+
+func (r *NovelaRepository) GetUserReadChaptersByNovela(ctx context.Context, userID, novelaID int) ([]db.ReadChapter, error) {
+	query := `
+		SELECT rc.user_id, rc.chapter_id, rc.scroll_position, rc.created_at
+		FROM read_chapters rc
+		JOIN novela_chapters c ON rc.chapter_id = c.id
+		JOIN novela_volumes v ON c.novela_volume_id = v.id
+		WHERE v.novela_id = $1 AND rc.user_id = $2
+		ORDER BY rc.created_at DESC`
+	rows, err := r.DB.QueryContext(ctx, query, novelaID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var chapters []db.ReadChapter
+	for rows.Next() {
+		var ch db.ReadChapter
+		if err := rows.Scan(&ch.UserID, &ch.ChapterID, &ch.ScrollPosition, &ch.CreatedAt); err != nil {
+			return nil, err
+		}
+		chapters = append(chapters, ch)
+	}
+	return chapters, nil
+}
+
+func (r *NovelaRepository) UpdateChapterReadPosition(ctx context.Context, userID int, chapterID string, scrollPosition int) error {
+	query := `
+		INSERT INTO read_chapters (user_id, chapter_id, scroll_position) 
+		VALUES ($1, $2, $3)
+		ON CONFLICT (user_id, chapter_id) 
+		DO UPDATE SET scroll_position = $3`
+	_, err := r.DB.ExecContext(ctx, query, userID, chapterID, scrollPosition)
+	return err
 }

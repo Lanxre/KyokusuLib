@@ -223,7 +223,7 @@ func (s *NovelaService) novelaToDto(n *db.Novela) *dto.NovelaResponse {
 			for _, img := range ch.Images {
 				imgs = append(imgs, dto.NovelaChapterImage{ID: img.ID, ImageURL: img.ImageURL, Caption: img.Caption, Position: img.Position})
 			}
-			chapters = append(chapters, dto.NovelaChapter{ID: ch.ID, Title: ch.Title, Number: ch.Number, Images: imgs})
+			chapters = append(chapters, dto.NovelaChapter{ID: ch.ID, Title: ch.Title, Number: ch.Number, Images: imgs, IsRead: ch.IsRead})
 		}
 		volumes = append(volumes, dto.NovelaVolume{ID: v.ID, Title: v.Title, Number: v.Number, Chapters: chapters})
 	}
@@ -234,6 +234,15 @@ func (s *NovelaService) novelaToDto(n *db.Novela) *dto.NovelaResponse {
 		bookmark = &str
 	}
 
+	var lastReadChapterID *string
+	var lastReadChapterNumber *float64
+	var lastReadChapterScroll *int
+	if n.LastReadChapter != nil {
+		lastReadChapterID = &n.LastReadChapter.ID
+		lastReadChapterNumber = &n.LastReadChapter.Number
+		lastReadChapterScroll = &n.LastReadChapter.ScrollPosition
+	}
+
 	return &dto.NovelaResponse{
 		ID: n.ID, Title: n.Title, AlternativeTitles: n.AlternativeTitles, Description: n.Description,
 		Type: n.Type, AgeRating: n.AgeRating, ReleaseDate: n.ReleaseDate.Format("2006-01-02"),
@@ -241,6 +250,7 @@ func (s *NovelaService) novelaToDto(n *db.Novela) *dto.NovelaResponse {
 		Country: n.Country, Views: n.Views, Genres: n.Genres, Categories: n.Categories,
 		Authors: authors, Volumes: volumes, Bookmark: bookmark, HasLiked: n.HasLiked,
 		LikeCount: n.LikeCount, UserRating: n.UserRating,
+		LastReaded: &dto.NovelaLastReaded{ChapterID: lastReadChapterID, ChapterNumber: lastReadChapterNumber, ChapterScroll: lastReadChapterScroll},
 	}
 }
 
@@ -374,6 +384,10 @@ func (s *NovelaService) AddChapterImage(ctx context.Context, chapterID string, r
 	return s.Repo.AddChapterImage(ctx, chapterID, req.ImageURL, req.Caption, req.Position)
 }
 
-func (s *NovelaService) GetChapterReaderDetails(ctx context.Context, chapterID string) (*dto.ChapterReaderResponse, error) {
-	return s.Repo.GetChapterReaderDetails(ctx, chapterID)
+func (s *NovelaService) GetChapterReaderDetails(ctx context.Context, chapterID string, userID int) (*dto.ChapterReaderResponse, error) {
+	return s.Repo.GetChapterReaderDetails(ctx, chapterID, userID)
+}
+
+func (s *NovelaService) SaveChapterReadPosition(ctx context.Context, userID int, req dto.SaveReadPositionRequest) error {
+	return s.Repo.UpdateChapterReadPosition(ctx, userID, req.ChapterID, req.ScrollPosition)
 }

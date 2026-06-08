@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useReader } from "~/composables/api/novela/useReader";
 import { useReaderSettings } from "~/composables/ui/useReaderSettings";
+import { useReaderScrollPosition } from "~/composables/api/novela/useReadProgress";
 import { staticImage } from "@/utils/str";
 import ReaderSettings from "~/components/app/novela/ReaderSettings.vue";
 import ReaderTOC from "~/components/app/novela/ReaderTOC.vue";
@@ -13,25 +14,58 @@ const { fontSize, fontFamily, lineWeight, isAutoScrollEnabled } = useReaderSetti
 
 const novelaId = computed(() => route.params.novelaId as string);
 const chapterId = computed(() => route.params.chapterId as string);
+const savedScroll = computed(() => {
+	const value = Number(route.query.scroll);
+	return Number.isFinite(value) ? value : 0;
+});
 
 await useAsyncData(`reader-${chapterId.value}`, () => fetchChapter(chapterId.value));
 
-// Reset chapters when navigating via URL directly (not via auto-scroll)
+const {
+	currentChapterId,
+	setupScrollTracking,
+	restoreScroll,
+	saveOnLeave,
+} = useReaderScrollPosition(
+	chapterId.value,
+	savedScroll.value
+);
+
+onMounted(async () => {
+	setupScrollTracking();
+
+	await nextTick();
+
+	setTimeout(async () => {
+		await restoreScroll();
+	}, 50);
+});
+
+useEventListener(window, "beforeunload", () => {
+	saveOnLeave();
+});
+
+useEventListener(document, "visibilitychange", () => {
+	if (document.visibilityState === "hidden") {
+		saveOnLeave();
+	}
+});
+
 watch(chapterId, (newId) => {
 	const isCurrentlyLoaded = chapters.value.some(c => c.id === newId);
 	if (!isCurrentlyLoaded) {
 		fetchChapter(newId);
 	}
+	currentChapterId.value = newId;
 });
+
 
 const firstChapter = computed(() => chapters.value[0]);
 const lastChapter = computed(() => chapters.value[chapters.value.length - 1]);
 
-// Track which chapter is currently in view
-const currentChapterId = ref(chapterId.value);
 useEventListener(window, 'scroll', () => {
 	const articles = document.querySelectorAll<HTMLElement>('[data-chapter-id]');
-	const triggerLine = window.scrollY + window.innerHeight * 0.3;
+	const triggerLine = window.scrollY + window.innerHeight * 0.5;
 
 	let lastId: string | null = null;
 	for (const el of articles) {
@@ -50,7 +84,6 @@ const currentChapter = computed(() =>
 	chapters.value.find(c => c.id === currentChapterId.value) || chapters.value[0]
 );
 
-// Auto-scroll: load next chapter when nearing the bottom
 useInfiniteScroll(
 	window,
 	() => {
@@ -136,7 +169,6 @@ const textColor = ref("text-zinc-900 dark:text-zinc-200");
 			
 			<template v-else-if="chapters.length">
 				<div v-for="(ch, index) in chapters" :key="ch.id" :data-chapter-id="ch.id" class="flex flex-col gap-12">
-					<!-- Chapter Separator -->
 					<div v-if="index > 0" class="flex items-center gap-4 py-8">
 						<div class="h-px grow bg-zinc-200 dark:bg-zinc-800"></div>
 						<div class="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-full border border-zinc-200 dark:border-zinc-700">
@@ -231,7 +263,6 @@ const textColor = ref("text-zinc-900 dark:text-zinc-200");
 			</div>
 		</footer>
 
-		<!-- Lightbox -->
 		<Transition name="fade">
 			<div
 				v-if="lightboxImage"

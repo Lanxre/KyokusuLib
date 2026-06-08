@@ -35,6 +35,8 @@ type Novela struct {
 
 	HasLiked          bool `json:"has_liked"`
 	LikeCount         int  `json:"like_count"`
+
+	LastReadChapter   *LastReadChapter `json:"last_read_chapter"`
 }
 
 type NovelaAuthor struct {
@@ -59,6 +61,7 @@ type NovelaChapter struct {
 	Status    string               `json:"status"`
 	CreatedBy int                  `json:"created_by"`
 	Content   string               `json:"content,omitempty"`
+	IsRead    bool                 `json:"is_read"`
 	Images    []NovelaChapterImage `json:"images"`
 }
 
@@ -108,4 +111,17 @@ type UserNovelaBookmark struct {
 	PosterURL 	string 		`json:"poster_url"`
 	Type 		string 		`json:"type"`
 	Rating     	float64     `json:"rating"`
+}
+
+type ReadChapter struct {
+	UserID         int       `json:"user_id"`
+	ChapterID      string    `json:"chapter_id"`
+	ScrollPosition int       `json:"scroll_position"`
+	CreatedAt      time.Time `json:"created_at"`
+}
+
+type LastReadChapter struct {
+	ID             string  `json:"id"`
+	Number         float64 `json:"number"`
+	ScrollPosition int     `json:"scroll_position"`
 }

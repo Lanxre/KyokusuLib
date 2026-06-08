@@ -57,7 +57,7 @@ const handleParse = async () => {
 					<button 
 						@click="handleParse"
 						:disabled="isLoading || !rhId"
-						class="w-full py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold rounded-2xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+						class="w-full py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold rounded-2xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
 					>
 						<Icon v-if="isLoading" name="ph:spinner-bold" class="animate-spin" />
 						<Icon v-else name="ph:lightning-bold" />
@@ -75,7 +75,6 @@ const handleParse = async () => {
 				</div>
 			</div>
 			
-			<!-- Placeholder for more sources -->
 			<div class="border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 flex flex-col items-center justify-center text-zinc-400 gap-3">
 				<Icon name="ph:plus-circle-bold" size="32" class="opacity-20" />
 				<p class="text-xs font-bold uppercase tracking-widest">Скоро новые источники</p>

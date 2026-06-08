@@ -47,7 +47,16 @@ type NovelaResponse struct {
 	UserRating        int                    `json:"user_rating"`
 	RatingDetails     NovelaRatingCategory   `json:"rating_details"`
 	BookmarkDetails   NovelaBookmarkCategory `json:"bookmark_details"`
+
+	LastReaded 		  *NovelaLastReaded `json:"last_readed"`
 }
+
+type NovelaLastReaded struct {
+	ChapterID      *string  `json:"chapter_id,omitempty"`
+	ChapterNumber  *float64 `json:"chapter_number,omitempty"`
+	ChapterScroll  *int     `json:"chapter_scroll,omitempty"`
+}
+
 type NovelaRatingCategory struct {
 	Total        int       `json:"total"`
 	TotalRating float64   `json:"total_rating"`
@@ -81,6 +90,7 @@ type NovelaChapter struct {
 	ID     string    `json:"id"`
 	Title  string `json:"title"`
 	Number float64 `json:"number"`
+	IsRead bool   `json:"is_read,omitempty"`
 	Content string `json:"content,omitempty"`
 	Images  []NovelaChapterImage `json:"images"`
 }
@@ -148,6 +158,11 @@ type AddChapterImageRequest struct {
 	Position int    `json:"position"`
 }
 
+type SaveReadPositionRequest struct {
+	ChapterID      string `json:"chapter_id" validate:"required"`
+	ScrollPosition int    `json:"scroll_position" validate:"required"`
+}
+
 type ChapterReaderResponse struct {
 	ID             string               `json:"id"`
 	Title          string               `json:"title"`
@@ -157,6 +172,7 @@ type ChapterReaderResponse struct {
 	NovelaID       int                  `json:"novela_id"`
 	NovelaTitle    string               `json:"novela_title"`
 	VolumeNumber   int                  `json:"volume_number"`
+	ScrollPosition int                  `json:"scroll_position"`
 	PrevChapterID  *string              `json:"prev_chapter_id"`
 	NextChapterID  *string              `json:"next_chapter_id"`
 }
