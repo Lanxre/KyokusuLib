@@ -10,6 +10,8 @@ import { RichText as BaseRichTextEditor } from "@kyokusu-ui/vue";
 import { NOVELA_MAX_COMMENT_LENGTH } from "~/constants/data";
 import { useUserActivity } from "~/composables/api/profile/useUserActivity";
 import { ACTIVITY_TYPES } from "~/constants/user-activity";
+import type { NovelaCommentResponse } from "@/types/backend/novela";
+import FilterBar, { type FilterConfig } from "@/components/ui/FilterBar.vue";
 
 const props = defineProps<{ novelaId: number, novelaTitle: string }>();
 
@@ -43,6 +45,16 @@ const { status, refresh } = await useAsyncData(
 );
 
 const isPending = computed(() => status.value === 'pending' || apiLoading.value);
+
+const sortedComments = ref<NovelaCommentResponse[]>([]);
+
+const teamFilterConfig: FilterConfig = {
+    defaultField: 'created_at',
+    sortOptions: [
+        { field: 'created_at', label: 'По новизне', icon: 'ph:calendar', compare: (a, b) => new Date((a as NovelaCommentResponse).created_at).getTime() - new Date((b as NovelaCommentResponse).created_at).getTime() },
+        { field: 'like_count', label: 'По популярности', icon: 'ph:heart', compare: (a, b) => (a as NovelaCommentResponse).like_count - (b as NovelaCommentResponse).like_count }
+    ]
+};
 
 onMounted(() => {
     if (route.hash) {
@@ -305,7 +317,7 @@ const handleReportCancel = async (id: number) => {
             </div>
         </section>
 
-        <div class="relative min-h-[300px]">
+        <div class="relative min-h-75">
             <div v-if="status === 'pending' && !comments.length" class="py-20 flex justify-center">
                 <Icon name="ph:circle-notch-bold" size="48" class="animate-spin text-zinc-300" />
             </div>
@@ -323,8 +335,9 @@ const handleReportCancel = async (id: number) => {
                 class="space-y-6"
                 :class="{ 'opacity-50 pointer-events-none': status === 'pending' }" 
             >
+                <FilterBar v-if="!apiLoading && comments.length > 0" :config="teamFilterConfig" :items="comments" v-model="sortedComments"/>
                 <CommentItem 
-                    v-for="comment in comments" 
+                    v-for="comment in sortedComments" 
                     :key="comment.id" 
                     :comment="comment"
                     :user-id="user?.id || 0"
