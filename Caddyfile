@@ -8,10 +8,16 @@
 #   - Docker containers running (ports 3000, 8080 published)
 
 kyokusulib.com {
-    # API requests → Go backend (port 8080)
+    # API & static files → Go backend (port 8080)
     @backend path /api/* /uploads/*
     handle @backend {
         reverse_proxy localhost:8080
+    }
+
+    # Parser (ranobehub) → отдельный сервис (port 3005)
+    @parser path /parser/*
+    handle @parser {
+        reverse_proxy localhost:3005
     }
 
     # Everything else → Nuxt SSR (port 3000)

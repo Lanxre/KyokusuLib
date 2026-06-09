@@ -1,0 +1,3 @@
+[submodule "apps/ranobehub-parser"]
+	path = apps/ranobehub-parser
+	url = https://github.com/Lanxre/ranobehub-parser.git

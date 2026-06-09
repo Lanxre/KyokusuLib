@@ -155,6 +155,8 @@ jobs:
 ├── Caddyfile              # Production reverse proxy config
 ├── docker-compose.yml     # Docker Compose (все сервисы)
 │
+├── apps/
+│   └── ranobehub-parser/  # Парсер ранобэ (Bun, порт 3005)
 ├── frontend/
 │   ├── app/
 │   │   ├── assets/        # Стили, изображения
@@ -207,6 +209,7 @@ REST API, базовый URL: `http://localhost:8080/api`
 | `/api/notifications/` | Уведомления |
 | `/api/admin/` | Админ-панель |
 | `/uploads/` | Статические файлы (аватарки, баннеры, постеры) |
+| `/parser/` | Парсер ranobehub (поиск, новеллы, главы) |
 
 ---
 

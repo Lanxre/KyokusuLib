@@ -32,6 +32,8 @@ type Config struct {
 
 	KyokusuEmailPass string
 	KyokusuEmailName string
+
+	ParserURL string
 }
 
 func Load() *Config {
@@ -63,6 +65,8 @@ func Load() *Config {
 
 		KyokusuEmailPass: getEnv("KYOKUSU_EMAIL_PASSWORD", ""),
 		KyokusuEmailName: getEnv("KYOKUSU_EMAIL_NAME", ""),
+
+		ParserURL: getEnv("PARSER_URL", "http://localhost:3005"),
 	}
 }
 

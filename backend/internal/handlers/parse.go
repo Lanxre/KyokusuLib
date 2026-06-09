@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/lanxre/kyokusulib/internal/config"
 	"github.com/lanxre/kyokusulib/internal/middleware"
 	rhModels "github.com/lanxre/kyokusulib/internal/parse/models/ranobehub"
 	rhService "github.com/lanxre/kyokusulib/internal/parse/service/ranobehub"
@@ -14,17 +15,18 @@ import (
 
 type ParseHandler struct {
 	rhService *rhService.RanobeHubParseService
+	cfg       *config.Config
 }
 
-func NewParseHandler(rhService *rhService.RanobeHubParseService) *ParseHandler {
-	return &ParseHandler{rhService: rhService}
+func NewParseHandler(rhService *rhService.RanobeHubParseService, cfg *config.Config) *ParseHandler {
+	return &ParseHandler{rhService: rhService, cfg: cfg}
 }
 
 func (h *ParseHandler) ParseRanobeHub(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["id"]
 	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
 
-	apiURL := fmt.Sprintf("http://localhost:3005/api/novela/%s", idStr)
+	apiURL := fmt.Sprintf("%s/parser/novela/%s", h.cfg.ParserURL, idStr)
 	resp, err := http.Get(apiURL)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка при получении данных от RanobeHubParser: %s", err.Error()))

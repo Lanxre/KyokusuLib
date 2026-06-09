@@ -37,6 +37,7 @@ services:
       - STATE=${STATE}
       - KYOKUSU_EMAIL_NAME=${KYOKUSU_EMAIL_NAME}
       - KYOKUSU_EMAIL_PASSWORD=${KYOKUSU_EMAIL_PASSWORD}
+      - PARSER_URL=http://parser:3005
     depends_on:
       db:
         condition: service_healthy
@@ -62,6 +63,16 @@ services:
       - backend
     ports:
       - "3000:3000"
+
+  parser:
+    build:
+      context: ./apps/ranobehub-parser
+      dockerfile: Dockerfile
+    container_name: kyokusu_parser
+    environment:
+      - SERVER_PORT=3005
+    ports:
+      - "3005:3005"
 
 volumes:
   postgres_data:
