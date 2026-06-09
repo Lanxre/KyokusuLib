@@ -120,7 +120,7 @@ export function useLogin() {
 		}
 	};
 
-	const apiBase = config.public.apiBase || "http://localhost:8080";
+	const apiBase = config.public.apiBase || "";
 
 	const handleGoogleLogin = () => {
 		window.location.href = `${apiBase}/api/auth/google/login`;

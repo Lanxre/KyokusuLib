@@ -1,6 +1,6 @@
 module github.com/lanxre/kyokusulib
 
-go 1.25.7
+go 1.26
 
 require (
 	github.com/disintegration/imaging v1.6.2

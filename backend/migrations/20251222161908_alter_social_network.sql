@@ -1,8 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
-ALTER TABLE user_socials
-    ADD COLUMN discord_id   NUMERIC,
-    ADD COLUMN google_id    NUMERIC;
+ALTER TABLE user_socials ADD COLUMN IF NOT EXISTS discord_id NUMERIC;
+ALTER TABLE user_socials ADD COLUMN IF NOT EXISTS google_id NUMERIC;
 -- +goose StatementEnd
 
 -- +goose Down

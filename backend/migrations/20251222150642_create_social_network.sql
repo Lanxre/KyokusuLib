@@ -3,10 +3,10 @@
 CREATE TABLE IF NOT EXISTS user_socials (
     user_id INTEGER PRIMARY KEY,
 
-    discord_id TYPE NUMERIC USING discord_id::TEXT::NUMERIC,
+    discord_id NUMERIC,
     is_discord_connected BOOLEAN DEFAULT FALSE,
     
-    google_id TYPE NUMERIC USING discord_id::TEXT::NUMERIC,
+    google_id NUMERIC,
     is_google_connected BOOLEAN DEFAULT FALSE,
     
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

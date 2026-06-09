@@ -8,8 +8,8 @@ import { ref } from "vue";
 
 export function useSocialNetworkSettings() {
 	const { notify } = useNotificationStore();
-	// const config = useRuntimeConfig();
-	const apiBase = 'http://localhost:8080' // config.public.apiBase;
+	const config = useRuntimeConfig();
+	const apiBase = config.public.apiBase || "";
 
 	const socialNetworkData = ref<SocialNewtworkSettings>({
 		is_discord_connected: false,

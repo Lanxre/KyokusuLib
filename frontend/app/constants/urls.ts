@@ -4,10 +4,9 @@ import { ACTIVITY_TYPES } from "./user-activity";
 export function getApiBase() {
 	try {
 		const config = useRuntimeConfig();
-		// return config.public.apiBase;
-    return "http://localhost:8080";
+		return config.public.apiBase;
 	} catch (e) {
-		return "http://localhost:8080";
+		return "";
 	}
 }
 

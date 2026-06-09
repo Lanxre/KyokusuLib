@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: kyokusu_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: kyokusudb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kyokusu_backend
+    environment:
+      - DATABASE_URL=postgres://postgres:password@db:5432/kyokusudb?sslmode=disable
+      - SERVER_ADDRESS=:8080
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - BACKEND_URL=${BACKEND_URL:-http://localhost:8080}
+      - JWT_SECRET=${JWT_SECRET:-your_jwt_secret}
+      # OAuth and Email settings should be set in .env or here
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URL=${GOOGLE_REDIRECT_URL:-http://localhost:8080/api/auth/google/callback}
+      - SOCIAL_GOOGLE_REDIRECT_URL=${SOCIAL_GOOGLE_REDIRECT_URL:-http://localhost:8080/api/socials/google/callback}
+      - DISCORD_CLIENT_URL=${DISCORD_CLIENT_URL:-http://localhost:8080/api/auth/discord/callback}
+      - SOCIAL_DISCORD_CLIENT_URL=${SOCIAL_DISCORD_CLIENT_URL:-http://localhost:8080/api/socials/discord/callback}
+      - STATE=${STATE}
+      - KYOKUSU_EMAIL_NAME=${KYOKUSU_EMAIL_NAME}
+      - KYOKUSU_EMAIL_PASSWORD=${KYOKUSU_EMAIL_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend/uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-http://localhost:8080}
+        - NUXT_API_INTERNAL_URL=${NUXT_API_INTERNAL_URL:-http://backend:8080}
+    container_name: kyokusu_frontend
+    environment:
+      - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-http://localhost:8080}
+      - NUXT_API_INTERNAL_URL=${NUXT_API_INTERNAL_URL:-http://backend:8080}
+      - NITRO_HOST=0.0.0.0
+      - PORT=3000
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:

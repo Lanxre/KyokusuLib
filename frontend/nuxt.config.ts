@@ -17,7 +17,10 @@ export default defineNuxtConfig({
 
   routeRules: {
     "/api/**": { 
-      proxy: (process.env.NUXT_PUBLIC_API_BASE || "http://localhost:8080") + "/api/**" 
+      proxy: (process.env.NUXT_API_INTERNAL_URL || "http://localhost:8080") + "/api/**" 
+    },
+    "/uploads/**": {
+      proxy: (process.env.NUXT_API_INTERNAL_URL || "http://localhost:8080") + "/uploads/**"
     },
   },
 
@@ -67,7 +70,7 @@ export default defineNuxtConfig({
 
 	runtimeConfig: {
 		public: {
-			apiBase: import.meta.env.NUXT_PUBLIC_API_BASE || "http://localhost:8080",
+			apiBase: process.env.NUXT_PUBLIC_API_BASE || "",
 		},
 	},
 

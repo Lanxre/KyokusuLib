@@ -1,0 +1,29 @@
+# Production Caddyfile for KyokusuLib
+# Install Caddy: https://caddyserver.com/docs/install
+# Copy to /etc/caddy/Caddyfile or run: caddy run
+#
+# Requirements:
+#   - Ports 80/443 open
+#   - Domain DNS pointing to this server
+#   - Docker containers running (ports 3000, 8080 published)
+
+kyokusulib.com {
+    # API requests → Go backend (port 8080)
+    @backend path /api/* /uploads/*
+    handle @backend {
+        reverse_proxy localhost:8080
+    }
+
+    # Everything else → Nuxt SSR (port 3000)
+    handle {
+        reverse_proxy localhost:3000
+    }
+
+    # Security headers
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}

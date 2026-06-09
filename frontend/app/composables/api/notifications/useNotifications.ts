@@ -6,9 +6,6 @@ export function useNotifications() {
 	const unreadCount = useState<number>("notifications-unread", () => 0);
 	const stream = useState<EventSource | null>("notifications-stream", () => null);
 
-	const config = useRuntimeConfig();
-	const apiBase = config.public.apiBase.replace(/\/+$/, "");
-
 	let reconnectAttempts = 0;
 	const MAX_RECONNECT_DELAY = 30000;
 
