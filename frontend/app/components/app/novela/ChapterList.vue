@@ -1,18 +1,27 @@
 <script setup lang="ts">
-import { ref, toRef, computed } from "vue";
-import type { NovelaVolume } from "~/types/backend/novela";
+import { computed, ref } from "vue";
+import ModalConfirm from "~/components/common/ModalConfirm.vue";
 import { useNovela } from "~/composables/api/novela/useNovela";
 import { useChapterList } from "~/composables/ui/useChapterList";
-import VolumeTabBar from "./VolumeTabBar.vue";
-import ChapterSearchHeader from "./ChapterSearchHeader.vue";
+import type { NovelaVolume } from "~/types/backend/novela";
 import ChapterListContent from "./ChapterListContent.vue";
+import ChapterSearchHeader from "./ChapterSearchHeader.vue";
 import NovelaAddVolumeModal from "./NovelaAddVolumeModal.vue";
-import ModalConfirm from "~/components/common/ModalConfirm.vue";
+import VolumeTabBar from "./VolumeTabBar.vue";
 
 const props = defineProps<{
 	volumes: NovelaVolume[];
 	canManage?: boolean;
 	novelaId: number;
+}>();
+
+const emit = defineEmits<{
+	"volume-deleted": [volumeId: string];
+	"volume-added": [
+		volume:
+			| { id: string; title: string; number: number; status?: string }
+			| undefined,
+	];
 }>();
 
 const router = useRouter();
@@ -23,7 +32,7 @@ const {
 	sortedVolumes,
 	filteredChapters,
 	setActiveVolume,
-} = useChapterList(toRef(props, "volumes"));
+} = useChapterList(computed(() => props.volumes));
 
 const { deleteVolume } = useNovela();
 const showAddVolumeModal = ref(false);
@@ -39,14 +48,8 @@ function goToAddChapter() {
 
 async function confirmDeleteVolume() {
 	if (!activeVolume.value) return;
+	emit("volume-deleted", activeVolume.value.id);
 	await deleteVolume(props.novelaId, activeVolume.value.id);
-	// Switch to the first remaining volume after deletion
-	const remaining = sortedVolumes.value.filter(
-		(v) => v.id !== activeVolume.value!.id,
-	);
-	if (remaining.length > 0) {
-		setActiveVolume(remaining[0].id);
-	}
 }
 </script>
 
@@ -88,6 +91,7 @@ async function confirmDeleteVolume() {
 			v-model="showAddVolumeModal"
 			:novela-id="novelaId"
 			:volumes="sortedVolumes"
+			@volume-added="(volume: any) => emit('volume-added', volume)"
 		/>
 
 		<ModalConfirm

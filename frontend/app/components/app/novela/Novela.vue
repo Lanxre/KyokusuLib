@@ -1,57 +1,68 @@
 <script setup lang="ts">
 import { useNovela } from "@/composables/api/novela/useNovela";
 import { staticImage } from "@/utils/str";
-
-import NovelaStats from "./NovelaStats.vue";
-import NovelaRating from "./NovelaRating.vue";
+import ModalConfirm from "~/components/common/ModalConfirm.vue";
+import { useReadProgress } from "~/composables/api/novela/useReadProgress";
+import { useUserActivity } from "~/composables/api/profile/useUserActivity";
+import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
+import { $api } from "~/composables/api/useApi";
+import { ACTIVITY_TYPES } from "~/constants/user-activity";
+import { useNotificationStore } from "~/stores/notification";
+import type { NovelaDetails, NovelaVolume } from "~/types/backend/novela";
+import { KyokusuAppRole } from "~/types/enums/role-enum";
+import {
+	type BookmarkCategory,
+	getBookmarkCategoryLabel,
+} from "~/types/frontend/bookmarks";
+import {
+	convToRu,
+	NOVELA_ACTIVE_TABS,
+	type NovelaActiveTabs,
+	NovelaActiveTabsEnum,
+} from "~/types/frontend/novela/novela-active-tabs";
 import ChapterList from "./ChapterList.vue";
-import NovelaSettings from "./NovelaSettings.vue";
-import NovelaRatingStats from "./NovelaRatingStats.vue";
+import NovelaBookmarkButton from "./NovelaBookmarkButton.vue";
 import NovelaBookmarkStats from "./NovelaBookmarkStats.vue";
 import NovelaComments from "./NovelaComments.vue";
-
-import NovelaBookmarkButton from "./NovelaBookmarkButton.vue";
 import NovelaLikeButton from "./NovelaLikeButton.vue";
-import { useUserActivity } from "~/composables/api/profile/useUserActivity";
-import { useReadProgress } from "~/composables/api/novela/useReadProgress";
-import { ACTIVITY_TYPES } from "~/constants/user-activity";
-import { KyokusuAppRole } from "~/types/enums/role-enum";
-import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
-import type { NovelaDetails } from "~/types/backend/novela";
-import { $api } from "~/composables/api/useApi";
-import { useNotificationStore } from "~/stores/notification";
-import ModalConfirm from "~/components/common/ModalConfirm.vue";
-
-import {
-	getBookmarkCategoryLabel,
-	type BookmarkCategory,
-} from "~/types/frontend/bookmarks";
-import { convToRu, NOVELA_ACTIVE_TABS, NovelaActiveTabsEnum, type NovelaActiveTabs } from "~/types/frontend/novela/novela-active-tabs";
+import NovelaRating from "./NovelaRating.vue";
+import NovelaRatingStats from "./NovelaRatingStats.vue";
+import NovelaSettings from "./NovelaSettings.vue";
+import NovelaStats from "./NovelaStats.vue";
 
 const route = useRoute();
 
 const { user } = useAuthStore();
-const { novela, chaptersRefreshKey, fetchNovela } = useNovela();
+const { novela, fetchNovela } = useNovela();
+const chaptersKey = ref(0);
+
 const { createUserActivity } = useUserActivity();
 const { hasPermission } = useRolePermissions();
 const { getContinueReadingUrl, getLastReadChapterNumber } = useReadProgress();
 
 const continueReadingUrl = computed(() =>
-	novela.value ? getContinueReadingUrl(novela.value) : null
+	novela.value ? getContinueReadingUrl(novela.value) : null,
 );
 
 const lastReadChapterLabel = computed(() => {
-  if (!novela.value?.last_readed?.chapter_id) return null;
+	if (!novela.value?.last_readed?.chapter_id) return null;
 	return `Глава ${novela.value.last_readed.chapter_number}`;
 });
 
-const activeTab = ref<NovelaActiveTabs>(route.query.tab === NovelaActiveTabsEnum.COMMENTS ? NovelaActiveTabsEnum.COMMENTS : NovelaActiveTabsEnum.ABOUT);
+const activeTab = ref<NovelaActiveTabs>(
+	route.query.tab === NovelaActiveTabsEnum.COMMENTS
+		? NovelaActiveTabsEnum.COMMENTS
+		: NovelaActiveTabsEnum.ABOUT,
+);
 
 const novelaId = computed(() => route.params.id as string);
 
-await useAsyncData(`novela-${novelaId.value}`, () =>
-	fetchNovela(novelaId.value),
-);
+await useAsyncData(`novela-${novelaId.value}`, () => {
+	if (novela.value?.id === Number(novelaId.value)) {
+		return Promise.resolve(novela.value);
+	}
+	return fetchNovela(novelaId.value);
+});
 const bookmarkInitial = ref(Boolean(novela.value?.bookmark));
 const currentBookmarkCategory = ref(novela.value?.bookmark || null);
 const isOpenNovelaSettings = ref(false);
@@ -91,7 +102,7 @@ const totalChapters = computed(() => {
 const novelaInfo = computed(() => [
 	{ label: "Статус", value: novela.value?.status },
 	{ label: "Перевод", value: novela.value?.translation_status },
-	{ label: "Страна", value: novela.value?.country }
+	{ label: "Страна", value: novela.value?.country },
 ]);
 
 const updateCountBookmarks = async (newCategory: BookmarkCategory | null) => {
@@ -249,10 +260,41 @@ const toggleSection = (name: string) => {
 	}
 };
 
+function onVolumeDeleted(volumeId: string) {
+	chaptersKey.value++;
+	if (novela.value) {
+		Object.assign(novela.value, {
+			volumes: novela.value.volumes.filter((v) => v.id !== volumeId),
+		});
+	}
+}
 
-watch(() => route.query.tab, (newTab) => {
-    if (newTab === NovelaActiveTabsEnum.COMMENTS) activeTab.value = NovelaActiveTabsEnum.COMMENTS;
-});
+function onVolumeAdded(volumeData?: {
+	id: string;
+	title: string;
+	number: number;
+	status?: string;
+}) {
+	chaptersKey.value++;
+	if (novela.value && volumeData) {
+		const newVolume: NovelaVolume = {
+			id: volumeData.id,
+			title: volumeData.title,
+			number: volumeData.number,
+			status: volumeData.status,
+			chapters: [],
+		};
+		novela.value.volumes.push(newVolume);
+	}
+}
+
+watch(
+	() => route.query.tab,
+	(newTab) => {
+		if (newTab === NovelaActiveTabsEnum.COMMENTS)
+			activeTab.value = NovelaActiveTabsEnum.COMMENTS;
+	},
+);
 </script>
 
 <template>
@@ -415,7 +457,7 @@ watch(() => route.query.tab, (newTab) => {
                                     @click="activeTab = tab as any"
                                 >
                                     {{ convToRu(tab) }}
-                                    <span v-if="tab === NovelaActiveTabsEnum.CHAPTERS" class="ml-2 text-lg opacity-50">{{ totalChapters }}</span>
+                                    <span v-if="tab === NovelaActiveTabsEnum.CHAPTERS" class="ml-2 text-lg opacity-50">({{ totalChapters }})</span>
                                     <div v-if="activeTab === tab" class="absolute bottom-0 left-0 w-full h-1 bg-yellow-500 rounded-t-full"></div>
                                 </button>
                             </div>
@@ -437,10 +479,12 @@ watch(() => route.query.tab, (newTab) => {
                                 </div>
                                 <div v-else-if="activeTab === NovelaActiveTabsEnum.CHAPTERS" :key="NovelaActiveTabsEnum.CHAPTERS">
                                     <ChapterList
-                                        :key="`chapters-${chaptersRefreshKey}`"
+                                        :key="`chapters-${chaptersKey}`"
                                         :volumes="novela.volumes" 
                                         :can-manage="!!user"
                                         :novela-id="novela.id"
+                                        @volume-deleted="onVolumeDeleted"
+                                        @volume-added="onVolumeAdded"
                                     />
                                 </div>
                                 <div v-else-if="activeTab === NovelaActiveTabsEnum.COMMENTS" :key="NovelaActiveTabsEnum.COMMENTS">

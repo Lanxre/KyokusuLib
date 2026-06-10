@@ -1,11 +1,10 @@
-import { useApi, $api } from "~/composables/api/useApi";
 import type { NovelaDetails } from "@/types/backend/novela";
+import { $api, useApi } from "~/composables/api/useApi";
 import { useNotificationStore } from "~/stores/notification";
 import type { NovelsQueryParams } from "~/types/frontend/query/novela-query";
 
 export function useNovela() {
 	const novela = useState<NovelaDetails | null>("novela-data", () => null);
-	const chaptersRefreshKey = useState("novela-chapters-refresh", () => 0);
 	const { notify } = useNotificationStore();
 	const isLoading = useState("novela-loading", () => false);
 	const isUpdating = useState("novela-updating", () => false);
@@ -61,34 +60,45 @@ export function useNovela() {
 		}
 	};
 
-	const addVolume = async (novelaId: number, volumeNumber: number, title: string) => {
+	const addVolume = async (
+		novelaId: number,
+		volumeNumber: number,
+		title: string,
+	) => {
 		try {
-			const res = await $api<{message: string}>(`/api/novela/${novelaId}/volumes`, {
-				method: "POST",
-				body: { volume_number: volumeNumber, title },
-			});
+			const res = await $api<{ id: string; message: string; status: string }>(
+				`/api/novela/${novelaId}/volumes`,
+				{
+					method: "POST",
+					body: { volume_number: volumeNumber, title },
+				},
+			);
 			notify({
 				type: "success",
 				title: "Успех",
 				content: res.message || "Том успешно добавлен",
 			});
-			await fetchNovela(novelaId);
+			return { id: res.id, title, number: volumeNumber, status: res.status };
 		} catch (e) {
 			console.error(e);
 		}
 	};
 
-	const addChapter = async (novelaId: number, volumeId: string | number, chapterNumber: number, title: string, content: string) => {
+	const addChapter = async (
+		novelaId: number,
+		volumeId: string | number,
+		chapterNumber: number,
+		title: string,
+		content: string,
+	) => {
 		try {
-			const res = await $api<{id: string; message: string; status: string}>(`/api/novela/volumes/${volumeId}/chapters`, {
-				method: "POST",
-				body: { chapter_number: chapterNumber, title, content },
-			});
-			notify({
-				type: "success",
-				title: "Успех",
-				content: res.message || "Глава успешно добавлена",
-			});
+			const res = await $api<{ id: string; message: string; status: string }>(
+				`/api/novela/volumes/${volumeId}/chapters`,
+				{
+					method: "POST",
+					body: { chapter_number: chapterNumber, title, content },
+				},
+			);
 			await fetchNovela(novelaId);
 			return res;
 		} catch (e) {
@@ -96,7 +106,12 @@ export function useNovela() {
 		}
 	};
 
-	const addChapterImage = async (chapterId: string, imageUrl: string, caption: string, position: number) => {
+	const addChapterImage = async (
+		chapterId: string,
+		imageUrl: string,
+		caption: string,
+		position: number,
+	) => {
 		try {
 			await $api(`/api/novela/chapters/${chapterId}/images`, {
 				method: "POST",
@@ -117,8 +132,6 @@ export function useNovela() {
 		}
 	};
 
-	function bumpRefreshKey() { chaptersRefreshKey.value++; }
-
 	const deleteVolume = async (novelaId: number, volumeId: string) => {
 		try {
 			await $api(`/api/novela/volumes/${volumeId}`, {
@@ -131,8 +144,6 @@ export function useNovela() {
 					volumes: novela.value.volumes.filter((v) => v.id !== volumeId),
 				};
 			}
-			bumpRefreshKey();
-
 			notify({
 				type: "success",
 				title: "Успех",
@@ -159,8 +170,6 @@ export function useNovela() {
 					})),
 				};
 			}
-			bumpRefreshKey();
-
 			notify({
 				type: "success",
 				title: "Успех",
@@ -172,7 +181,13 @@ export function useNovela() {
 		}
 	};
 
-	const updateChapter = async (novelaId: number, chapterId: string, chapterNumber: number, title: string, content: string) => {
+	const updateChapter = async (
+		novelaId: number,
+		chapterId: string,
+		chapterNumber: number,
+		title: string,
+		content: string,
+	) => {
 		try {
 			await $api(`/api/novela/chapters/${chapterId}`, {
 				method: "PUT",
@@ -185,13 +200,13 @@ export function useNovela() {
 					volumes: novela.value.volumes.map((volume) => ({
 						...volume,
 						chapters: volume.chapters.map((c) =>
-							c.id === chapterId ? { ...c, title, number: chapterNumber, content } : c,
+							c.id === chapterId
+								? { ...c, title, number: chapterNumber, content }
+								: c,
 						),
 					})),
 				};
 			}
-			bumpRefreshKey();
-
 			notify({
 				type: "success",
 				title: "Успех",
@@ -205,7 +220,6 @@ export function useNovela() {
 
 	return {
 		novela,
-		chaptersRefreshKey,
 		isLoading,
 		isUpdating,
 		fetchNovela,

@@ -1,43 +1,66 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { ModalWindow } from "@kyokusu-ui/vue";
-import { useNovela } from "~/composables/api/novela/useNovela";
-
+import { ref, watch } from "vue";
 import type { NovelaVolume } from "@/types/backend/novela";
+import { useNovela } from "~/composables/api/novela/useNovela";
 
 defineOptions({ inheritAttrs: false });
 
 const props = defineProps<{
-    modelValue: boolean;
-    novelaId: number;
-    volumes: NovelaVolume[];
+	modelValue: boolean;
+	novelaId: number;
+	volumes: NovelaVolume[];
 }>();
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue", "volume-added"]);
 
 const { addVolume } = useNovela();
 const loading = ref(false);
 
-const volumeNumber = ref<number>(1);
 const title = ref("");
 
-const handleSubmit = async () => {
-    loading.value = true;
-    try {
-        await addVolume(props.novelaId, volumeNumber.value, title.value);
-        emit("update:modelValue", false);
-        volumeNumber.value = 1;
-        title.value = "";
-    } finally {
-        loading.value = false;
-    }
-};
-
 const maxVolumeNumber = computed(() => {
-  if (props.volumes === undefined) return 0;
-  return props.volumes[props.volumes.length - 1]?.number! + 1;
+	if (!props.volumes || props.volumes.length === 0) return 1;
+	const numbers = props.volumes.map((v) => v.number);
+	return Math.max(...numbers) + 1;
 });
 
+const volumeNumber = ref(maxVolumeNumber.value);
+
+watch(maxVolumeNumber, (next) => {
+	if (next > volumeNumber.value) {
+		volumeNumber.value = next;
+	}
+});
+
+watch(
+	() => props.modelValue,
+	(open) => {
+		if (open) {
+			volumeNumber.value = maxVolumeNumber.value;
+			title.value = "";
+		}
+	},
+);
+
+const handleSubmit = async () => {
+	loading.value = true;
+	try {
+		const volume = await addVolume(
+			props.novelaId,
+			volumeNumber.value,
+			title.value,
+		);
+		if (volume) {
+			emit("volume-added", volume);
+		} else {
+			emit("volume-added");
+		}
+		emit("update:modelValue", false);
+	} finally {
+		loading.value = false;
+	}
+};
 </script>
 
 <template>
@@ -55,7 +78,7 @@ const maxVolumeNumber = computed(() => {
                         Номер тома
                 </label>
                 <input
-                    v-model.number="maxVolumeNumber"
+                    v-model.number="volumeNumber"
                     type="number"
                     :min="maxVolumeNumber"
                     class="w-full px-4 py-2 bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-yellow-500 transition-all"

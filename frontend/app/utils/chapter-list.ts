@@ -4,8 +4,8 @@ export function sortVolumesAscending(volumes: NovelaVolume[]): NovelaVolume[] {
 	return [...volumes].sort((a, b) => a.number - b.number);
 }
 
-export function sortChaptersDescending(chapters: NovelaChapter[]): NovelaChapter[] {
-	return [...chapters].sort((a, b) => b.number - a.number);
+export function sortChaptersAscending(chapters: NovelaChapter[]): NovelaChapter[] {
+	return [...chapters].sort((a, b) => a.number - b.number);
 }
 
 export function filterChaptersByQuery(chapters: NovelaChapter[], query: string): NovelaChapter[] {
