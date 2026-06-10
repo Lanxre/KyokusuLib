@@ -122,7 +122,7 @@ const {
                             id="novela-type"
                             label="Тип"
                             v-model="form.type"
-                            :selects="NOVELA_TYPES"
+                            :options="NOVELA_TYPES"
                             placeholder="Выберите тип"
                             :disabled="isLoading"
                             :error="errors.type"
@@ -132,7 +132,7 @@ const {
                             id="novela-age"
                             label="Возрастной рейтинг"
                             v-model="form.ageRating"
-                            :selects="AGE_RATINGS"
+                            :options="AGE_RATINGS"
                             placeholder="Выберите рейтинг"
                             :disabled="isLoading"
                             :error="errors.ageRating"
@@ -153,7 +153,7 @@ const {
                             id="novela-status"
                             label="Статус тайтла"
                             v-model="form.status"
-                            :selects="NOVELA_STATUSES"
+                            :options="NOVELA_STATUSES"
                             placeholder="Онгоинг / Завершен"
                             :disabled="isLoading"
                             :error="errors.status"
@@ -163,7 +163,7 @@ const {
                             id="novela-tl-status"
                             label="Статус перевода"
                             v-model="form.translationStatus"
-                            :selects="TRANSLATION_STATUSES"
+                            :options="TRANSLATION_STATUSES"
                             placeholder="Продолжается / Заморожен"
                             :disabled="isLoading"
                             :error="errors.translationStatus"
@@ -172,13 +172,12 @@ const {
                             id="novela-country"
                             label="Страна"
                             v-model="form.country"
-                            :selects="COUNTRIES_LIST"
+                            :options="COUNTRIES_LIST"
                             placeholder="Выберите страну"
                             :disabled="isLoading"
                             :error="errors.country"
                         />
 
-                        <!-- Tags & Categories (Full width) -->
                         <div class="md:col-span-2 space-y-6">
                             <BaseMultiSelect
                                 id="novela-genres"
