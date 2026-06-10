@@ -748,6 +748,12 @@ func (r *NovelaRepository) DeleteChapter(ctx context.Context, chapterID string) 
 	return err
 }
 
+func (r *NovelaRepository) DeleteVolume(ctx context.Context, volumeID string) error {
+	query := `DELETE FROM novela_volumes WHERE id = $1`
+	_, err := r.DB.ExecContext(ctx, query, volumeID)
+	return err
+}
+
 func (r *NovelaRepository) GetTitleByID(ctx context.Context, id int) (string, error) {
 	query := `SELECT title FROM novela WHERE id = $1`
 	var title string

@@ -408,6 +408,29 @@ func (s *NovelaService) UpdateChapter(ctx context.Context, chapterID string, use
 	return s.Repo.UpdateChapter(ctx, chapterID, req.ChapterNumber, req.Title, req.Content)
 }
 
+func (s *NovelaService) DeleteVolume(ctx context.Context, volumeID string, userID int) error {
+	novelaID, err := s.Repo.GetNovelaIDByVolumeID(ctx, volumeID)
+	if err != nil {
+		return err
+	}
+
+	user, err := s.UserRepo.GetByID(userID)
+	if err != nil {
+		return err
+	}
+
+	hasTeamPermission, err := s.Repo.CheckUserNovelaTeamPermission(ctx, userID, novelaID)
+	if err != nil {
+		return err
+	}
+
+	if user.Role != "admin" && user.Role != "moderator" && !hasTeamPermission {
+		return errors.New("forbidden: you do not have permission to delete this volume")
+	}
+
+	return s.Repo.DeleteVolume(ctx, volumeID)
+}
+
 func (s *NovelaService) DeleteChapter(ctx context.Context, chapterID string, userID int) error {
 	canManage, err := s.canManageChapter(ctx, userID, chapterID)
 	if err != nil {

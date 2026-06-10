@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, toRef } from "vue";
+import { ref, toRef, computed } from "vue";
 import type { NovelaVolume } from "~/types/backend/novela";
+import { useNovela } from "~/composables/api/novela/useNovela";
 import { useChapterList } from "~/composables/ui/useChapterList";
 import VolumeTabBar from "./VolumeTabBar.vue";
 import ChapterSearchHeader from "./ChapterSearchHeader.vue";
 import ChapterListContent from "./ChapterListContent.vue";
 import NovelaAddVolumeModal from "./NovelaAddVolumeModal.vue";
+import ModalConfirm from "~/components/common/ModalConfirm.vue";
 
 const props = defineProps<{
 	volumes: NovelaVolume[];
@@ -23,10 +25,28 @@ const {
 	setActiveVolume,
 } = useChapterList(toRef(props, "volumes"));
 
+const { deleteVolume } = useNovela();
 const showAddVolumeModal = ref(false);
+const showDeleteVolumeConfirm = ref(false);
+
+const activeVolume = computed(() =>
+	sortedVolumes.value.find((v) => v.id === activeVolumeId.value),
+);
 
 function goToAddChapter() {
 	router.push(`/novela/${props.novelaId}/add-chapter`);
+}
+
+async function confirmDeleteVolume() {
+	if (!activeVolume.value) return;
+	await deleteVolume(props.novelaId, activeVolume.value.id);
+	// Switch to the first remaining volume after deletion
+	const remaining = sortedVolumes.value.filter(
+		(v) => v.id !== activeVolume.value!.id,
+	);
+	if (remaining.length > 0) {
+		setActiveVolume(remaining[0].id);
+	}
 }
 </script>
 
@@ -47,6 +67,20 @@ function goToAddChapter() {
 			/>
 		</div>
 
+		<div
+			v-if="canManage && activeVolume"
+			class="flex items-center gap-2 text-xs text-zinc-500"
+		>
+			<button
+				type="button"
+				class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+				@click="showDeleteVolumeConfirm = true"
+			>
+				<Icon name="ph:trash-bold" size="14" />
+				Удалить том {{ activeVolume.number }}
+			</button>
+		</div>
+
 		<ChapterListContent :chapters="filteredChapters" :novela-id="novelaId" />
 
 		<NovelaAddVolumeModal
@@ -54,6 +88,16 @@ function goToAddChapter() {
 			v-model="showAddVolumeModal"
 			:novela-id="novelaId"
 			:volumes="sortedVolumes"
+		/>
+
+		<ModalConfirm
+			v-if="activeVolume"
+			v-model="showDeleteVolumeConfirm"
+			title="Удаление тома"
+			:description="`Вы уверены, что хотите удалить том ${activeVolume.number} «${activeVolume.title || 'Без названия'}»? Все главы и изображения этого тома будут безвозвратно удалены.`"
+			confirm-text="Удалить"
+			cancel-text="Отмена"
+			@confirm="confirmDeleteVolume"
 		/>
 	</div>
 </template>

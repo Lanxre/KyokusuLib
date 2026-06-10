@@ -119,6 +119,31 @@ export function useNovela() {
 
 	function bumpRefreshKey() { chaptersRefreshKey.value++; }
 
+	const deleteVolume = async (novelaId: number, volumeId: string) => {
+		try {
+			await $api(`/api/novela/volumes/${volumeId}`, {
+				method: "DELETE",
+			});
+
+			if (novela.value) {
+				novela.value = {
+					...novela.value,
+					volumes: novela.value.volumes.filter((v) => v.id !== volumeId),
+				};
+			}
+			bumpRefreshKey();
+
+			notify({
+				type: "success",
+				title: "Успех",
+				content: "Том успешно удален",
+			});
+			await fetchNovela(novelaId);
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
 	const deleteChapter = async (novelaId: number, chapterId: string) => {
 		try {
 			await $api(`/api/novela/chapters/${chapterId}`, {
@@ -187,6 +212,7 @@ export function useNovela() {
 		fetchNovels,
 		updateNovela,
 		addVolume,
+		deleteVolume,
 		addChapter,
 		addChapterImage,
 		deleteChapterImages,

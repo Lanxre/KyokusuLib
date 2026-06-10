@@ -581,6 +581,18 @@ func (h *NovelaHandler) UpdateChapter(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusOK, map[string]string{"message": "Глава успешно обновлена"})
 }
 
+func (h *NovelaHandler) DeleteVolume(w http.ResponseWriter, r *http.Request) {
+	volumeID := mux.Vars(r)["id"]
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
+
+	if err := h.service.DeleteVolume(r.Context(), volumeID, userID); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.JSON(w, http.StatusOK, map[string]string{"message": "Том успешно удален"})
+}
+
 func (h *NovelaHandler) DeleteChapter(w http.ResponseWriter, r *http.Request) {
 	chapterID := mux.Vars(r)["id"]
 	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
