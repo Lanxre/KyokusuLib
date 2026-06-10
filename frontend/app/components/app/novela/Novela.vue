@@ -57,12 +57,9 @@ const activeTab = ref<NovelaActiveTabs>(
 
 const novelaId = computed(() => route.params.id as string);
 
-await useAsyncData(`novela-${novelaId.value}`, () => {
-	if (novela.value?.id === Number(novelaId.value)) {
-		return Promise.resolve(novela.value);
-	}
-	return fetchNovela(novelaId.value);
-});
+await useAsyncData(`novela-${novelaId.value}`, () =>
+	fetchNovela(novelaId.value),
+);
 const bookmarkInitial = ref(Boolean(novela.value?.bookmark));
 const currentBookmarkCategory = ref(novela.value?.bookmark || null);
 const isOpenNovelaSettings = ref(false);

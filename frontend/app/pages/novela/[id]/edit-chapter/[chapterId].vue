@@ -14,7 +14,7 @@ const chapterId = route.params.chapterId as string;
 
 const { novela, fetchNovela, updateChapter, deleteChapterImages, addChapterImage } = useNovela();
 
-await useAsyncData(`novela-${novelaId}`, () => fetchNovela(novelaId));
+await useAsyncData(`novela-edit-chapter-${novelaId}`, () => fetchNovela(novelaId));
 
 const { data: chapterData } = await useAsyncData(`chapter-${chapterId}`, () =>
   $api<ChapterReaderResponse>(`/api/novela/chapters/${chapterId}`),

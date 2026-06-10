@@ -99,7 +99,6 @@ export function useNovela() {
 					body: { chapter_number: chapterNumber, title, content },
 				},
 			);
-			await fetchNovela(novelaId);
 			return res;
 		} catch (e) {
 			console.error(e);

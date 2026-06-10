@@ -6,6 +6,7 @@ import { useChapterEditor } from "~/composables/ui/useChapterEditor";
 import { useImageUpload } from "~/composables/ui/useImageUpload";
 import { useChapterSubmit } from "~/composables/ui/useChapterSubmit";
 import { getLastChapterNumberForVolume } from "~/utils/chapter";
+import type { NovelaChapter } from "~/types/backend/novela";
 import { Select as BaseSelect } from "@kyokusu-ui/vue";
 import ChapterEditorBlock from "~/components/app/novela/ChapterEditorBlock.vue";
 import ImagePreviewModal from "~/components/app/novela/ImagePreviewModal.vue";
@@ -19,7 +20,7 @@ const { novela, fetchNovela } = useNovela();
 const draftStore = useChapterDraftStore();
 const existingDraft = draftStore.getDraft(novelaId);
 
-await useAsyncData(`novela-${novelaId}`, () => fetchNovela(novelaId));
+await useAsyncData(`novela-add-chapter-${novelaId}`, () => fetchNovela(novelaId));
 
 const volumes = computed(() => novela.value?.volumes ?? []);
 
@@ -143,6 +144,20 @@ async function onSubmit() {
   );
   if (res) {
     draftStore.clearDraft(novelaId);
+    if (novela.value) {
+      const volume = novela.value.volumes.find((v) => v.id === selectedVolumeId.value);
+      if (volume) {
+        const newChapter: NovelaChapter = {
+          id: res.id,
+          title: chapterTitle.value || `Глава ${chapterNumber.value}`,
+          number: chapterNumber.value,
+          status: res.status,
+          content: "",
+          images: [],
+        };
+        volume.chapters.push(newChapter);
+      }
+    }
     router.push(`/novela/${novelaId}`);
   }
 }
