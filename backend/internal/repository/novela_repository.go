@@ -421,8 +421,8 @@ func (r *NovelaRepository) CreateChapter(ctx context.Context, volumeID string, c
 func (r *NovelaRepository) GetChapterByID(ctx context.Context, chapterID string) (*db.NovelaChapter, error) {
 	ch := &db.NovelaChapter{}
 
-	query := `SELECT id, title, chapter_number, content FROM novela_chapters WHERE id = $1`
-	err := r.DB.QueryRowContext(ctx, query, chapterID).Scan(&ch.ID, &ch.Title, &ch.Number, &ch.Content)
+	query := `SELECT id, novela_volume_id, title, chapter_number, content FROM novela_chapters WHERE id = $1`
+	err := r.DB.QueryRowContext(ctx, query, chapterID).Scan(&ch.ID, &ch.VolumeID, &ch.Title, &ch.Number, &ch.Content)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -463,7 +463,7 @@ func (r *NovelaRepository) GetChapterReaderDetails(ctx context.Context, chapterI
 			WHERE c.id = $1
 		)
 		SELECT 
-			c.id, c.title, c.chapter_number, c.content, cc.novela_id, cc.novela_title, cc.volume_number,
+			c.id, c.title, c.chapter_number, c.content, c.novela_volume_id, cc.novela_id, cc.novela_title, cc.volume_number,
 			COALESCE((SELECT rc.scroll_position FROM read_chapters rc WHERE rc.chapter_id = c.id AND rc.user_id = $2), 0),
 			(SELECT c2.id 
 			 FROM novela_chapters c2 
@@ -488,7 +488,7 @@ func (r *NovelaRepository) GetChapterReaderDetails(ctx context.Context, chapterI
 		JOIN current_chapter cc ON c.id = cc.id`
 
 	err := r.DB.QueryRowContext(ctx, query, chapterID, userID).Scan(
-		&res.ID, &res.Title, &res.Number, &res.Content, &res.NovelaID, &res.NovelaTitle, &res.VolumeNumber,
+		&res.ID, &res.Title, &res.Number, &res.Content, &res.VolumeID, &res.NovelaID, &res.NovelaTitle, &res.VolumeNumber,
 		&res.ScrollPosition,
 		&res.PrevChapterID, &res.NextChapterID,
 	)
@@ -723,11 +723,29 @@ func (r *NovelaRepository) AddChapter(ctx context.Context, volumeID string, chap
 	return id, err
 }
 
+func (r *NovelaRepository) DeleteChapterImages(ctx context.Context, chapterID string) error {
+	query := `DELETE FROM novela_chapter_images WHERE chapter_id = $1`
+	_, err := r.DB.ExecContext(ctx, query, chapterID)
+	return err
+}
+
 func (r *NovelaRepository) AddChapterImage(ctx context.Context, chapterID string, imageURL, caption string, position int) (int, error) {
 	query := `INSERT INTO novela_chapter_images (chapter_id, image_url, caption, position) VALUES ($1, $2, $3, $4) RETURNING id`
 	var id int
 	err := r.DB.QueryRowContext(ctx, query, chapterID, imageURL, caption, position).Scan(&id)
 	return id, err
+}
+
+func (r *NovelaRepository) UpdateChapter(ctx context.Context, chapterID string, chapterNumber float64, title, content string) error {
+	query := `UPDATE novela_chapters SET chapter_number = $1, title = $2, content = $3 WHERE id = $4`
+	_, err := r.DB.ExecContext(ctx, query, chapterNumber, title, content, chapterID)
+	return err
+}
+
+func (r *NovelaRepository) DeleteChapter(ctx context.Context, chapterID string) error {
+	query := `DELETE FROM novela_chapters WHERE id = $1`
+	_, err := r.DB.ExecContext(ctx, query, chapterID)
+	return err
 }
 
 func (r *NovelaRepository) GetTitleByID(ctx context.Context, id int) (string, error) {

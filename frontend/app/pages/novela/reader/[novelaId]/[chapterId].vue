@@ -7,10 +7,13 @@ import ReaderSettings from "~/components/app/novela/ReaderSettings.vue";
 import ReaderTOC from "~/components/app/novela/ReaderTOC.vue";
 import { useInfiniteScroll, useEventListener } from "@vueuse/core";
 import { Tooltip } from "@kyokusu-ui/vue";
+import { useRolePermissions } from "@/composables/api/role/useRolePermissions";
+import { KyokusuAppRole } from "~/types/enums/role-enum";
 
 const route = useRoute();
 const { chapters, isLoading, isAppending, fetchChapter } = useReader();
 const { fontSize, fontFamily, lineWeight, isAutoScrollEnabled } = useReaderSettings();
+const { hasPermission } = useRolePermissions();
 
 const novelaId = computed(() => route.params.novelaId as string);
 const chapterId = computed(() => route.params.chapterId as string);
@@ -129,10 +132,15 @@ const textColor = ref("text-zinc-900 dark:text-zinc-200");
 	<div class="min-h-screen transition-colors duration-300" :class="backgroundColor">
 		<header class="sticky z-30 top-20.5 md:top-22.5 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
 			<div class="max-w-5xl mx-auto px-4 h-16 grid grid-cols-[auto_1fr_auto] items-center gap-4">
-				<div class="flex items-center justify-start mt-1">
-					<Tooltip text="Вернуться к описанию" position="right">
+				<div class="flex items-center gap-6 justify-start mt-1">
+					<Tooltip text="Вернуться к описанию" position="left">
 						<NuxtLink :to="`/novela/${novelaId}`" class="rounded-xl transition-colors shrink-0">
 							<Icon name="ph:arrow-left-bold" size="20" />
+						</NuxtLink>
+					</Tooltip>
+					<Tooltip v-if="hasPermission(KyokusuAppRole.MODERATOR)" text="Редактирование" position="right">
+						<NuxtLink :to="`/novela/${novelaId}/edit-chapter/${chapterId}`" class="rounded-xl transition-colors shrink-0">
+							<Icon name="ph:pencil-bold" size="20" />
 						</NuxtLink>
 					</Tooltip>
 				</div>
@@ -189,10 +197,10 @@ const textColor = ref("text-zinc-900 dark:text-zinc-200");
 						></div>
 
 						<div v-if="ch.images !== null && ch.images?.length" class="mt-12 space-y-8">
-							<div v-for="img in ch.images" :key="img.id" class="flex flex-col items-center gap-2">
-								<img :src="staticImage(img.image_url)" :alt="img.caption" class="w-full max-w-md h-full object-cover rounded-xl shadow-lg cursor-pointer" @click="openLightbox(staticImage(img.image_url))" />
-								<p v-if="img.caption" class="text-sm text-zinc-500 italic">{{ img.caption }}</p>
-							</div>
+							<figure v-for="img in ch.images" :key="img.id" class="text-center">
+								<img :src="staticImage(img.image_url)" :alt="img.caption" class="block w-full max-w-md h-full mx-auto object-cover rounded-xl shadow-lg cursor-pointer" @click="openLightbox(staticImage(img.image_url))" />
+								<figcaption v-if="img.caption" class="text-sm text-zinc-500 italic mt-2">{{ img.caption }}</figcaption>
+							</figure>
 						</div>
 					</article>
 				</div>

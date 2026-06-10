@@ -530,6 +530,15 @@ func (h *NovelaHandler) AddChapter(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusCreated, map[string]any{"id": id, "message": msg, "status": status})
 }
 
+func (h *NovelaHandler) DeleteChapterImages(w http.ResponseWriter, r *http.Request) {
+	chapterID := mux.Vars(r)["id"]
+	if err := h.service.DeleteChapterImages(r.Context(), chapterID); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.JSON(w, http.StatusOK, map[string]string{"message": "Images deleted"})
+}
+
 func (h *NovelaHandler) AddChapterImage(w http.ResponseWriter, r *http.Request) {
 	chapterID := mux.Vars(r)["id"]
 	var req dto.AddChapterImageRequest
@@ -547,6 +556,41 @@ func (h *NovelaHandler) AddChapterImage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	response.JSON(w, http.StatusCreated, map[string]any{"id": id, "message": "Image added"})
+}
+
+func (h *NovelaHandler) UpdateChapter(w http.ResponseWriter, r *http.Request) {
+	chapterID := mux.Vars(r)["id"]
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
+
+	var req dto.AddChapterRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if err := h.Validator.Struct(req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Validation error: "+err.Error())
+		return
+	}
+
+	if err := h.service.UpdateChapter(r.Context(), chapterID, userID, req); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.JSON(w, http.StatusOK, map[string]string{"message": "Глава успешно обновлена"})
+}
+
+func (h *NovelaHandler) DeleteChapter(w http.ResponseWriter, r *http.Request) {
+	chapterID := mux.Vars(r)["id"]
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
+
+	if err := h.service.DeleteChapter(r.Context(), chapterID, userID); err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.JSON(w, http.StatusOK, map[string]string{"message": "Глава успешно удалена"})
 }
 
 func (h *NovelaHandler) DeleteNovela(w http.ResponseWriter, r *http.Request) {

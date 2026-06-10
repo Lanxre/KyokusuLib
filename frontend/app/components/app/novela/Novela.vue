@@ -31,7 +31,7 @@ import { convToRu, NOVELA_ACTIVE_TABS, NovelaActiveTabsEnum, type NovelaActiveTa
 const route = useRoute();
 
 const { user } = useAuthStore();
-const { novela, fetchNovela } = useNovela();
+const { novela, chaptersRefreshKey, fetchNovela } = useNovela();
 const { createUserActivity } = useUserActivity();
 const { hasPermission } = useRolePermissions();
 const { getContinueReadingUrl, getLastReadChapterNumber } = useReadProgress();
@@ -342,7 +342,7 @@ watch(() => route.query.tab, (newTab) => {
                                 </div>
                                <div 
                                     v-if="hasPermission(KyokusuAppRole.MODERATOR)" 
-                                    class="flex items-start mt-4.5 w-auto gap-6 mr-12"
+                                    class="flex items-start mt-4.5 w-auto gap-6 md:ml-12"
                                 >
                                         <button 
                                             class="p-2 -m-4 cursor-pointer group outline-none"
@@ -436,7 +436,8 @@ watch(() => route.query.tab, (newTab) => {
                                     </div>
                                 </div>
                                 <div v-else-if="activeTab === NovelaActiveTabsEnum.CHAPTERS" :key="NovelaActiveTabsEnum.CHAPTERS">
-                                    <ChapterList 
+                                    <ChapterList
+                                        :key="`chapters-${chaptersRefreshKey}`"
                                         :volumes="novela.volumes" 
                                         :can-manage="!!user"
                                         :novela-id="novela.id"
@@ -459,7 +460,7 @@ watch(() => route.query.tab, (newTab) => {
         <NovelaSettings
             v-if="hasPermission(KyokusuAppRole.MODERATOR)"
             v-model="isOpenNovelaSettings"
-            :novela="novela"
+            :novela="novela!"
             @updated="updatedNovela"
         />
 

@@ -13,7 +13,7 @@ export function staticImage(picture: string | null | undefined) {
 		return `${backendUrl}${picture}`;
 	} else if (picture) {
 		return picture;
-	} else {
+  } else {
 		return PersonIcon;
 	}
 }

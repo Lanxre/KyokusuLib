@@ -35,6 +35,9 @@ func (a *NovelaRoutes) Register(cfg *config.Config, r *mux.Router) {
 	novelaRouter.Handle("/novela/{id:[0-9]+}/volumes", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.AddVolume), cfg.JWTSecret)).Methods("POST")
 	novelaRouter.Handle("/novela/volumes/{id:[a-fA-F0-9-]+}/chapters", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.AddChapter), cfg.JWTSecret)).Methods("POST")
 	novelaRouter.Handle("/novela/chapters/{id:[a-fA-F0-9-]+}", middleware.DefaultMiddleware(http.HandlerFunc(a.Handler.GetChapter), cfg.JWTSecret)).Methods("GET")
+	novelaRouter.Handle("/novela/chapters/{id:[a-fA-F0-9-]+}", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.UpdateChapter), cfg.JWTSecret)).Methods("PUT")
+	novelaRouter.Handle("/novela/chapters/{id:[a-fA-F0-9-]+}", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.DeleteChapter), cfg.JWTSecret)).Methods("DELETE")
 	novelaRouter.Handle("/novela/chapters/{id:[a-fA-F0-9-]+}/images", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.AddChapterImage), cfg.JWTSecret)).Methods("POST")
+	novelaRouter.Handle("/novela/chapters/{id:[a-fA-F0-9-]+}/images", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.DeleteChapterImages), cfg.JWTSecret)).Methods("DELETE")
 	novelaRouter.Handle("/novela/chapters/progress", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.SaveChapterReadPosition), cfg.JWTSecret)).Methods("POST")
 }

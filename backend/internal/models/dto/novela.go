@@ -160,7 +160,7 @@ type AddChapterImageRequest struct {
 
 type SaveReadPositionRequest struct {
 	ChapterID      string `json:"chapter_id" validate:"required"`
-	ScrollPosition int    `json:"scroll_position" validate:"required"`
+	ScrollPosition int    `json:"scroll_position"`
 }
 
 type ChapterReaderResponse struct {
@@ -172,6 +172,7 @@ type ChapterReaderResponse struct {
 	NovelaID       int                  `json:"novela_id"`
 	NovelaTitle    string               `json:"novela_title"`
 	VolumeNumber   int                  `json:"volume_number"`
+	VolumeID       string               `json:"volume_id"`
 	ScrollPosition int                  `json:"scroll_position"`
 	PrevChapterID  *string              `json:"prev_chapter_id"`
 	NextChapterID  *string              `json:"next_chapter_id"`

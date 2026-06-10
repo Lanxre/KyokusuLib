@@ -380,6 +380,10 @@ func (s *NovelaService) sendNovelaNotification(novelaID int, title, messageFmt s
 	}
 }
 
+func (s *NovelaService) DeleteChapterImages(ctx context.Context, chapterID string) error {
+	return s.Repo.DeleteChapterImages(ctx, chapterID)
+}
+
 func (s *NovelaService) AddChapterImage(ctx context.Context, chapterID string, req dto.AddChapterImageRequest) (int, error) {
 	return s.Repo.AddChapterImage(ctx, chapterID, req.ImageURL, req.Caption, req.Position)
 }
@@ -390,4 +394,59 @@ func (s *NovelaService) GetChapterReaderDetails(ctx context.Context, chapterID s
 
 func (s *NovelaService) SaveChapterReadPosition(ctx context.Context, userID int, req dto.SaveReadPositionRequest) error {
 	return s.Repo.UpdateChapterReadPosition(ctx, userID, req.ChapterID, req.ScrollPosition)
+}
+
+func (s *NovelaService) UpdateChapter(ctx context.Context, chapterID string, userID int, req dto.AddChapterRequest) error {
+	canManage, err := s.canManageChapter(ctx, userID, chapterID)
+	if err != nil {
+		return err
+	}
+	if !canManage {
+		return errors.New("forbidden: you do not have permission to update this chapter")
+	}
+
+	return s.Repo.UpdateChapter(ctx, chapterID, req.ChapterNumber, req.Title, req.Content)
+}
+
+func (s *NovelaService) DeleteChapter(ctx context.Context, chapterID string, userID int) error {
+	canManage, err := s.canManageChapter(ctx, userID, chapterID)
+	if err != nil {
+		return err
+	}
+	if !canManage {
+		return errors.New("forbidden: you do not have permission to delete this chapter")
+	}
+
+	return s.Repo.DeleteChapter(ctx, chapterID)
+}
+
+func (s *NovelaService) canManageChapter(ctx context.Context, userID int, chapterID string) (bool, error) {
+	chapter, err := s.Repo.GetChapterByID(ctx, chapterID)
+	if err != nil {
+		return false, err
+	}
+	if chapter == nil {
+		return false, errors.New("chapter not found")
+	}
+
+	novelaID, err := s.Repo.GetNovelaIDByVolumeID(ctx, chapter.VolumeID)
+	if err != nil {
+		return false, err
+	}
+
+	user, err := s.UserRepo.GetByID(userID)
+	if err != nil {
+		return false, err
+	}
+
+	if user.Role == "admin" || user.Role == "moderator" {
+		return true, nil
+	}
+
+	hasTeamPermission, err := s.Repo.CheckUserNovelaTeamPermission(ctx, userID, novelaID)
+	if err != nil {
+		return false, err
+	}
+
+	return hasTeamPermission, nil
 }

@@ -56,6 +56,7 @@ type NovelaVolume struct {
 
 type NovelaChapter struct {
 	ID        string               `json:"id"`
+	VolumeID  string               `json:"volume_id"`
 	Title     string               `json:"title"`
 	Number    float64              `json:"number"`
 	Status    string               `json:"status"`

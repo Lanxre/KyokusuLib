@@ -5,6 +5,7 @@ import type { NovelsQueryParams } from "~/types/frontend/query/novela-query";
 
 export function useNovela() {
 	const novela = useState<NovelaDetails | null>("novela-data", () => null);
+	const chaptersRefreshKey = useState("novela-chapters-refresh", () => 0);
 	const { notify } = useNotificationStore();
 	const isLoading = useState("novela-loading", () => false);
 	const isUpdating = useState("novela-updating", () => false);
@@ -77,7 +78,7 @@ export function useNovela() {
 		}
 	};
 
-	const addChapter = async (novelaId: number, volumeId: number, chapterNumber: number, title: string, content: string) => {
+	const addChapter = async (novelaId: number, volumeId: string | number, chapterNumber: number, title: string, content: string) => {
 		try {
 			const res = await $api<{id: string; message: string; status: string}>(`/api/novela/volumes/${volumeId}/chapters`, {
 				method: "POST",
@@ -106,8 +107,80 @@ export function useNovela() {
 		}
 	};
 
+	const deleteChapterImages = async (chapterId: string) => {
+		try {
+			await $api(`/api/novela/chapters/${chapterId}/images`, {
+				method: "DELETE",
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
+	function bumpRefreshKey() { chaptersRefreshKey.value++; }
+
+	const deleteChapter = async (novelaId: number, chapterId: string) => {
+		try {
+			await $api(`/api/novela/chapters/${chapterId}`, {
+				method: "DELETE",
+			});
+
+			if (novela.value) {
+				novela.value = {
+					...novela.value,
+					volumes: novela.value.volumes.map((volume) => ({
+						...volume,
+						chapters: volume.chapters.filter((c) => c.id !== chapterId),
+					})),
+				};
+			}
+			bumpRefreshKey();
+
+			notify({
+				type: "success",
+				title: "Успех",
+				content: "Глава успешно удалена",
+			});
+			await fetchNovela(novelaId);
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
+	const updateChapter = async (novelaId: number, chapterId: string, chapterNumber: number, title: string, content: string) => {
+		try {
+			await $api(`/api/novela/chapters/${chapterId}`, {
+				method: "PUT",
+				body: { chapter_number: chapterNumber, title, content },
+			});
+
+			if (novela.value) {
+				novela.value = {
+					...novela.value,
+					volumes: novela.value.volumes.map((volume) => ({
+						...volume,
+						chapters: volume.chapters.map((c) =>
+							c.id === chapterId ? { ...c, title, number: chapterNumber, content } : c,
+						),
+					})),
+				};
+			}
+			bumpRefreshKey();
+
+			notify({
+				type: "success",
+				title: "Успех",
+				content: "Глава успешно обновлена",
+			});
+			await fetchNovela(novelaId);
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
 	return {
 		novela,
+		chaptersRefreshKey,
 		isLoading,
 		isUpdating,
 		fetchNovela,
@@ -116,5 +189,8 @@ export function useNovela() {
 		addVolume,
 		addChapter,
 		addChapterImage,
+		deleteChapterImages,
+		deleteChapter,
+		updateChapter,
 	};
 }

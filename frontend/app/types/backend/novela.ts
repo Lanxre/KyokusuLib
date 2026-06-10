@@ -14,6 +14,7 @@ export interface ChapterReaderResponse {
 	novela_id: number;
 	novela_title: string;
 	volume_number: number;
+	volume_id: string;
 	prev_chapter_id: string | null;
 	next_chapter_id: string | null;
 }

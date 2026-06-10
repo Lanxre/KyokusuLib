@@ -6,10 +6,11 @@ defineProps<{
 	canManage?: boolean;
 }>();
 
+const route = useRoute();
+
 const emit = defineEmits<{
 	"update:modelValue": [value: string];
 	"add-volume": [];
-	"add-chapter": [];
 }>();
 </script>
 
@@ -25,13 +26,13 @@ const emit = defineEmits<{
 			</button>
 		</Tooltip>
 		<Tooltip text="Добавить главу">
-			<button
+			<NuxtLink
 				v-if="canManage"
-				@click="emit('add-chapter')"
-				class="flex items-center justify-center rounded-2xl h-8 w-8 p-2 text-sm font-medium whitespace-nowrap transition-colors border bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 hover:text-blue-500 cursor-pointer"
+				:to="`/novela/${route.params.id}/add-chapter`"
+				class="flex items-center justify-center rounded-2xl h-8 w-8 p-2 text-sm font-medium whitespace-nowrap transition-colors border bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 hover:text-yellow-500 cursor-pointer"
 			>
 				<Icon name="ph:file-plus-bold" size="16" />
-			</button>
+			</NuxtLink>
 		</Tooltip>
 		<div class="relative w-full sm:w-64">
 			<input

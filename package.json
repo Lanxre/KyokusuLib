@@ -4,9 +4,10 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun run backend & bun run frontend",
+    "dev": "bun run backend & bun run frontend & bun run ranobehub",
     "backend": "cd backend && go run ./cmd/api/main.go",
-    "frontend": "cd frontend && bun run dev"
+    "frontend": "cd frontend && bun run dev",
+    "ranobehub": "cd apps/ranobehub-parser && bun run index"
   },
   "devDependencies": {
     "@types/bun": "latest"
