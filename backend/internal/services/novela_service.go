@@ -443,6 +443,19 @@ func (s *NovelaService) DeleteChapter(ctx context.Context, chapterID string, use
 	return s.Repo.DeleteChapter(ctx, chapterID)
 }
 
+func (s *NovelaService) MarkChapterAsRead(ctx context.Context, userID int, chapterID string) error {
+	exist, err := s.Repo.IsExistChapter(ctx, chapterID)
+	if err != nil {
+		return err
+	}
+
+	if !exist {
+		return errors.New("Chapter not found")
+	}
+
+	return s.Repo.MarkChapterAsRead(ctx, userID, chapterID)
+}
+
 func (s *NovelaService) canManageChapter(ctx context.Context, userID int, chapterID string) (bool, error) {
 	chapter, err := s.Repo.GetChapterByID(ctx, chapterID)
 	if err != nil {

@@ -5,7 +5,8 @@ import { ref, watch, nextTick } from "vue";
 import { useThrottleFn, useEventListener } from "@vueuse/core";
 
 export function useReadProgress() {
-	const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
+	const { notify } = useNotificationStore();
 
 	function isChapterRead(chapter: NovelaChapter): boolean {
 		return chapter.is_read ?? false;
@@ -74,7 +75,27 @@ export function useReadProgress() {
 		} catch (e) {
 			console.error("Failed to save read position:", e);
 		}
-	}
+  }
+
+  async function markChapterAsRead(chapterId: string): Promise<boolean> {
+    let isRead = false;
+    
+    if (!isAuthenticated) {
+      return isRead;
+    }
+
+    try {
+      await $api(`/api/novela/chapter/${chapterId}/mark-as-read`, {
+        method: "POST",
+      });
+
+      isRead = true;
+    } catch (e) {
+      notify({ title: "Ошибка", type: "error", content: e instanceof Error ? e.message : String(e) });
+    } finally {
+      return isRead;
+    }
+  }
 
 	return {
 		isChapterRead,
@@ -83,7 +104,8 @@ export function useReadProgress() {
 		getLastReadChapterScroll,
 		getFirstChapterId,
 		getContinueReadingUrl,
-		saveReadPosition,
+    saveReadPosition,
+    markChapterAsRead,
 	};
 }
 

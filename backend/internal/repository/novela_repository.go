@@ -924,3 +924,10 @@ func (r *NovelaRepository) UpdateChapterReadPosition(ctx context.Context, userID
 	_, err := r.DB.ExecContext(ctx, query, userID, chapterID, scrollPosition)
 	return err
 }
+
+func (r NovelaRepository) IsExistChapter(ctx context.Context, chapterID string) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM novela_chapters WHERE id = $1)`
+	var exists bool
+	err := r.DB.QueryRowContext(ctx, query, chapterID).Scan(&exists)
+	return exists, err
+}

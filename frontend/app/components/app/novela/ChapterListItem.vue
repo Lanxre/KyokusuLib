@@ -12,7 +12,8 @@ const props = defineProps<{
 	novelaId: number;
 }>();
 
-const { isChapterRead } = useReadProgress();
+const { isAuthenticated } = useAuthStore();
+const { isChapterRead, markChapterAsRead } = useReadProgress();
 const { hasPermission } = useRolePermissions();
 const { deleteChapter } = useNovela();
 
@@ -24,6 +25,11 @@ const isDeleteConfirmOpen = ref(false);
 async function onDelete() {
 	await deleteChapter(props.novelaId, props.chapter.id);
 	isDeleteConfirmOpen.value = false;
+}
+
+async function markAsRead() {
+	const isRead = await markChapterAsRead(props.chapter.id);
+	props.chapter.is_read = isRead;
 }
 </script>
 
@@ -52,6 +58,17 @@ async function onDelete() {
 				{{ chapter.title }}
 			</span>
 		</NuxtLink>
+		<div v-if="isAuthenticated" class="flex items-center mr-6">
+			<TeleportedTooltip text="Отметить как прочитанную">
+				<button
+					@click="markAsRead"
+					class="flex items-center rounded-lg transition-colors cursor-pointer"
+					:class="[read ? 'text-zinc-500 dark:text-zinc-500' : 'text-zinc-900 dark:text-zinc-200']"
+				>
+					<Icon name="ph:eye-bold" size="18" />
+				</button>
+			</TeleportedTooltip>
+		</div>
 
 		<div v-if="canManage" class="flex items-center gap-6 md:mr-6 opacity-0 group-hover:opacity-100 transition-opacity">
 			<TeleportedTooltip text="Редактировать главу">
