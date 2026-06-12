@@ -49,3 +49,7 @@ type NotificationRoutes struct {
 type ModerationRoutes struct {
 	Handler *handlers.ModerationHandler
 }
+
+type NovelaStatisticsRoutes struct {
+	Handler *handlers.NovelaStatisticsHandler
+}
