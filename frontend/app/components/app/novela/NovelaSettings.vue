@@ -86,6 +86,7 @@ const handleUpdate = async () => {
 		await updateNovela(props.novela.id, payload, selectedFile.value);
         const uiUpdatePayload = {
 			...payload,
+			poster_url: previewUrl.value,
             alternative_titles: payload.alternative_titles,
 			authors: form.authors.map((a: any) => ({ id: a.id, name: a.label, role: "Author" }))
 		};

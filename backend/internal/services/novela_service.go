@@ -64,7 +64,7 @@ func (s *NovelaService) GetNovelaById(ctx context.Context, id, userID int) (*dto
 }
 
 func (s *NovelaService) UploadPoster(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
-	return files.UploadImage(ctx, file, header, "/novelas/posters", 600, 900)
+	return files.UploadImage(ctx, file, header, "novelas/posters", 600, 900)
 }
 
 func (s *NovelaService) SavePoster(ctx context.Context, id int, posterURL string) error {

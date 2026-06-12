@@ -611,7 +611,6 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
         COALESCE((SELECT AVG(rating) FROM novela_ratings WHERE novela_id = n.id), 0) as avg_rating,
         (SELECT MAX(ch.created_at) FROM novela_chapters ch JOIN novela_volumes v ON ch.novela_volume_id = v.id WHERE v.novela_id = n.id AND ch.status = 'approved' AND v.status = 'approved') as last_chapter_at,
         
-        -- Поля пользователя
         (SELECT c.name FROM user_novela_bookmarks b JOIN bookmark_categories c ON b.category_id = c.id WHERE b.novela_id = n.id AND b.user_id = $1) as user_bookmark,
         
         COALESCE((SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $1), FALSE) as has_liked

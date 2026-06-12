@@ -3,11 +3,11 @@ package dto
 import "time"
 
 type ShortNovelaInfo struct {
-	NovelaID    int
-	Title       string
-	Description string
-	PosterURL   string
-	ReleaseDate time.Time
+	NovelaID    int			`json:"novelaId"`
+	Title       string		`json:"title"`
+	Description string		`json:"description"`
+	PosterURL   string		`json:"posterUrl"`
+	ReleaseDate time.Time	`json:"releaseDate"`
 }
 
 type TotatStatistics struct {
