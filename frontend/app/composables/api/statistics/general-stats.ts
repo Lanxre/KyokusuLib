@@ -6,13 +6,15 @@ export const useGeneralStatistics = () => {
   const stats = ref<GeneralStatistics | null>(null);
   const isLoading = ref(false);
 
-  const fetchGeneralStatistics = async () => {
+  const fetchGeneralStatistics = async (): Promise<GeneralStatistics | null> => {
     isLoading.value = true;
     try {
       const response = await $api<GeneralStatistics>(`/api/novelas/statistics/general`);
       stats.value = response;
+      return response;
     } catch (error) {
       console.error(error);
+      return null;
     } finally {
       isLoading.value = false;
     }

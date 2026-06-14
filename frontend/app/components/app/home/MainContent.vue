@@ -16,7 +16,7 @@ import { NovelaSort } from "@/types/frontend/query/novela-query";
 import { useGeneralStatistics } from "@/composables/api/statistics/general-stats";
 
 const { fetchNovels } = useNovela();
-const { stats, fetchGeneralStatistics, isLoading: loadingStats } = useGeneralStatistics();
+const { fetchGeneralStatistics } = useGeneralStatistics();
 
 
 const { data: novels } = await useAsyncData("novelas-home", () =>
@@ -45,7 +45,7 @@ const { data: trendingNovels } = await useAsyncData("novels-trending", () =>
 	}),
 );
 
-await useAsyncData("general-stats", () => fetchGeneralStatistics());
+const { data: generalStats, pending: loadingStats } = await useAsyncData("general-stats", () => fetchGeneralStatistics());
 </script>
 
 <template>
@@ -116,7 +116,7 @@ await useAsyncData("general-stats", () => fetchGeneralStatistics());
 	</div>
 
 	<div class="w-full max-w-6xl mx-auto px-2 sm:px-4 py-6">
-		<GeneralStats v-if="stats != null" :stats="stats" :is-loading="loadingStats" />
+		<GeneralStats v-if="generalStats != null" :stats="generalStats" :is-loading="loadingStats" />
 	</div>
 
   </div>

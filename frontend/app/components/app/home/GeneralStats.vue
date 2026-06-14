@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Separator } from '@kyokusu-ui/vue'
 import type { GeneralStatistics } from '@/types/backend/statistics'
 
 const props = defineProps({
@@ -56,7 +55,7 @@ function formatNumber(n: number): string {
 
 <template>
   <div class="bg-white dark:bg-zinc-900/40 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
-    <Separator class="mb-6" />
+    <div class="border-t border-zinc-200 dark:border-zinc-700 mb-6"></div>
 
     <div v-if="isLoading" class="flex justify-center py-12">
       <Icon name="ph:spinner-gap-bold" size="28" class="animate-spin text-zinc-400" />
