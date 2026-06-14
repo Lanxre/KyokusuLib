@@ -1,16 +1,26 @@
-import type { NovelaCommentResponse } from "~/types/backend/novela";
 import { $api } from "../useApi";
+import type { NovelaCommentResponse } from "~/types/backend/novela";
 
 export function useNovelaComments() {
     const comments = useState<NovelaCommentResponse[]>('novela-comments', () => []);
     const isLoading = ref(false);
 
+    const totalComments = computed(() => {
+        const countReplies = (comment: NovelaCommentResponse): number =>
+            1 + (comment.replies?.reduce((acc, r) => acc + countReplies(r), 0) ?? 0);
+        return comments.value.reduce((acc, c) => acc + countReplies(c), 0);
+    });
+
     const fetchComments = async (novelaId: number) => {
         isLoading.value = true;
         try {
-            comments.value = await $api<NovelaCommentResponse[]>(`/api/novela/comments/${novelaId}`);
-        } finally {
-            isLoading.value = false;
+          comments.value = await $api<NovelaCommentResponse[]>(`/api/novela/comments/${novelaId}`);
+          return comments.value;
+        } catch {
+          return null;
+        }
+        finally {
+          isLoading.value = false;
         }
     };
 
@@ -59,7 +69,8 @@ export function useNovelaComments() {
     };
 
     return { 
-        comments, 
+        comments,
+        totalComments,
         isLoading, 
         fetchComments, 
         addComment, 

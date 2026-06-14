@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { useNovelaComments } from "@/composables/api/novela/useNovelaComments";
 import { useAuthStore } from "@/stores/auth";
@@ -10,26 +10,20 @@ import { RichText as BaseRichTextEditor } from "@kyokusu-ui/vue";
 import { NOVELA_MAX_COMMENT_LENGTH } from "~/constants/data";
 import { useUserActivity } from "~/composables/api/profile/useUserActivity";
 import { ACTIVITY_TYPES } from "~/constants/user-activity";
-import type { NovelaCommentResponse } from "@/types/backend/novela";
 import FilterBar, { type FilterConfig } from "@/components/ui/FilterBar.vue";
+import type { NovelaCommentResponse } from "@/types/backend/novela";
 
-const props = defineProps<{ novelaId: number, novelaTitle: string }>();
+const props = defineProps<{
+  novelaId: number,
+  comments: NovelaCommentResponse[]
+  isLoading: boolean,
+  novelaTitle: string
+}>();
 
 const route = useRoute();
 const { user, isAuthenticated } = useAuthStore();
 const { notify } = useNotificationStore();
-const { 
-    comments, 
-    fetchComments, 
-    addComment, 
-    deleteComment, 
-    updateComment, 
-    setCommentLike,
-    unsetCommentLike,
-    reportComment,
-    cancelCommentReport,
-    isLoading: apiLoading 
-} = useNovelaComments();
+const novelaCommentsApi = useNovelaComments();
 
 const { createUserActivity } = useUserActivity();
 
@@ -38,15 +32,7 @@ const commentText = ref("");
 const replyTo = ref<{ id: number; name: string } | null>(null);
 const editingComment = ref<{ id: number; content: string } | null>(null);
 
-const { status, refresh } = await useAsyncData(
-	`comments-list-${props.novelaId}`,
-	() => fetchComments(props.novelaId),
-	{ watch: [() => props.novelaId] }
-);
-
-const isPending = computed(() => status.value === 'pending' || apiLoading.value);
-
-const sortedComments = ref<NovelaCommentResponse[]>([]);
+const sortedComments = ref<NovelaCommentResponse[]>([...props.comments]);
 
 const teamFilterConfig: FilterConfig = {
     defaultField: 'created_at',
@@ -102,11 +88,11 @@ const handleAction = async () => {
         return;
     }
 
-	if (!commentText.value.trim() || isPending.value) return;
+	if (!commentText.value.trim() || props.isLoading) return;
 
 	try {
         if (editingComment.value) {
-            await updateComment(editingComment.value.id, commentText.value);
+            await novelaCommentsApi.updateComment(editingComment.value.id, commentText.value);
             notify({ title: "Успех", content: "Комментарий обновлен", type: "success" });
             await createUserActivity({
                 user_id: user!.id,
@@ -119,7 +105,7 @@ const handleAction = async () => {
 		    });
 
         } else {
-            await addComment({
+            await novelaCommentsApi.addComment({
                 novela_id: props.novelaId,
                 content: commentText.value,
                 parent_id: replyTo.value?.id || null,
@@ -137,7 +123,6 @@ const handleAction = async () => {
         }
 		
 		resetForm();
-		await refresh(); 
 	} catch (e: any) {
 		notify({ title: "Ошибка", content: e.message, type: "error" });
 	}
@@ -147,8 +132,8 @@ const handleDelete = async (commentId: number) => {
     if (!confirm("Вы уверены, что хотите удалить комментарий?")) return;
     
     try {
-        await deleteComment(commentId);
-        comments.value = comments.value.filter(c => c.id !== commentId);
+        await novelaCommentsApi.deleteComment(commentId);
+        novelaCommentsApi.comments.value = novelaCommentsApi.comments.value.filter(c => c.id !== commentId);
         notify({ title: "Удалено", content: "Комментарий успешно удален", type: "success" });
         await createUserActivity({
 			user_id: user!.id,
@@ -171,8 +156,8 @@ const handleLike = async (commentId: number) => {
     }
 
     try {
-        await setCommentLike(commentId);
-        comments.value = comments.value.map(c => {
+        await novelaCommentsApi.setCommentLike(commentId);
+        novelaCommentsApi.comments.value = novelaCommentsApi.comments.value.map(c => {
             if (c.id === commentId) {
                 c.like_count++
                 c.has_like = true
@@ -201,8 +186,8 @@ const handleUnsetLike = async (commentId: number) => {
     }
 
     try {
-        await unsetCommentLike(commentId);
-        comments.value = comments.value.map(c => {
+        await novelaCommentsApi.unsetCommentLike(commentId);
+        novelaCommentsApi.comments.value = novelaCommentsApi.comments.value.map(c => {
             if (c.id === commentId) {
                 c.like_count--
                 c.has_like = null
@@ -222,7 +207,7 @@ const handleReport = async ({ commentId, reason }: { commentId: number, reason: 
     }
 
     try {
-        await reportComment(commentId, reason);
+        await novelaCommentsApi.reportComment(commentId, reason);
         notify({ title: "Жалоба отправлена", content: "Модераторы рассмотрят ваше обращение", type: "success" });
         
         await createUserActivity({
@@ -234,7 +219,7 @@ const handleReport = async ({ commentId, reason }: { commentId: number, reason: 
                 desc: `Пользователь пожаловался на комментарий (ID: ${commentId})`,
             },
         });
-        const commentWithReport = comments.value.find(c => c.id === commentId);
+        const commentWithReport = novelaCommentsApi.comments.value.find(c => c.id === commentId);
         
         if (commentWithReport) {
             commentWithReport.has_report = true;
@@ -252,13 +237,13 @@ const handleReportCancel = async (id: number) => {
     }
     
     try {
-        await cancelCommentReport(id);
+        await novelaCommentsApi.cancelCommentReport(id);
         notify({ title: "Жалоба отменена", content: "Жалоба на комментарий отменена", type: "success" });
     } catch (e: any) {
         notify({ title: "Ошибка", content: e.message, type: "error" });
     }
     
-    const commentWithReport = comments.value.find(c => c.id === id);
+    const commentWithReport = novelaCommentsApi.comments.value.find(c => c.id === id);
     
     if (commentWithReport) {
         commentWithReport.has_report = false;
@@ -294,7 +279,7 @@ const handleReportCancel = async (id: number) => {
                 id="comment-editor"
                 v-model="commentText"
                 placeholder="Ваше мнение о произведении..."
-                :disabled="isPending"
+                :disabled="props.isLoading"
                 :maxLength="NOVELA_MAX_COMMENT_LENGTH"
             />
             
@@ -308,21 +293,21 @@ const handleReportCancel = async (id: number) => {
                 </button>
                 <button 
                     @click="handleAction"
-                    :disabled="!commentText.trim() || isPending"
+                    :disabled="!commentText.trim() || props.isLoading"
                     class="px-10 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-black rounded-2xl text-xs uppercase tracking-widest active:scale-95 transition-all flex items-center gap-3 disabled:opacity-50 shadow-xl shadow-zinc-500/10 cursor-pointer"
                 >
-                    <Icon v-if="isPending" name="ph:circle-notch-bold" class="animate-spin" />
+                    <Icon v-if="props.isLoading" name="ph:circle-notch-bold" class="animate-spin" />
                     {{ editingComment ? 'Сохранить' : 'Отправить' }}
                 </button>
             </div>
         </section>
 
         <div class="relative min-h-75">
-            <div v-if="status === 'pending' && !comments.length" class="py-20 flex justify-center">
+            <div v-if="props.isLoading && !props.comments.length" class="py-20 flex justify-center">
                 <Icon name="ph:circle-notch-bold" size="48" class="animate-spin text-zinc-300" />
             </div>
 
-            <div v-else-if="!comments.length" class="py-24 flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[3rem] text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10">
+            <div v-else-if="!props.comments.length" class="py-24 flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[3rem] text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/10">
                 <Icon name="ph:chat-circle-dots-light" size="64" class="opacity-20 mb-4" />
                 <p class="font-bold uppercase tracking-[0.2em] text-[10px]">Здесь пока нет обсуждений</p>
                 <p class="text-xs opacity-60 mt-1">Будьте первым, кто поделится мыслями</p>
@@ -333,9 +318,8 @@ const handleReportCancel = async (id: number) => {
                 name="list" 
                 tag="div" 
                 class="space-y-6"
-                :class="{ 'opacity-50 pointer-events-none': status === 'pending' }" 
             >
-                <FilterBar v-if="!apiLoading && comments.length > 0" :config="teamFilterConfig" :items="comments" v-model="sortedComments"/>
+                <FilterBar v-if="!isLoading && props.comments.length > 0" :config="teamFilterConfig" :items="props.comments" v-model="sortedComments"/>
                 <CommentItem 
                     v-for="comment in sortedComments" 
                     :key="comment.id" 

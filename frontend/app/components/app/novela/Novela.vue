@@ -8,7 +8,7 @@ import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
 import { $api } from "~/composables/api/useApi";
 import { ACTIVITY_TYPES } from "~/constants/user-activity";
 import { useNotificationStore } from "~/stores/notification";
-import type { NovelaDetails, NovelaVolume } from "~/types/backend/novela";
+import type { NovelaCommentResponse, NovelaDetails, NovelaVolume } from "~/types/backend/novela";
 import { KyokusuAppRole } from "~/types/enums/role-enum";
 import {
 	type BookmarkCategory,
@@ -30,6 +30,8 @@ import NovelaRatingStats from "./NovelaRatingStats.vue";
 import NovelaSettings from "./NovelaSettings.vue";
 import NovelaStats from "./NovelaStats.vue";
 
+import { useNovelaComments } from "@/composables/api/novela/useNovelaComments";
+
 const route = useRoute();
 
 const { user } = useAuthStore();
@@ -38,7 +40,10 @@ const chaptersKey = ref(0);
 
 const { createUserActivity } = useUserActivity();
 const { hasPermission } = useRolePermissions();
-const { getContinueReadingUrl, getLastReadChapterNumber } = useReadProgress();
+const { getContinueReadingUrl } = useReadProgress();
+const { comments, totalComments, fetchComments, isLoading: commentsLoading } = useNovelaComments();
+
+const novelaId = computed(() => route.params.id as string);
 
 const continueReadingUrl = computed(() =>
 	novela.value ? getContinueReadingUrl(novela.value) : null,
@@ -55,11 +60,14 @@ const activeTab = ref<NovelaActiveTabs>(
 		: NovelaActiveTabsEnum.ABOUT,
 );
 
-const novelaId = computed(() => route.params.id as string);
-
 await useAsyncData(`novela-${novelaId.value}`, () =>
 	fetchNovela(novelaId.value),
 );
+
+await useAsyncData(`novela-comments-${novelaId.value}`, () =>
+	fetchComments(Number(novelaId.value)),
+);
+
 const bookmarkInitial = ref(Boolean(novela.value?.bookmark));
 const currentBookmarkCategory = ref(novela.value?.bookmark || null);
 const isOpenNovelaSettings = ref(false);
@@ -95,6 +103,7 @@ const totalChapters = computed(() => {
 		0,
 	);
 });
+
 
 const novelaInfo = computed(() => [
 	{ label: "Статус", value: novela.value?.status },
@@ -455,6 +464,7 @@ watch(
                                 >
                                     {{ convToRu(tab) }}
                                     <span v-if="tab === NovelaActiveTabsEnum.CHAPTERS" class="ml-2 text-lg opacity-50">({{ totalChapters }})</span>
+                                    <span v-if="tab === NovelaActiveTabsEnum.COMMENTS" class="ml-2 text-lg opacity-50">({{ totalComments }})</span>
                                     <div v-if="activeTab === tab" class="absolute bottom-0 left-0 w-full h-1 bg-yellow-500 rounded-t-full"></div>
                                 </button>
                             </div>
@@ -485,7 +495,14 @@ watch(
                                     />
                                 </div>
                                 <div v-else-if="activeTab === NovelaActiveTabsEnum.COMMENTS" :key="NovelaActiveTabsEnum.COMMENTS">
-                                    <NovelaComments :novela-id="novela.id" :novela-title="novela.title"/>
+                                    <NovelaComments 
+                                        v-if="comments !== null" 
+                                        :comments="comments" 
+                                        :novela-id="novela.id" 
+                                        :is-loading="commentsLoading" 
+                                        :novela-title="novela.title"
+                                        :total-comments="totalComments"
+                                    />
                                 </div>
                             </transition>
                         </div>
