@@ -22,3 +22,12 @@ type TotalNovelaStatistics struct {
 	
 	Rating             float64
 }
+
+type GeneralStatistics struct {
+	GeneralBookmarkCount int
+	GeneralReadCount     int
+	GeneralRatingCount   int
+	GeneralCommentCount  int
+	GeneralVolumeCount   int
+	GeneralChapterCount  int
+}

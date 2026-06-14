@@ -179,6 +179,74 @@ func (r *NovelaStatisticsRepository) GetTotalStatistics(
 	return stats, nil
 }
 
+func (r *NovelaStatisticsRepository) GeneralStatistics(
+	ctx context.Context, 
+	period constants.StatisticsPeriodSort,
+) (db.GeneralStatistics, error) {
+	
+	var stats db.GeneralStatistics
+
+	startTime := r.startOfPeriod(period)
+
+	query := `
+		WITH bookmark_stats AS (
+			SELECT COUNT(*) AS total
+			FROM user_novela_bookmarks
+			WHERE ($1::TIMESTAMPTZ IS NULL OR created_at >= $1)
+		),
+		read_stats AS (
+			SELECT COUNT(rc.user_id) AS total
+			FROM read_chapters rc
+			WHERE ($1::TIMESTAMPTZ IS NULL OR rc.created_at >= $1)
+		),
+		rating_stats AS (
+			SELECT COUNT(*) AS total
+			FROM novela_ratings
+			WHERE ($1::TIMESTAMPTZ IS NULL OR created_at >= $1)
+		),
+		comment_stats AS (
+			SELECT COUNT(*) AS total
+			FROM novela_comments
+			WHERE ($1::TIMESTAMPTZ IS NULL OR created_at >= $1)
+		),
+		volume_stats AS (
+			SELECT COUNT(*) AS total
+			FROM novela_volumes
+		),
+		chapter_stats AS (
+			SELECT COUNT(*) AS total
+			FROM novela_chapters nch
+			JOIN novela_volumes nv ON nv.id = nch.novela_volume_id
+		)
+		SELECT
+			COALESCE(bs.total, 0),
+			COALESCE(rs.total, 0),
+			COALESCE(rts.total, 0),
+			COALESCE(cs.total, 0),
+			COALESCE(vs.total, 0),
+			COALESCE(chs.total, 0)
+		FROM bookmark_stats bs
+		CROSS JOIN read_stats rs
+		CROSS JOIN rating_stats rts
+		CROSS JOIN comment_stats cs
+		CROSS JOIN volume_stats vs
+		CROSS JOIN chapter_stats chs
+	`
+
+	if err := r.DB.QueryRowContext(ctx, query, startTime).Scan(
+		&stats.GeneralBookmarkCount,
+		&stats.GeneralReadCount,
+		&stats.GeneralRatingCount,
+		&stats.GeneralCommentCount,
+		&stats.GeneralVolumeCount,
+		&stats.GeneralChapterCount,
+	); err != nil {
+		return db.GeneralStatistics{}, err
+	}
+
+	return stats, nil
+}
+
 func (r *NovelaStatisticsRepository) startOfPeriod(period constants.StatisticsPeriodSort) *time.Time {
 	now := time.Now()
 	var day int

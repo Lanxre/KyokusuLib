@@ -19,12 +19,17 @@ const socialLinks = [
               KyokusuLib
             </h1>
           </NuxtLink>
-          <p class="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-            Есть вопросы? Пишите в техподдержку:
+          <div class="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400 cursor-default">
+            <p>
+                Есть вопросы?
+            </p>
+            <p>
+                Пишите в техподдержку:
+            </p>
             <a href="mailto:burtsevvitalij@gmail.com" class="block mt-1 font-bold text-zinc-900 dark:text-zinc-200 hover:text-yellow-500 transition-colors">
               burtsevvitalij@gmail.com
             </a>
-          </p>
+          </div>
         </div>
 
         <div class="flex flex-col gap-4 items-center md:items-start text-center md:text-left">
@@ -40,7 +45,7 @@ const socialLinks = [
           <nav class="flex flex-col gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
              <NuxtLink to="/top" class="hover:text-zinc-900 dark:hover:text-white transition-colors">Популярное</NuxtLink>
              <NuxtLink to="/catalog" class="hover:text-zinc-900 dark:hover:text-white transition-colors">Новинки</NuxtLink>
-             <NuxtLink to="/catalog" class="hover:text-zinc-900 dark:hover:text-white transition-colors">Каталог манги</NuxtLink>
+             <NuxtLink to="/catalog" class="hover:text-zinc-900 dark:hover:text-white transition-colors">Каталог ранобе</NuxtLink>
           </nav>
         </div>
 

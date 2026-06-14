@@ -11,4 +11,5 @@ func (a *NovelaStatisticsRoutes) Register(cfg *config.Config, r *mux.Router) {
 	s := r.PathPrefix("/api").Subrouter()
 
 	s.Handle("/novelas/statistics/total", http.HandlerFunc(a.Handler.GetTotalNovelaStatistics)).Methods("GET")
+	s.Handle("/novelas/statistics/general", http.HandlerFunc(a.Handler.GetGeneralStatistics)).Methods("GET")
 }

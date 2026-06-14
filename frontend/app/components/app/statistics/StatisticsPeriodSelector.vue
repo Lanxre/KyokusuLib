@@ -10,20 +10,20 @@ const emit = defineEmits<{
 }>()
 
 const periods = [
-  { label: 'За всё время', value: undefined },
-  { label: 'За день', value: StatisticsPeriodEnum.Day },
-  { label: 'За неделю', value: StatisticsPeriodEnum.Week },
-  { label: 'За месяц', value: StatisticsPeriodEnum.Month },
+  { label: 'За всё время', value: undefined, icon: 'ph:clock-bold' },
+  { label: 'За день', value: StatisticsPeriodEnum.Day, icon: 'ph:sun-bold' },
+  { label: 'За неделю', value: StatisticsPeriodEnum.Week, icon: 'ph:calendar-dots-bold' },
+  { label: 'За месяц', value: StatisticsPeriodEnum.Month, icon: 'ph:moon-bold' },
 ]
 </script>
 
 <template>
-  <div class="flex flex-wrap gap-2">
+  <div class="flex flex-col sm:flex-row gap-2">
     <button
       v-for="period in periods"
       :key="String(period.value)"
       type="button"
-      class="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+      class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer"
       :class="[
         modelValue === period.value
           ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-white ring-1 ring-zinc-300 dark:ring-zinc-600'
@@ -31,6 +31,7 @@ const periods = [
       ]"
       @click="emit('update:modelValue', period.value)"
     >
+      <Icon :name="period.icon" size="18" />
       {{ period.label }}
     </button>
   </div>

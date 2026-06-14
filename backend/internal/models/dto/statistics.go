@@ -26,3 +26,12 @@ type TotalStatisticsResponse struct {
 	Data  *[]TotatStatistics `json:"data"`
 	Total int                `json:"total"`
 }
+
+type GeneralStatistics struct {
+	BookmarkCount int `json:"bookmarkCount"`
+	ReadCount     int `json:"readCount"`
+	RatingCount   int `json:"ratingCount"`
+	CommentCount  int `json:"commentCount"`
+	VolumeCount   int `json:"volumeCount"`
+	ChapterCount  int `json:"chapterCount"`
+}

@@ -21,3 +21,12 @@ export interface TotalNovelaStatisticsResponse {
   data: TotalNovelaStatistics[];
   total: number;
 }
+
+export interface GeneralStatistics {
+  bookmarkCount: number;
+  readCount: number;
+  ratingCount: number;
+  commentCount: number;
+  volumeCount: number;
+  chapterCount: number;
+}

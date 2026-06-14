@@ -46,3 +46,15 @@ func (h *NovelaStatisticsHandler) GetTotalNovelaStatistics(w http.ResponseWriter
 		Total: len(*stats),
 	})
 }
+
+func (h *NovelaStatisticsHandler) GetGeneralStatistics(w http.ResponseWriter, r *http.Request) {
+	period := constants.StatisticsPeriodSort(r.URL.Query().Get("period"))
+
+	stats, err := h.Service.GetGeneralStatistics(r.Context(), period)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.JSON(w, http.StatusOK, stats)
+}

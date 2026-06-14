@@ -28,6 +28,17 @@ func (s *NovelaStatisticsService) GetTotalStatistics(ctx context.Context, limit 
 	return &result, len(result), nil
 }
 
+func (s *NovelaStatisticsService) GetGeneralStatistics(ctx context.Context, period constants.StatisticsPeriodSort) (dto.GeneralStatistics, error) {
+	statistics, err := s.statisticsRepo.GeneralStatistics(ctx, period)
+	if err != nil {
+		return dto.GeneralStatistics{}, err
+	}
+
+	result := s.mapGeneralStatistics(statistics)
+	return result, nil
+}
+
+
 func (s *NovelaStatisticsService) mapTotalStatistics(statistics []db.TotalNovelaStatistics) []dto.TotatStatistics {
 	result := make([]dto.TotatStatistics, 0, len(statistics))
 	for _, stat := range statistics {
@@ -50,4 +61,15 @@ func (s *NovelaStatisticsService) mapTotalStatistics(statistics []db.TotalNovela
 		result = append(result, *model)
 	}
 	return result
+}
+
+func (s *NovelaStatisticsService) mapGeneralStatistics(statistics db.GeneralStatistics) dto.GeneralStatistics {
+	return dto.GeneralStatistics{
+		BookmarkCount: statistics.GeneralBookmarkCount,
+		ReadCount:     statistics.GeneralReadCount,
+		RatingCount:   statistics.GeneralRatingCount,
+		CommentCount:  statistics.GeneralCommentCount,
+		VolumeCount:   statistics.GeneralVolumeCount,
+		ChapterCount:  statistics.GeneralChapterCount,
+	}
 }

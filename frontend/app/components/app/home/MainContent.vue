@@ -3,17 +3,22 @@ import HomeHero from "./HomeHero/HomeHero.vue";
 import { Carousel } from "@kyokusu-ui/vue";
 import NovelaShelf from "./NovelaShelf.vue";
 import NovelaColumns from "./NovelaColumns.vue";
-import { useNovela } from "~/composables/api/novela/useNovela";
+import GeneralStats from "./GeneralStats.vue";
+import { useNovela } from "@/composables/api/novela/useNovela";
 import {
 	NOVELA_FETCH_LIMIT,
 	NOVELA_FETCH_LIMIT_LAST_UPDATED,
 	NOVELA_FETCH_LIMIT_NEW,
 	NOVELA_FETCH_LIMIT_POPULAR,
 	NOVELA_FETCH_LIMIT_TRENDING,
-} from "~/constants/data";
-import { NovelaSort } from "~/types/frontend/query/novela-query";
+} from "@/constants/data";
+import { NovelaSort } from "@/types/frontend/query/novela-query";
+import { useGeneralStatistics } from "@/composables/api/statistics/general-stats";
 
 const { fetchNovels } = useNovela();
+const { stats, fetchGeneralStatistics, isLoading: loadingStats } = useGeneralStatistics();
+
+
 const { data: novels } = await useAsyncData("novelas-home", () =>
 	fetchNovels({ limit: NOVELA_FETCH_LIMIT }),
 );
@@ -39,6 +44,8 @@ const { data: trendingNovels } = await useAsyncData("novels-trending", () =>
 		limit: NOVELA_FETCH_LIMIT_TRENDING,
 	}),
 );
+
+await useAsyncData("general-stats", () => fetchGeneralStatistics());
 </script>
 
 <template>
@@ -47,9 +54,9 @@ const { data: trendingNovels } = await useAsyncData("novels-trending", () =>
     <div class="w-full max-w-6xl mx-auto px-2 sm:px-4">
         <Carousel v-if="!!novels" :items="novels">
             <template #card="{ item }">
-                <div class="flex flex-col gap-2 md:gap-3 w-[150px] md:w-[220px] group/card transition-opacity duration-300">
+                <div class="flex flex-col gap-2 md:gap-3 w-35 md:w-55 group/card transition-opacity duration-300">
                 <div class="
-                    relative h-[210px] md:h-[320px] w-full rounded-xl overflow-hidden 
+                    relative h-52.5 md:h-80 w-full rounded-xl overflow-hidden 
                     shadow-lg dark:shadow-2xl border border-zinc-200 dark:border-zinc-800 
                     transition-transform duration-300 group-hover/card:scale-[1.02] bg-zinc-200 dark:bg-zinc-900 cursor-pointer
                 "
@@ -66,7 +73,7 @@ const { data: trendingNovels } = await useAsyncData("novels-trending", () =>
                 </div>
 
                 <div class="flex flex-col items-center px-1" @click="() => navigateTo(`/novela/${item.id}`)">
-                    <div class="flex flex-col gap-2 items-center h-[70px]">
+                    <div class="flex flex-col gap-2 items-center h-17.5">
                         <h3 class="cs-text text-center leading-md line-clamp-2 text-black dark:text-white text-[15px] leading-[1.15] font-semibold text-balance  dark:font-semibold group-hover/card:text-yellow-600 dark:group-hover/card:text-yellow-400 transition-colors">
                         {{ item.title }}
                     </h3>
@@ -106,6 +113,10 @@ const { data: trendingNovels } = await useAsyncData("novels-trending", () =>
 			titleIcon="ph:book-open-bold"
 			:items="updatedNovels || []"
 		/>
+	</div>
+
+	<div class="w-full max-w-6xl mx-auto px-2 sm:px-4 py-6">
+		<GeneralStats v-if="stats != null" :stats="stats" :is-loading="loadingStats" />
 	</div>
 
   </div>

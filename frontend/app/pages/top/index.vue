@@ -6,10 +6,11 @@ import { Separator } from "@kyokusu-ui/vue";
 import StatisticsPeriodSelector from "@/components/app/statistics/StatisticsPeriodSelector.vue";
 import StatisticsTable from "@/components/app/statistics/StatisticsTable.vue";
 import StatisticsPagination from "@/components/app/statistics/StatisticsPagination.vue";
+import StatisticsTopThree from "@/components/app/statistics/StatisticsTopThree.vue";
 
 useSeoMeta({ title: 'Статистика - KyokusuLib' });
 
-const { novelaTotalStats, fetchTotalStatistics, isLoading } = useTotalStatistics();
+const { novelaTotalStats, fetchTotalStatistics, isLoading, total } = useTotalStatistics();
 
 const currentPeriod = ref<StatisticsPeriodEnum | undefined>(undefined);
 const currentPage = ref(1);
@@ -51,13 +52,28 @@ const prevPage = () => {
 		<div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
 
 			<div class="mb-8">
-				<h1 class="text-3xl sm:text-4xl font-black uppercase tracking-tight text-zinc-900 dark:text-white mb-4">
-					Статистика
+				<h1 class="text-3xl sm:text-4xl font-black uppercase tracking-tight text-zinc-900 dark:text-white mb-4 flex items-center justify-center gap-4">
+					<Icon name="ph:star-bold" size="36" class="text-yellow-400/30 dark:text-yellow-500/20 -rotate-12" />
+					<span class="relative">
+						Топы
+						<Icon name="ph:star-bold" size="48" class="absolute -top-3 left-1/2 -translate-x-1/2 text-yellow-400/10 dark:text-yellow-500/10 -z-10 rotate-45" />
+					</span>
+					<Icon name="ph:star-bold" size="36" class="text-yellow-400/30 dark:text-yellow-500/20 rotate-12" />
 				</h1>
 				<Separator />
 			</div>
 
+			<div class="flex flex-col justify-around gap-4 p-4 rounded-4xl border bg-white dark:bg-zinc-900/50 dark:border-zinc-800 mb-4">
+                <h3 class="text-[50px] flex justify-center sm:text-4xl font-black uppercase tracking-tight text-zinc-900 dark:text-white mb-4">
+    			    Лидеры
+    			</h3>
+			    <StatisticsTopThree :items="novelaTotalStats" />
+			</div>
+			
+			
 			<div class="bg-white dark:bg-zinc-900/40 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm mb-8">
+
+
 				<div class="mb-6">
 					<StatisticsPeriodSelector
 						:model-value="currentPeriod"
@@ -79,13 +95,15 @@ const prevPage = () => {
 					v-else
 					:items="novelaTotalStats"
 					:offset="offset"
+					:total="total"
 				/>
 
-				<div v-if="novelaTotalStats.length > 0" class="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+				<div v-if="novelaTotalStats.length > 0" class="mt-6 pt-6">
 					<StatisticsPagination
 						:current-page="currentPage"
 						:has-more="hasMore"
 						:loading="isLoading"
+						:total="total"
 						@prev="prevPage"
 						@next="nextPage"
 					/>
