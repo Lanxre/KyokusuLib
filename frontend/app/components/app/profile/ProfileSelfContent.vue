@@ -154,7 +154,7 @@ const { pending } = await useAsyncData("profile-init", async () => {
                                 <span class="text-zinc-900 dark:text-zinc-300 font-medium">{{ accountCreated }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-zinc-500">Последняя активность</span>
+                                <span class="text-zinc-500">Последний вход</span>
                                 <span class="text-zinc-900 dark:text-zinc-300 font-medium">{{ lastLogin }}</span>
                             </div>
                             <div class="flex justify-between">

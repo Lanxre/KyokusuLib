@@ -100,7 +100,7 @@ const getSubtitle = () => {
                     </div>
                 </div>
             </div>
-            <div v-if="item.alternative_titles && item.alternative_titles.length" class="text-center text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 line-clamp-1 sm:truncate mt-0.5 sm:mt-1">
+            <div v-if="item.alternative_titles && item.alternative_titles.length" class="flex text-center text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 line-clamp-1 sm:truncate mt-0.5 sm:mt-1">
                 {{ item.alternative_titles.join(' • ') }}
             </div>
 

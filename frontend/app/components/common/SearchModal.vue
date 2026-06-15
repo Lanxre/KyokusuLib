@@ -6,6 +6,8 @@ import SearchCategories from "./Search/SearchCategories.vue";
 import SearchHistory from "./Search/SearchHistory.vue";
 import SearchResults from "./Search/SearchResults.vue";
 
+import type { MostSearched } from "@/types/frontend/search/searches";
+
 const {
     isOpen,
     closeSearch,
@@ -15,10 +17,16 @@ const {
     searchResults,
     recentSearches,
     popularSearches,
+    genres,
+    categories,
+    hasActiveFilters,
     addRecentSearch,
     removeRecentSearch,
+    setQueryParam,
+    removeQueryParam,
+    clearFilters,
     clearRecentSearches
-} = useSearch();
+} = useSearch({ immediateWatch: true });
 
 const searchInputRef = ref<HTMLInputElement | null>(null);
 
@@ -26,31 +34,33 @@ const handleSelectResult = (item: SearchResultItem) => {
     addRecentSearch(searchQuery.value);
     closeSearch();
     
-    // Navigate based on category
-    if (activeCategory.value === 'ranobe') {
-        navigateTo(`/novela/${item.id}`);
-    } else if (activeCategory.value === 'authors') {
-        navigateTo(`/author/${item.id}`);
-    } else if (activeCategory.value === 'users') {
-        navigateTo(`/profile/${item.id}`);
-    } else if (activeCategory.value === 'teams') {
-        navigateTo(`/team/${item.slug || item.id}`);
-    }
+    const routes: Record<string, string> = {
+        ranobe: `/novela/${item.id}`,
+        authors: `/author/${item.id}`,
+        users: `/profile/${item.id}`,
+        teams: `/team/${item.slug || item.id}`
+    };
+    
+    navigateTo(routes[activeCategory.value]);
 };
 
-const handleSelectRecent = (query: string) => {
-    searchQuery.value = query;
+const handleSelectRecent = (item: MostSearched) => {
+    setQueryParam(item);
 };
 
 const navigateToSearch = () => {
     const query = searchQuery.value.trim();
-    if (query.length >= 2) {
-        const category = activeCategory.value;
+    if (query.length >= 2 || hasActiveFilters.value) {
         addRecentSearch(query);
         closeSearch();
         navigateTo({
             path: '/search',
-            query: { q: query, type: category }
+            query: { 
+                q: query || undefined, 
+                type: activeCategory.value,
+                genres: genres.value.length ? genres.value.map(g => g.label).join(',') : undefined,
+                categories: categories.value.length ? categories.value.map(c => c.label).join(',') : undefined
+            }
         });
     }
 };
@@ -134,17 +144,47 @@ onUnmounted(() => {
                 </div>
                 
                 <!-- Categories Component -->
-                <div class="px-4 sm:px-6 pb-4">
+                <div class="px-4 sm:px-6 pb-2">
                     <SearchCategories v-model="activeCategory" />
+                </div>
+
+                <div v-if="hasActiveFilters" class="px-4 sm:px-10 pb-4 flex justify-center flex-wrap gap-2">
+                    <div 
+                        v-for="genre in genres" 
+                        :key="genre.id"
+                        class="px-2 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-center gap-1.5 animate-in fade-in zoom-in duration-200"
+                    >
+                        <span class="text-[10px] font-bold text-yellow-600 dark:text-yellow-500 uppercase tracking-wider">{{ genre.label }}</span>
+                        <button @click="removeQueryParam(genre)" class="flex mb-0.5 cursor-pointer text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-400 transition-colors">
+                            <Icon name="ph:x-bold" size="10" />
+                        </button>
+                    </div>
+                    <div 
+                        v-for="category in categories" 
+                        :key="category.id"
+                        class="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg flex items-center gap-1.5 animate-in fade-in zoom-in duration-200"
+                    >
+                        <span class="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">{{ category.label }}</span>
+                        <button @click="removeQueryParam(category)" class="flex cursor-pointer mb-0.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors">
+                            <Icon name="ph:x-bold" size="10" />
+                        </button>
+                    </div>
+                    <button 
+                        @click="clearFilters"
+                        class="cursor-pointer px-2 py-1 text-[10px] font-bold text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 uppercase tracking-wider transition-colors"
+                    >
+                        Очистить всё
+                    </button>
                 </div>
             </div>
 
             <!-- Main Content Area -->
             <div class="flex-1 overflow-y-auto min-h-87.5 p-6 custom-scrollbar relative">
                 
-                <!-- Initial State (No Search) -->
+                <!-- History & Recommendations (shown only when text is empty) -->
                 <SearchHistory 
                     v-if="!searchQuery"
+                    class="mb-8"
                     :recentSearches="recentSearches"
                     :popularSearches="popularSearches"
                     @select="handleSelectRecent"
@@ -153,26 +193,28 @@ onUnmounted(() => {
                 />
 
                 <!-- Loading State -->
-                <div v-else-if="isSearching" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-[#18181b]/80 backdrop-blur-sm z-10">
+                <div v-if="isSearching" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-[#18181b]/80 backdrop-blur-sm z-10">
                     <Icon name="ph:spinner-gap-bold" size="40" class="animate-spin text-yellow-500" />
                     <p class="mt-4 text-sm font-bold text-zinc-500 uppercase tracking-widest">Поиск...</p>
                 </div>
 
                 <!-- Results State -->
                 <SearchResults 
-                    v-else-if="searchResults.length > 0"
+                    v-if="searchResults.length > 0"
                     :results="searchResults"
                     :activeCategory="activeCategory"
                     @select="handleSelectResult"
                 />
 
-                <!-- Empty State -->
-                <div v-else class="flex flex-col items-center justify-center py-16 text-center h-full">
+                <!-- Empty State (shown only if there is a query or filters, and no results) -->
+                <div v-else-if="(searchQuery.length >= 2 || hasActiveFilters) && !isSearching" class="flex flex-col items-center justify-center py-16 text-center h-full">
                     <div class="w-20 h-20 rounded-full bg-zinc-50 dark:bg-zinc-800/50 flex items-center justify-center mb-4 border border-zinc-100 dark:border-zinc-800">
                         <Icon name="ph:magnifying-glass-bold" size="32" class="text-zinc-300 dark:text-zinc-600" />
                     </div>
                     <p class="text-base font-bold text-zinc-900 dark:text-zinc-100">Ничего не найдено</p>
-                    <p class="text-sm text-zinc-500 mt-2 max-w-xs">По запросу «<span class="font-semibold text-zinc-700 dark:text-zinc-300">{{ searchQuery }}</span>» нет результатов. Попробуйте изменить запрос.</p>
+                    <p class="text-sm text-zinc-500 mt-2 max-w-xs">
+                        По вашему запросу нет результатов. Попробуйте изменить фильтры или текст.
+                    </p>
                 </div>
             </div>
             

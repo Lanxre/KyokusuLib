@@ -279,10 +279,23 @@ func (h *NovelaHandler) GetNovelas(w http.ResponseWriter, r *http.Request) {
 	}
 
 	parseCSV := func(k string) []string {
-		if v := q.Get(k); v != "" {
-			return strings.Split(v, ",")
+		trimQuotes := func(s string) string {
+			return strings.Trim(s, "'\" ")
 		}
-		return q[k]
+
+		if v := q.Get(k); v != "" {
+			parts := strings.Split(v, ",")
+			for i := range parts {
+				parts[i] = trimQuotes(parts[i])
+			}
+			return parts
+		}
+
+		values := q[k]
+		for i := range values {
+			values[i] = trimQuotes(values[i])
+		}
+		return values
 	}
 
 	filters := dto.NovelaFilters{
@@ -296,7 +309,7 @@ func (h *NovelaHandler) GetNovelas(w http.ResponseWriter, r *http.Request) {
 		Categories: parseCSV("categories"),
 		AuthorID:   toInt("author_id", 0),
 	}
-
+	
 	novelas, total, err := h.service.GetNovelas(r.Context(), userID, filters)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())

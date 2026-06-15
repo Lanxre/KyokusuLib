@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import type { MostSearched } from '@/types/frontend/search/searches';
+
 defineProps<{
     recentSearches: string[];
-    popularSearches: string[];
+    popularSearches: MostSearched[];
 }>();
 
 const emit = defineEmits(["select", "remove", "clear"]);
+
 </script>
 
 <template>
@@ -48,7 +51,7 @@ const emit = defineEmits(["select", "remove", "clear"]);
                     class="group flex items-center gap-1.5 px-4 py-1.5 bg-yellow-50 dark:bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 border border-yellow-200/50 dark:border-yellow-500/20 hover:bg-yellow-100 hover:border-yellow-300 dark:hover:bg-yellow-500/20 dark:hover:border-yellow-500/40 rounded-full text-sm font-semibold transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
                 >
                     <Icon name="ph:trend-up-bold" size="14" class="opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all" />
-                    {{ popular }}
+                    {{ popular.label }}
                 </button>
             </div>
         </div>

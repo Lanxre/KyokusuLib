@@ -371,10 +371,13 @@ watch(
                                     </div>
                             </div>
                             <div class="h-px bg-zinc-200 dark:bg-zinc-800 my-1"></div>
-                            <div class="flex justify-center flex-wrap gap-2">
-                                <span v-for="genre in novela.genres" :key="genre" class="px-3 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[11px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer transition-colors">
-                                    {{ genre }}
-                                </span>
+                            <div class="flex flex-col justify-center flex-wrap gap-2">
+                                <h3 class="text-xl text-center font-black mb-4 uppercase tracking-tighter">{{ novela.genres.length >= 2 ? 'Жанры' : 'Жанр' }}</h3>
+                                <div class="flex justify-center flex-wrap gap-2">
+                                    <span v-for="genre in novela.genres" :key="genre" class="px-3 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[11px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer transition-colors">
+                                        {{ genre }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
