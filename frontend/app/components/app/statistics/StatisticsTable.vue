@@ -83,22 +83,33 @@ const sortedItems = computed(() => {
           </th>
           <th
             class="py-4 px-4 text-center cursor-pointer select-none hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
-            @click="setSort('bookmarkCount')"
-          >
-            <span class="inline-flex items-center gap-1">
-              <TeleportedTooltip text="Закладки">
-                <Icon name="ph:bookmark-simple-bold" size="18" class="inline-block" />
-              </TeleportedTooltip>
-            </span>
-          </th>
-          <th
-            class="py-4 px-4 text-center cursor-pointer select-none hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
             @click="setSort('readCount')"
           >
             <span class="inline-flex items-center gap-1">
-              <TeleportedTooltip text="Прочтения">
-                <Icon name="ph:eye-bold" size="18" class="inline-block" />
-              </TeleportedTooltip>
+                <TeleportedTooltip text="Прочтения">
+                    <Icon name="ph:eye-bold" size="18" class="inline-block" />
+                </TeleportedTooltip>
+            </span>
+            
+          </th>
+          <th
+            class="py-4 px-4 text-center cursor-pointer select-none hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+            @click="setSort('bookmarkCount')"
+          >
+              <span class="inline-flex items-center gap-1">
+                <TeleportedTooltip text="Закладки">
+                  <Icon name="ph:bookmark-simple-bold" size="18" class="inline-block" />
+                </TeleportedTooltip>
+              </span>
+          </th>
+          <th
+            class="py-4 px-4 text-center cursor-pointer select-none hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+            @click="setSort('commentCount')"
+          >
+            <span class="inline-flex items-center gap-1">
+                <TeleportedTooltip text="Комментарии">
+                    <Icon name="ph:chat-circle-bold" size="18" class="inline-block" />
+                </TeleportedTooltip>
             </span>
           </th>
           <th
@@ -106,19 +117,9 @@ const sortedItems = computed(() => {
             @click="setSort('ratingCount')"
           >
             <span class="inline-flex items-center gap-1">
-              <TeleportedTooltip text="Оценки">
-                <Icon name="ph:star-bold" size="18" class="inline-block" />
-              </TeleportedTooltip>
-            </span>
-          </th>
-          <th
-            class="py-4 px-4 text-center cursor-pointer select-none hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
-            @click="setSort('commentCount')"
-          >
-            <span class="inline-flex items-center gap-1">
-              <TeleportedTooltip text="Комментарии">
-                <Icon name="ph:chat-circle-bold" size="18" class="inline-block" />
-              </TeleportedTooltip>
+                <TeleportedTooltip text="Оценки">
+                  <Icon name="ph:star-bold" size="18" class="inline-block" />
+                </TeleportedTooltip>
             </span>
           </th>
           <th
@@ -171,16 +172,16 @@ const sortedItems = computed(() => {
             </div>
           </td>
           <td class="py-3 px-4 text-center text-zinc-600 dark:text-zinc-400 font-medium">
-            {{ item.bookmarkCount }}
-          </td>
-          <td class="py-3 px-4 text-center text-zinc-600 dark:text-zinc-400 font-medium">
             {{ item.readCount }}
           </td>
           <td class="py-3 px-4 text-center text-zinc-600 dark:text-zinc-400 font-medium">
-            {{ item.ratingCount }}
+            {{ item.bookmarkCount }}
           </td>
           <td class="py-3 px-4 text-center text-zinc-600 dark:text-zinc-400 font-medium">
             {{ item.commentCount }}
+          </td>
+          <td class="py-3 px-4 text-center text-zinc-600 dark:text-zinc-400 font-medium">
+            {{ item.ratingCount }}
           </td>
           <td class="py-3 px-4 text-center text-zinc-600 dark:text-zinc-400 font-medium">
             {{ item.volumeCount }}

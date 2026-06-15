@@ -80,7 +80,7 @@ func (r *NovelaStatisticsRepository) GetTotalStatistics(
 		read_stats AS (
 			SELECT
 				nv.novela_id,
-				COUNT(DISTINCT rc.user_id) AS total_read_count
+				COUNT(rc.user_id) AS total_read_count
 			FROM read_chapters rc
 			JOIN novela_chapters nch
 				ON nch.id = rc.chapter_id
