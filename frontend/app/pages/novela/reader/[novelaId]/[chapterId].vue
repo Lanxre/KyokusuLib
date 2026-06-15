@@ -87,6 +87,33 @@ const currentChapter = computed(() =>
 	chapters.value.find(c => c.id === currentChapterId.value) || chapters.value[0]
 );
 
+function scrollToChapter(chapterId: string) {
+	const el = document.querySelector(`[data-chapter-id="${chapterId}"]`);
+	if (el) {
+		el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		return true;
+	}
+	return false;
+}
+
+function goToNextChapter() {
+	const nextId = currentChapter.value?.next_chapter_id;
+	if (!nextId) return;
+
+	if (isAutoScrollEnabled.value && scrollToChapter(nextId)) return;
+
+	navigateTo(`/novela/reader/${novelaId.value}/${nextId}`);
+}
+
+function goToPrevChapter() {
+	const prevId = currentChapter.value?.prev_chapter_id;
+	if (!prevId) return;
+
+	if (isAutoScrollEnabled.value && scrollToChapter(prevId)) return;
+
+	navigateTo(`/novela/reader/${novelaId.value}/${prevId}`);
+}
+
 useInfiniteScroll(
 	window,
 	() => {
@@ -133,9 +160,14 @@ const textColor = ref("text-zinc-900 dark:text-zinc-200");
 		<header class="sticky z-30 top-20.5 md:top-22.5 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
 			<div class="max-w-5xl mx-auto px-4 h-16 grid grid-cols-[auto_1fr_auto] items-center gap-4">
 				<div class="flex items-center gap-6 justify-start mt-1">
-					<Tooltip text="Вернуться к описанию" position="left">
+				    <Tooltip text="Предыдущая глава" position="left">
+              			<button @click="goToPrevChapter" class="cursor-pointer rounded-xl transition-colors">
+                  			<Icon name="ph:arrow-left-bold" size="20" />
+              			</button>
+              		</Tooltip>
+					<Tooltip text="Вернуться к описанию" position="right">
 						<NuxtLink :to="`/novela/${novelaId}`" class="rounded-xl transition-colors shrink-0">
-							<Icon name="ph:arrow-left-bold" size="20" />
+							<Icon name="ph:list-bold" size="20" />
 						</NuxtLink>
 					</Tooltip>
 					<Tooltip v-if="hasPermission(KyokusuAppRole.MODERATOR)" text="Редактирование" position="right">
@@ -160,12 +192,17 @@ const textColor = ref("text-zinc-900 dark:text-zinc-200");
 					</div>
 				</button>
 
-				<div class="flex items-center justify-end">
-				    <Tooltip text="Настройки" position="right">
-						<button @click="isSettingsOpen = true" class="cursor-pointer rounded-xl transition-colors">
-							<Icon name="ph:list-bold" size="20" />
-						</button>
-					</Tooltip>
+				<div class="flex items-center justify-end gap-4">
+					<Tooltip text="Настройки" position="left">
+             			<button @click="isSettingsOpen = true" class="cursor-pointer rounded-xl transition-colors">
+                 			<Icon name="ph:gear-bold" size="20" />
+             			</button>
+              		</Tooltip>              		
+    				<Tooltip text="Следующая глава" position="right">
+    					<button @click="goToNextChapter" class="cursor-pointer rounded-xl transition-colors">
+    						<Icon name="ph:arrow-right-bold" size="20" />
+    					</button>
+    				</Tooltip>
 				</div>
 			</div>
 		</header>
@@ -229,7 +266,7 @@ const textColor = ref("text-zinc-900 dark:text-zinc-200");
 		/>
 		<ReaderSettings v-model="isSettingsOpen" />
 
-		<footer v-if="!isAutoScrollEnabled || !lastChapter?.next_chapter_id" class="bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 py-8">
+		<footer v-if="!isAutoScrollEnabled || !lastChapter?.next_chapter_id" class="bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 py-2">
 			<div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-6">
 				<div class="flex items-center gap-4 w-full sm:w-auto">
 					<NuxtLink 
@@ -240,7 +277,7 @@ const textColor = ref("text-zinc-900 dark:text-zinc-200");
 						<Icon name="ph:caret-left-bold" size="20" />
 						<span>Назад</span>
 					</NuxtLink>
-					<div v-else class="flex-1 sm:flex-none px-6 py-3 opacity-0 pointer-events-none">
+					<div v-else class="flex-1 sm:flex-none px-6 py-1.5 opacity-0 pointer-events-none">
 						<span>Назад</span>
 					</div>
 				</div>
@@ -254,7 +291,7 @@ const textColor = ref("text-zinc-900 dark:text-zinc-200");
 					<NuxtLink 
 						v-if="lastChapter?.next_chapter_id" 
 						:to="`/novela/reader/${novelaId}/${lastChapter.next_chapter_id}`"
-						class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-zinc-900/10 dark:shadow-none"
+						class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-1.5 ml-4 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-zinc-900/10 dark:shadow-none"
 					>
 						<span>Далее</span>
 						<Icon name="ph:caret-right-bold" size="20" />
@@ -262,7 +299,7 @@ const textColor = ref("text-zinc-900 dark:text-zinc-200");
 					<NuxtLink 
 						v-else 
 						:to="`/novela/${novelaId}`"
-						class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-yellow-500 text-white rounded-xl font-bold transition-all active:scale-95"
+						class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-1.5 bg-yellow-500 text-white rounded-xl font-bold transition-all active:scale-95"
 					>
 						<span>К описанию</span>
 						<Icon name="ph:house-bold" size="20" />

@@ -149,7 +149,7 @@ async function onSubmit(_content: string) {
     <template #back>
       <button
         class="flex items-center p-2 rounded-xl bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-zinc-200/50 dark:border-zinc-800/50 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-        @click="router.push(`/novela/${novelaId}`)"
+        @click="router.push(`/novela/reader/${novelaId}/${chapterId}`)"
       >
         <Icon name="ph:arrow-left-bold" size="20" />
       </button>

@@ -20,6 +20,15 @@ watch(() => props.modelValue, (isOpen) => {
 	if (isOpen && !novela.value) {
 		fetchNovela(props.novelaId);
 	}
+
+	if (isOpen) {
+		nextTick(() => {
+			const el = document.querySelector(`[data-chapter-id="${props.currentChapterId}"]`);
+			if (el) {
+				el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+			}
+		});
+	}
 });
 
 const sortedVolumes = computed(() => {
@@ -74,6 +83,7 @@ const sortedVolumes = computed(() => {
 									v-for="ch in vol.chapters"
 									:key="ch.id"
 									:to="`/novela/reader/${props.novelaId}/${ch.id}`"
+									:data-chapter-id="ch.id"
 									class="flex items-center gap-3 px-2.5 py-1.5 rounded-xl transition-all group"
 									:class="currentChapterId === ch.id
 										? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/20'
