@@ -64,9 +64,8 @@ export function useProfile() {
 	};
 
 	const formatLastLogin = (last_login?: string | null) => {
-		if (!last_login) return "Неизвестно";
+    if (!last_login) return "Неизвестно";
 		const date = new Date(last_login);
-		date.setHours(date.getHours() - 3);
 		const isToday = date.toDateString() === new Date().toDateString();
 		return isToday
 			? date.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })

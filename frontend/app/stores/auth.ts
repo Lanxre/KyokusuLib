@@ -37,7 +37,6 @@ export const useAuthStore = defineStore("auth", () => {
 			await useApi("/api/auth/logout", { method: "POST" });
 			user.value = null;
 
-			// В Nuxt используем navigateTo для редиректа
 			await navigateTo("/login");
 		} catch (e) {
 			console.error("Logout error:", e);

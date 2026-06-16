@@ -12,7 +12,7 @@ import { $api } from "@/composables/api/useApi";
 
 export const useActivityStore = defineStore("activity", () => {
 	const authStore = useAuthStore();
-	const { isAuthenticated } = storeToRefs(authStore);
+	const { isAuthenticated, user } = storeToRefs(authStore);
 
 	const { idle, lastActive } = useIdle(60 * 1000);
 	const focused = useWindowFocus();
@@ -35,6 +35,10 @@ export const useActivityStore = defineStore("activity", () => {
 					last_active: lastActive.value,
 				},
 			});
+      if (user.value) {
+        const now = new Date().toISOString();
+        user.value.last_login = now;
+      }
 		} catch (e) {
 			console.warn("Heartbeat failed");
 		}
