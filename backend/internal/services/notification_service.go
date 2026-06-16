@@ -38,7 +38,7 @@ func (s *NotificationService) Create(ctx context.Context, userID int64, title, m
 		CreatedAt: saved.CreatedAt,
 	}
 
-	s.Hub.Publish(userID, *notification)
+	s.Hub.Publish(ctx, userID, *notification)
 
 	return notification, nil
 }

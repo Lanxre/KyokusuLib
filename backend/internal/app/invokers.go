@@ -10,20 +10,34 @@ import (
 	service "github.com/lanxre/kyokusulib/internal/services"
 	"github.com/lanxre/kyokusulib/internal/sse"
 	"github.com/lanxre/kyokusulib/internal/utils/static"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/cors"
 	"go.uber.org/fx"
 )
+
+func RegisterRedisCleanup(lc fx.Lifecycle, client *redis.Client) {
+	if client == nil {
+		return
+	}
+	lc.Append(fx.Hook{
+		OnStop: func(ctx context.Context) error {
+			log.Println("Closing redis client...")
+			return client.Close()
+		},
+	})
+}
 
 func RegisterStaticFiles(r *mux.Router) {
 	static.CreateStaticDirs(r)
 }
 
-func StartBackgroundWorkers(lc fx.Lifecycle, authService *service.AuthService) {
+func StartBackgroundWorkers(lc fx.Lifecycle, authService *service.AuthService, hub *sse.NotificationHub) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	lc.Append(fx.Hook{
 		OnStart: func(_ context.Context) error {
 			go authService.StartCleanupWorker(ctx)
+			hub.Start(ctx)
 			return nil
 		},
 		OnStop: func(_ context.Context) error {

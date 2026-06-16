@@ -34,6 +34,9 @@ type Config struct {
 	KyokusuEmailName string
 
 	ParserURL string
+
+	RedisAddr     string
+	RedisPassword string
 }
 
 func Load() *Config {
@@ -67,6 +70,9 @@ func Load() *Config {
 		KyokusuEmailName: getEnv("KYOKUSU_EMAIL_NAME", ""),
 
 		ParserURL: getEnv("PARSER_URL", "http://localhost:3005"),
+
+		RedisAddr:     getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisPassword: getEnv("REDIS_PASSWORD", ""),
 	}
 }
 

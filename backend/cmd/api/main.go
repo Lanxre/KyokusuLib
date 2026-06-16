@@ -21,6 +21,7 @@ func main() {
 			config.Load,
 			logger.New,			
 			storage.NewPostgresDB,
+			storage.NewRedisClient,
 			app.NewValidator,
 			
 
@@ -112,6 +113,7 @@ func main() {
 			app.RegisterStaticFiles,
 			app.StartBackgroundWorkers,
 			app.RegisterNotificationHubCleanup,
+			app.RegisterRedisCleanup,
 			app.StartHTTPServer,
 		),
 		fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
