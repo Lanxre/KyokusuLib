@@ -2,11 +2,11 @@ import { ref, watch, computed } from 'vue';
 import { useStorage } from '@vueuse/core';
 import { useDebounceFn } from '@vueuse/core';
 import { $api } from '@/composables/api/useApi';
-import { useAuthors } from '@/composables/api/authors/useAuthors';
 import type { NovelaDetails, NovelaAuthorDetails } from '@/types/backend/novela';
 import type { GetUserDto } from '@/types/backend/user';
 import type { Team } from '@/types/frontend/teams';
 import type { MostSearched } from '@/types/frontend/search/searches';
+import { MOST_SEARCHED_DEFAULT } from '~/constants/data';
 
 
 export type SearchCategory = 'ranobe' | 'users' | 'teams' | 'authors';
@@ -29,23 +29,7 @@ export function useSearch(options: UseSearchOptions = { immediateWatch: false })
     const searchResults = useState<SearchResultItem[]>('search-results', () => []);
     
     const recentSearches = useStorage<string[]>('recent-searches', []);
-    const popularSearches = ref<MostSearched[]>([{
-      id: 1,
-      type: 'genres',
-      label: 'Детектив',
-    }, {
-      id: 2,
-      type: 'genres',
-      label: 'Романтика',
-    }, {
-      id: 3,
-      type: 'categories',
-      label: 'Перерождение',
-    }, {
-      id: 4,
-      type: 'categories',
-      label: 'Академия',
-    }]);
+    const popularSearches = ref<MostSearched[]>(MOST_SEARCHED_DEFAULT);
     
 
     const hasActiveFilters = computed(() => genres.value.length > 0 || categories.value.length > 0);
@@ -95,6 +79,18 @@ export function useSearch(options: UseSearchOptions = { immediateWatch: false })
 
     const clearRecentSearches = () => {
         recentSearches.value = [];
+    };
+
+    const fetchMostSearched = async () => {
+        try {
+            const response = await $fetch<{ genres: Array<string>; categories: Array<string> }>('/api/novela/most-searched');
+            popularSearches.value = [
+                ...response.genres.map((g, index) => ({ id: index, type: 'genres', label: g })),
+                ...response.categories.map((c, index) => ({ id: index, type: 'categories', label: c })),
+            ];
+        } catch (error) {
+          console.error(error)
+        } 
     };
 
     const performSearch = async () => {
@@ -186,6 +182,7 @@ export function useSearch(options: UseSearchOptions = { immediateWatch: false })
         setQueryParam,
         removeQueryParam,
         clearFilters,
-        performSearch
+        performSearch,
+        fetchMostSearched
     };
 }

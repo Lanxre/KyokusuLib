@@ -113,7 +113,7 @@ export function useProfile() {
 				: "Неизвестно",
 		),
 		lastLogin: computed(() => formatLastLogin(profileData.value?.last_login)),
-		isLogin: computed(() => profileData.value?.status === "online"),
+    isLogin: computed(() => profileData.value?.status === "online"),
 
 		getRoleColor,
 		getGenderText,

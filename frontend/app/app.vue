@@ -30,6 +30,8 @@ onMounted(async () => {
 		const loader = document.getElementById("app-loading-style");
 		if (loader) loader.remove();
 	}, 100);
+
+	activityStore.initActivityTracking();
 });
 </script>
 

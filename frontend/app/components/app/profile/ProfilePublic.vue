@@ -25,7 +25,8 @@ const {
 	accountCreated,
 	userRoleColor,
 	getGenderText,
-	lastLogin,
+    lastLogin,
+	lastJoinSiteDate,
 	isLogin,
 } = useProfile();
 const { activities, fetchActivities, isLoadingActivities } = useUserActivity();

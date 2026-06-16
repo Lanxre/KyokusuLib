@@ -13,8 +13,8 @@ type UserProfileSetting struct {
 	IsNewPublishedNotify bool `json:"is_new_published_notify"`
 	IsShowTag bool `json:"is_show_tag"`
 	IsShowBookmark bool `json:"is_show_bookmark"`
-	FontSize int `json:"font_size"`
-	LineWeight int `json:"line_weight"`
+	FontSize int     `json:"font_size"`
+	LineWeight float64 `json:"line_weight"`
 	FontFamily string `json:"font_family"`
 	AutoScroll bool `json:"auto_scroll"`
 }

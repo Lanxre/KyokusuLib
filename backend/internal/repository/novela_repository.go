@@ -930,3 +930,67 @@ func (r NovelaRepository) IsExistChapter(ctx context.Context, chapterID string) 
 	err := r.DB.QueryRowContext(ctx, query, chapterID).Scan(&exists)
 	return exists, err
 }
+
+func (r NovelaRepository) GetMostSearchedGenres(ctx context.Context, limit int) ([]string, error) {
+	query := `
+		SELECT 
+			g.name
+		FROM genres g
+			JOIN novela_genres ng ON ng.genre_id = g.id
+			JOIN novela_volumes v ON ng.novela_id = v.novela_id
+			JOIN novela_chapters c ON v.id = c.novela_volume_id
+			JOIN read_chapters rc ON c.id = rc.chapter_id
+		GROUP BY g.id, g.name
+		ORDER BY COUNT(c.id) DESC
+		LIMIT $1;
+	`
+	rows, err := r.DB.QueryContext(ctx, query, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	genres := make([]string, 0, limit)
+	
+	for rows.Next() {
+		var genre string
+		if err := rows.Scan(&genre); err != nil {
+			return nil, err
+		}
+		genres = append(genres, genre)
+	}
+
+	return genres, nil
+}
+
+func (r NovelaRepository) GetMostSearchedCategories(ctx context.Context, limit int) ([]string, error) {
+	query := `
+		SELECT 
+			c.name
+		FROM categories c
+			JOIN novela_categories nc ON nc.category_id = c.id
+			JOIN novela_volumes v ON nc.novela_id = v.novela_id
+			JOIN novela_chapters ch ON v.id = ch.novela_volume_id
+			JOIN read_chapters rc ON ch.id = rc.chapter_id
+		GROUP BY c.id, c.name
+		ORDER BY COUNT(ch.id) DESC
+		LIMIT $1;
+	`
+	rows, err := r.DB.QueryContext(ctx, query, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	categories := make([]string, 0, limit)
+	
+	for rows.Next() {
+		var cat string
+		if err := rows.Scan(&cat); err != nil {
+			return nil, err
+		}
+		categories = append(categories, cat)
+	}
+
+	return categories, nil
+}

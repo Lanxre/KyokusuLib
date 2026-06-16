@@ -1,3 +1,5 @@
+import type { MostSearched } from "~/types/frontend/search/searches";
+
 export const COUNTRIES_LIST = [
 	"Япония",
 	"Южная Корея",
@@ -85,3 +87,22 @@ export const REPORT_COMMNET_REASONS = [
     { id: "inappropriate", label: "Непристойный контент" },
     { id: "other", label: "Другое" }
 ];
+
+// Most searched values
+export const MOST_SEARCHED_DEFAULT: MostSearched[] = [{
+  id: 1,
+  type: 'genres',
+  label: 'Детектив',
+}, {
+  id: 2,
+  type: 'genres',
+  label: 'Романтика',
+}, {
+  id: 3,
+  type: 'categories',
+  label: 'Перерождение',
+}, {
+  id: 4,
+  type: 'categories',
+  label: 'Академия',
+}]

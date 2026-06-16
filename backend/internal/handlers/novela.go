@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
+	"github.com/lanxre/kyokusulib/internal/constants"
 	"github.com/lanxre/kyokusulib/internal/middleware"
 	"github.com/lanxre/kyokusulib/internal/models/db"
 	"github.com/lanxre/kyokusulib/internal/models/dto"
@@ -683,4 +684,13 @@ func (h *NovelaHandler) MarkChapterAsRead(w http.ResponseWriter, r *http.Request
 	}
 
 	response.SuccessOkEmpty(w)
+}
+
+func (h *NovelaHandler) GetMostSearched(w http.ResponseWriter, r *http.Request) {
+	res, err := h.service.GetMostSearched(r.Context(), constants.MostSearchedCategoriesLimit)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "Невозможно получить данные")
+		return
+	}
+	response.JSON(w, http.StatusOK, res)
 }

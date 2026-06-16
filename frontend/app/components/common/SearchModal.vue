@@ -25,7 +25,8 @@ const {
     setQueryParam,
     removeQueryParam,
     clearFilters,
-    clearRecentSearches
+    clearRecentSearches,
+    fetchMostSearched,
 } = useSearch({ immediateWatch: true });
 
 const searchInputRef = ref<HTMLInputElement | null>(null);
@@ -71,9 +72,10 @@ const handleKeydown = (e: KeyboardEvent) => {
     }
 };
 
-watch(isOpen, (val) => {
+watch(isOpen, async (val) => {
     if (val) {
-        setTimeout(() => {
+      setTimeout(async () => {
+            await fetchMostSearched();
             if (searchInputRef.value) {
                 searchInputRef.value.focus();
             }
@@ -81,9 +83,9 @@ watch(isOpen, (val) => {
     }
 });
 
-onMounted(() => {
+onMounted(async () => {
     window.addEventListener("keydown", handleKeydown);
-    
+    await fetchMostSearched();
     if (isOpen.value && searchInputRef.value) {
         searchInputRef.value.focus();
     }

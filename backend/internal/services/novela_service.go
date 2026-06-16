@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"mime/multipart"
@@ -13,6 +14,7 @@ import (
 	"github.com/lanxre/kyokusulib/internal/models/dto"
 	"github.com/lanxre/kyokusulib/internal/repository"
 	"github.com/lanxre/kyokusulib/internal/utils/files"
+	"github.com/redis/go-redis/v9"
 )
 
 type NovelaService struct {
@@ -22,6 +24,7 @@ type NovelaService struct {
 	LikeRepo            *repository.NovelaLikeRepository
 	UserRepo            *repository.UserRepository
 	NotificationService *NotificationService
+	redis          		*redis.Client
 }
 
 func NewNovelaService(repo *repository.NovelaRepository,
@@ -30,6 +33,7 @@ func NewNovelaService(repo *repository.NovelaRepository,
 	novelaLikeRepo *repository.NovelaLikeRepository,
 	userRepo *repository.UserRepository,
 	notificationService *NotificationService,
+	redisClient *redis.Client,
 ) *NovelaService {
 	return &NovelaService{
 		Repo:                repo,
@@ -38,6 +42,7 @@ func NewNovelaService(repo *repository.NovelaRepository,
 		LikeRepo:            novelaLikeRepo,
 		UserRepo:            userRepo,
 		NotificationService: notificationService,
+		redis:               redisClient,
 	}
 }
 
@@ -485,4 +490,39 @@ func (s *NovelaService) canManageChapter(ctx context.Context, userID int, chapte
 	}
 
 	return hasTeamPermission, nil
+}
+
+func (s *NovelaService) GetMostSearched(ctx context.Context, limit int) (*dto.MostSearchedResponse, error) {
+	if s.redis != nil {
+		val, err := s.redis.Get(ctx, "most_searched:").Result()
+		if err == nil {
+			var cachedResponse dto.MostSearchedResponse
+			if err := json.Unmarshal([]byte(val), &cachedResponse); err == nil {
+				return &cachedResponse, nil
+			}
+		}
+	}
+	
+	genres, err := s.Repo.GetMostSearchedGenres(ctx, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	categories, err := s.Repo.GetMostSearchedCategories(ctx, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &dto.MostSearchedResponse{
+		Genres: genres,
+		Categories: categories,
+	}
+
+	if s.redis != nil {
+		if data, err := json.Marshal(res); err == nil {
+			_ = s.redis.Set(ctx, "most_searched:", data, 15 * time.Minute).Err()
+		}
+	}
+
+	return res, nil
 }

@@ -177,3 +177,8 @@ type ChapterReaderResponse struct {
 	PrevChapterID  *string              `json:"prev_chapter_id"`
 	NextChapterID  *string              `json:"next_chapter_id"`
 }
+
+type MostSearchedResponse struct {
+	Genres    []string `json:"genres"`
+	Categories []string `json:"categories"`
+}
