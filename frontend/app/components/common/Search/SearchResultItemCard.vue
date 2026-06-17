@@ -77,8 +77,8 @@ const getSubtitle = () => {
 
                     <div v-if="activeCategory !== 'teams' && getSubtitle()" class="flex flex-wrap items-center gap-2 mt-1 sm:mt-1.5">
                         <span class="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 min-w-0 max-w-full">
-                            <span v-if="activeCategory === 'ranobe'" class="w-1.5 h-1.5 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-700 group-hover:bg-yellow-500/50 transition-colors duration-300"></span>
-                            <span class="flex truncate">{{ getSubtitle() }}</span>
+                            <span v-if="activeCategory === 'ranobe'" class="w-1.5 h-1.5 mb-1.5 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-700 group-hover:bg-yellow-500/50 transition-colors duration-300"></span>
+                            <span class="flex mb-1.5 truncate">{{ getSubtitle() }}</span>
                         </span>
                     </div>
                     

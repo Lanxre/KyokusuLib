@@ -1,12 +1,11 @@
 import { ref, watch, computed } from 'vue';
-import { useStorage } from '@vueuse/core';
-import { useDebounceFn } from '@vueuse/core';
+import { useStorage, useDebounceFn } from '@vueuse/core';
 import { $api } from '@/composables/api/useApi';
-import type { NovelaDetails, NovelaAuthorDetails } from '@/types/backend/novela';
-import type { GetUserDto } from '@/types/backend/user';
-import type { Team } from '@/types/frontend/teams';
-import type { MostSearched } from '@/types/frontend/search/searches';
+import type { MostSearched, RecentSearch, RecentSearchType } from '@/types/frontend/search/searches';
 import { MOST_SEARCHED_DEFAULT } from '~/constants/data';
+import type { NovelaAuthorDetails, NovelaDetails } from '~/types/backend/novela';
+import type { GetUserDto } from '~/types/backend/user';
+import type { Team } from '~/types/frontend/teams';
 
 
 export type SearchCategory = 'ranobe' | 'users' | 'teams' | 'authors';
@@ -28,7 +27,16 @@ export function useSearch(options: UseSearchOptions = { immediateWatch: false })
     const isSearching = useState('search-is-searching', () => false);
     const searchResults = useState<SearchResultItem[]>('search-results', () => []);
     
-    const recentSearches = useStorage<string[]>('recent-searches', []);
+    const recentSearches = useStorage<RecentSearch[]>('recent-searches', []);
+    
+    if (recentSearches.value.length > 0 && typeof recentSearches.value[0] === 'string') {
+        recentSearches.value = (recentSearches.value as any).map((text: string) => ({
+            text,
+            type: 'query',
+            category: 'ranobe'
+        }));
+    }
+
     const popularSearches = ref<MostSearched[]>(MOST_SEARCHED_DEFAULT);
     
 
@@ -64,17 +72,26 @@ export function useSearch(options: UseSearchOptions = { immediateWatch: false })
         searchResults.value = [];
     };
 
-    const addRecentSearch = (query: string) => {
-        if (!query.trim()) return;
+    const addRecentSearch = (item: { text: string; type: RecentSearchType; id?: number; category?: SearchCategory }) => {
+        if (!item.text.trim()) return;
+        
         const current = [...recentSearches.value];
-        const index = current.indexOf(query);
+        const index = current.findIndex(existing => existing.text === item.text && existing.type === item.type);
+        
         if (index > -1) current.splice(index, 1);
-        current.unshift(query);
+        
+        current.unshift({
+            text: item.text,
+            type: item.type,
+            id: item.id,
+            category: item.category
+        });
+        
         recentSearches.value = current.slice(0, 5);
     };
 
-    const removeRecentSearch = (query: string) => {
-        recentSearches.value = recentSearches.value.filter(q => q !== query);
+    const removeRecentSearch = (text: string) => {
+        recentSearches.value = recentSearches.value.filter(q => q.text !== text);
     };
 
     const clearRecentSearches = () => {

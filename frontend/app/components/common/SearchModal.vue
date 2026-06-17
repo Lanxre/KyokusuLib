@@ -6,7 +6,7 @@ import SearchCategories from "./Search/SearchCategories.vue";
 import SearchHistory from "./Search/SearchHistory.vue";
 import SearchResults from "./Search/SearchResults.vue";
 
-import type { MostSearched } from "@/types/frontend/search/searches";
+import type { MostSearched, RecentSearch, RecentSearchType } from "@/types/frontend/search/searches";
 
 const {
     isOpen,
@@ -32,7 +32,19 @@ const {
 const searchInputRef = ref<HTMLInputElement | null>(null);
 
 const handleSelectResult = (item: SearchResultItem) => {
-    addRecentSearch(searchQuery.value);
+    const typeMap: Record<string, RecentSearchType> = {
+        ranobe: 'query',
+        authors: 'author',
+        users: 'user',
+        teams: 'team'
+    };
+
+    addRecentSearch({
+        text: searchQuery.value || (item.title || item.name || item.username),
+        type: typeMap[activeCategory.value] || 'query',
+        category: activeCategory.value as any
+    });
+    
     closeSearch();
     
     const routes: Record<string, string> = {
@@ -45,14 +57,44 @@ const handleSelectResult = (item: SearchResultItem) => {
     navigateTo(routes[activeCategory.value]);
 };
 
-const handleSelectRecent = (item: MostSearched) => {
-    setQueryParam(item);
+const handleSelectRecent = (item: RecentSearch | MostSearched) => {
+    if ('text' in item) {
+        if (item.type === 'genre' || item.type === 'category') {
+            setQueryParam({
+                id: item.id!,
+                label: item.text,
+                type: item.type === 'genre' ? 'genres' : 'categories'
+            });
+        } else {
+            searchQuery.value = item.text;
+            activeCategory.value = (item.category as any) || (item.type === 'query' ? 'ranobe' : item.type + 's');
+            
+            if (item.type === 'author') activeCategory.value = 'authors';
+            if (item.type === 'user') activeCategory.value = 'users';
+            if (item.type === 'team') activeCategory.value = 'teams';
+        }
+    } else {
+        // From Popular Searches
+        setQueryParam(item);
+        
+        // Add popular search to recent history when selected
+        addRecentSearch({
+            text: item.label,
+            type: item.type === 'genres' ? 'genre' : 'category',
+            id: item.id
+        });
+    }
 };
 
 const navigateToSearch = () => {
     const query = searchQuery.value.trim();
     if (query.length >= 2 || hasActiveFilters.value) {
-        addRecentSearch(query);
+        addRecentSearch({
+            text: query,
+            type: 'query',
+            category: activeCategory.value as any
+        });
+        
         closeSearch();
         navigateTo({
             path: '/search',
@@ -154,10 +196,10 @@ onUnmounted(() => {
                     <div 
                         v-for="genre in genres" 
                         :key="genre.id"
-                        class="px-2 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-lg flex items-center gap-1.5 animate-in fade-in zoom-in duration-200"
+                        class="px-2 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-full flex items-center gap-1.5 animate-in fade-in zoom-in duration-200"
                     >
-                        <span class="text-[10px] font-bold text-yellow-600 dark:text-yellow-500 uppercase tracking-wider">{{ genre.label }}</span>
-                        <button @click="removeQueryParam(genre)" class="flex mb-0.5 cursor-pointer text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-400 transition-colors">
+                        <button @click="removeQueryParam(genre)" class="flex items-center mb-0.5 cursor-pointer text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-400 transition-colors">
+                            <span class="text-[10px] font-bold text-yellow-600 dark:text-yellow-500 uppercase tracking-wider px-1">{{ genre.label }}</span>
                             <Icon name="ph:x-bold" size="10" />
                         </button>
                     </div>
@@ -173,7 +215,7 @@ onUnmounted(() => {
                     </div>
                     <button 
                         @click="clearFilters"
-                        class="cursor-pointer px-2 py-1 text-[10px] font-bold text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 uppercase tracking-wider transition-colors"
+                        class="cursor-pointer rounded-2xl text-[10px] font-bold text-zinc-400 bg-zinc-100 hover:bg-red-50 dark:bg-zinc-800/50 dark:hover:bg-zinc-500/10 px-2 py-1 uppercase tracking-wider transition-colors"
                     >
                         Очистить всё
                     </button>

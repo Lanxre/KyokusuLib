@@ -66,7 +66,7 @@ const prevPage = () => {
 				<h1 class="text-3xl sm:text-4xl font-black uppercase tracking-tight text-zinc-900 dark:text-white mb-4 flex items-center justify-center gap-4">
 					<Icon name="ph:star-bold" size="36" class="text-yellow-400/30 dark:text-yellow-500/20 -rotate-12" />
 					<span class="relative">
-						Топы
+						 Чарты
 						<Icon name="ph:star-bold" size="48" class="absolute -top-3 left-1/2 -translate-x-1/2 text-yellow-400/10 dark:text-yellow-500/10 -z-10 rotate-45" />
 					</span>
 					<Icon name="ph:star-bold" size="36" class="text-yellow-400/30 dark:text-yellow-500/20 rotate-12" />
