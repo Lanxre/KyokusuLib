@@ -83,8 +83,6 @@ const prevPage = () => {
 			
 			
 			<div class="bg-white dark:bg-zinc-900/40 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm mb-8">
-
-
 				<div class="mb-6">
 					<StatisticsPeriodSelector
 						:model-value="currentPeriod"
