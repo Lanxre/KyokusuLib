@@ -35,3 +35,14 @@ type GeneralStatistics struct {
 	VolumeCount   int `json:"volumeCount"`
 	ChapterCount  int `json:"chapterCount"`
 }
+
+type ShortNovelaMonthly struct {
+	NovelaID     int    `json:"novelaId"`
+	Title        string `json:"title"`
+	PosterURL    string `json:"posterUrl"`
+}
+
+type NovelaMonthlySeries struct {
+	Novela       ShortNovelaMonthly `json:"novela"`
+	MonthlyReads []int              `json:"monthlyReads"`
+}

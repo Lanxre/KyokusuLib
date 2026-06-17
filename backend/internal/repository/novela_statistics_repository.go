@@ -247,6 +247,81 @@ func (r *NovelaStatisticsRepository) GeneralStatistics(
 	return stats, nil
 }
 
+func (r *NovelaStatisticsRepository) GetMonthlyNovelaSeries(ctx context.Context, limit int) ([]db.NovelaMonthlyRow, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+	if limit > 50 {
+		limit = 50
+	}
+
+	query := `
+		WITH months AS (
+			SELECT generate_series(
+				date_trunc('year', NOW()),
+				date_trunc('year', NOW()) + INTERVAL '11 months',
+				'1 month'
+			)::timestamp AS month_start
+		),
+		top_ids AS (
+			SELECT v.novela_id, COUNT(*) as total_reads
+			FROM read_chapters rc
+			JOIN novela_chapters c ON c.id = rc.chapter_id
+			JOIN novela_volumes v ON v.id = c.novela_volume_id
+			GROUP BY v.novela_id
+			ORDER BY total_reads DESC
+			LIMIT $1
+		),
+		monthly_stats AS (
+			SELECT 
+				v.novela_id, 
+				date_trunc('month', rc.created_at) AS month_start, 
+				COUNT(*)::int AS read_count
+			FROM read_chapters rc
+			JOIN novela_chapters c ON c.id = rc.chapter_id
+			JOIN novela_volumes v ON v.id = c.novela_volume_id
+			WHERE v.novela_id IN (SELECT novela_id FROM top_ids)
+			  AND rc.created_at >= date_trunc('year', NOW())
+			GROUP BY v.novela_id, month_start
+		)
+		SELECT 
+			n.id, 
+			n.title, 
+			COALESCE(n.poster_url, ''), 
+			COALESCE(ms.read_count, 0)
+		FROM top_ids t
+		JOIN novela n ON n.id = t.novela_id
+		CROSS JOIN months m
+		LEFT JOIN monthly_stats ms 
+			ON ms.novela_id = t.novela_id 
+			AND ms.month_start = m.month_start
+		ORDER BY t.total_reads DESC, n.id, m.month_start
+	`
+
+	rows, err := r.DB.QueryContext(ctx, query, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var stats = make([]db.NovelaMonthlyRow, 0, limit)
+	
+	for rows.Next() {
+		var s db.NovelaMonthlyRow
+		if err := rows.Scan(
+			&s.NovelaID,
+			&s.Title,
+			&s.PosterURL,
+			&s.ReadCount,
+		); err != nil {
+			return nil, err
+		}
+		stats = append(stats, s)
+	}
+
+	return stats, rows.Err()
+}
+
 func (r *NovelaStatisticsRepository) startOfPeriod(period constants.StatisticsPeriodSort) *time.Time {
 	now := time.Now()
 	var day int

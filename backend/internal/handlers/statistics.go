@@ -58,3 +58,20 @@ func (h *NovelaStatisticsHandler) GetGeneralStatistics(w http.ResponseWriter, r 
 
 	response.JSON(w, http.StatusOK, stats)
 }
+
+func (h *NovelaStatisticsHandler) GetMonthlyStatistics(w http.ResponseWriter, r *http.Request) {
+	limit := 10
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	stats, err := h.Service.GetMonthlyStatistics(r.Context(), limit)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.JSON(w, http.StatusOK, stats)
+}

@@ -30,3 +30,23 @@ export interface GeneralStatistics {
   volumeCount: number;
   chapterCount: number;
 }
+
+export interface MonthlyStatisticsItem {
+  month: number;
+  year: number;
+  bookmarkCount: number;
+  readCount: number;
+  commentCount: number;
+  ratingCount: number;
+}
+
+interface ShortNovelaMonthly {
+  novelaId: number;
+  title: string;
+  posterUrl: string;
+}
+
+export interface NovelaMonthlySeries {
+  novela: ShortNovelaMonthly;
+  monthlyReads: number[];
+}

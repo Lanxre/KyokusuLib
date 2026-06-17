@@ -31,3 +31,11 @@ type GeneralStatistics struct {
 	GeneralVolumeCount   int
 	GeneralChapterCount  int
 }
+
+type NovelaMonthlyRow struct {
+	NovelaID  int
+	Title     string
+	PosterURL string
+
+	ReadCount int
+}

@@ -24,7 +24,6 @@ useSeoMeta({
 
 <template>
     <div class="min-h-screen bg-zinc-50 dark:bg-[#0f0f0f] text-zinc-900 dark:text-zinc-200 flex flex-col font-sans transition-colors duration-300">
-        <!-- Changed to max-w-7xl to make the results grid larger/fuller width -->
         <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             
             <div class="mb-8 space-y-2">
@@ -40,8 +39,7 @@ useSeoMeta({
                 v-model:query="query" 
                 v-model:activeCategory="activeCategory" 
             />
-
-            <!-- Results Container -->
+            
             <div class="min-h-100">
                 <SearchStateLoading v-if="isLoading" />
 

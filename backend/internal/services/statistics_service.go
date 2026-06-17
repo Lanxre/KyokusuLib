@@ -95,6 +95,35 @@ func (s *NovelaStatisticsService) GetGeneralStatistics(ctx context.Context, peri
 }
 
 
+func (s *NovelaStatisticsService) GetMonthlyStatistics(ctx context.Context, limit int) ([]dto.NovelaMonthlySeries, error) {
+	rows, err := s.statisticsRepo.GetMonthlyNovelaSeries(ctx, limit)
+
+	cacheKey := fmt.Sprintf("monthly_novela_reading_stats:%d", limit)
+	if s.redis != nil {
+		val, err := s.redis.Get(ctx, cacheKey).Result()
+		if err == nil {
+			var cachedResponse []dto.NovelaMonthlySeries
+			if err := json.Unmarshal([]byte(val), &cachedResponse); err == nil {
+				return cachedResponse, nil
+			}
+		}
+	}
+	
+	if err != nil {
+		return nil, err
+	}
+
+	result := s.mapNovelaMonthlySeries(rows)
+
+	if s.redis != nil {
+		if data, err := json.Marshal(result); err == nil {
+			_ = s.redis.Set(ctx, cacheKey, data, 10 * time.Minute).Err()
+		}
+	}
+
+	return result, nil
+}
+
 func (s *NovelaStatisticsService) mapTotalStatistics(statistics []db.TotalNovelaStatistics) []dto.TotatStatistics {
 	result := make([]dto.TotatStatistics, 0, len(statistics))
 	for _, stat := range statistics {
@@ -128,4 +157,33 @@ func (s *NovelaStatisticsService) mapGeneralStatistics(statistics db.GeneralStat
 		VolumeCount:   statistics.GeneralVolumeCount,
 		ChapterCount:  statistics.GeneralChapterCount,
 	}
+}
+
+func (s *NovelaStatisticsService) mapNovelaMonthlySeries(rows []db.NovelaMonthlyRow) []dto.NovelaMonthlySeries {
+	limitHint := len(rows)
+	groups := make(map[int]*dto.NovelaMonthlySeries, limitHint)
+	order := make([]int, 0, limitHint)
+
+	for _, r := range rows {
+		g, ok := groups[r.NovelaID]
+		if !ok {
+			g = &dto.NovelaMonthlySeries{
+				Novela: dto.ShortNovelaMonthly{
+					NovelaID:     r.NovelaID,
+					Title:        r.Title,
+					PosterURL:    r.PosterURL,
+				},
+				MonthlyReads: make([]int, 0, 12),
+			}
+			groups[r.NovelaID] = g
+			order = append(order, r.NovelaID)
+		}
+		g.MonthlyReads = append(g.MonthlyReads, r.ReadCount)
+	}
+
+	result := make([]dto.NovelaMonthlySeries, len(order))
+	for i, id := range order {
+		result[i] = *groups[id]
+	}
+	return result
 }
