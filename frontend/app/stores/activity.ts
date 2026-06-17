@@ -1,5 +1,5 @@
 import { defineStore, storeToRefs } from "pinia";
-import { computed, watch, ref } from "vue";
+import { computed, watch } from "vue";
 import {
 	useIdle,
 	useWindowFocus,
@@ -9,12 +9,13 @@ import {
 import { useAuthStore } from "@/stores/auth";
 import { OnlineStatusEnum } from "@/types/enums/online-status-enum";
 import { $api } from "@/composables/api/useApi";
+import { USER_ACTIVITY_INTERVAL, USER_ACTIVITY_IDLE_TIMEOUT } from "@/constants/data";
 
 export const useActivityStore = defineStore("activity", () => {
 	const authStore = useAuthStore();
 	const { isAuthenticated, user } = storeToRefs(authStore);
 
-	const { idle, lastActive } = useIdle(60 * 1000);
+	const { idle, lastActive } = useIdle(USER_ACTIVITY_IDLE_TIMEOUT);
 	const focused = useWindowFocus();
 	const online = useOnline();
 
@@ -50,7 +51,7 @@ export const useActivityStore = defineStore("activity", () => {
 				sendHeartbeat();
 			}
 		},
-		30000,
+		USER_ACTIVITY_INTERVAL,
 		{ immediate: false },
 	);
 

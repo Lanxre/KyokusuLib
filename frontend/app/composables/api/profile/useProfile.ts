@@ -25,6 +25,11 @@ export function useProfile() {
 	});
 
   const isPublicAccount = computed(() => !!profileData.value?.is_public);
+  const accountCreated = computed(() =>
+			profileData.value?.create_at
+				? new Date(profileData.value.create_at).toLocaleDateString("ru-RU")
+				: "Неизвестно",
+	);
 
   const profileTabs = computed(() => {
     const tabs: { label: string; id: TabProfile }[] = [
@@ -104,13 +109,9 @@ export function useProfile() {
 		isPublicAccount,
 		isLoading: profileLoading,
 		profileTabs,
+		accountCreated: accountCreated,
 		userRoleColor: computed(() => getRoleColor(profileData.value?.role)),
 		userGender: computed(() => getGenderText(profileData.value?.gender)),
-		accountCreated: computed(() =>
-			profileData.value?.create_at
-				? new Date(profileData.value.create_at).toLocaleDateString("ru-RU")
-				: "Неизвестно",
-		),
 		lastLogin: computed(() => formatLastLogin(profileData.value?.last_login)),
     isLogin: computed(() => profileData.value?.status === "online"),
 

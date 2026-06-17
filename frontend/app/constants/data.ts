@@ -79,6 +79,12 @@ export const NOVELA_FETCH_LIMIT_TRENDING = 5;
 
 export const NOVELA_MAX_COMMENT_LENGTH = 5000;
 
+// Updaet last user activity timestamp (one time in 30 seconds)
+export const USER_ACTIVITY_INTERVAL = 30000;
+
+// Idle timeout for user activity (in milliseconds)
+export const USER_ACTIVITY_IDLE_TIMEOUT = 60 * 1000;
+
 // COMMENTS
 export const REPORT_COMMNET_REASONS = [
 	{ id: "spam", label: "Спам и реклама" },
