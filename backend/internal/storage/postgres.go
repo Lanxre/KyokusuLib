@@ -70,7 +70,10 @@ func runSeeds(db *sql.DB) error {
 	tagsQuery := `
 		INSERT INTO user_tags (tag)
 		VALUES 
-			('Читатель')
+			('Читатель'),
+			('Первые шаги'),
+			('Продвинутый читатель'),
+			('Читатель-любитель')			
 		ON CONFLICT (tag) DO NOTHING;
 	`
 	if _, err := db.ExecContext(ctx, tagsQuery); err != nil {
@@ -81,7 +84,13 @@ func runSeeds(db *sql.DB) error {
 		INSERT INTO level_definitions (level, title, total_xp_required)
 		VALUES
 			(1, 'Новичок', 0),
-			(2, 'Ученик', 1000)
+			(2, 'Ученик', 1000),
+			(3, 'Читатель', 1500),
+			(4, 'Практик', 2000),
+			(5, 'Эксперт', 2500),
+			(6, 'Мастер', 3000),
+			(7, 'Глава', 3500),
+			(8, 'Величие', 4000)
 		ON CONFLICT (level) DO NOTHING;
 	`
 
