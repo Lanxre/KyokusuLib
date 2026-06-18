@@ -4,7 +4,8 @@ import type { BackendNotification, NotificationStats } from "@/types/backend/not
 export function useNotifications() {
 	const list = useState<BackendNotification[]>("notifications-list", () => []);
 	const unreadCount = useState<number>("notifications-unread", () => 0);
-	const stream = useState<EventSource | null>("notifications-stream", () => null);
+    const stream = useState<EventSource | null>("notifications-stream", () => null);
+	const { notify } = useNotificationStore();
 
 	let reconnectAttempts = 0;
 	const MAX_RECONNECT_DELAY = 30000;
@@ -24,7 +25,12 @@ export function useNotifications() {
         list.value = [notification, ...list.value];
 				
 				if (!notification.isRead) {
-					unreadCount.value++;
+          unreadCount.value++;
+          notify({
+            title: notification.title,
+            content: notification.message,
+            type: 'info',
+          });
 				}
 			} catch {}
 		});

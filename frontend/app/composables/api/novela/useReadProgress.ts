@@ -3,9 +3,10 @@ import type { NovelaChapter, NovelaDetails } from "@/types/backend/novela";
 import { useAuthStore } from "@/stores/auth";
 import { ref, watch, nextTick } from "vue";
 import { useThrottleFn, useEventListener } from "@vueuse/core";
+import type { UserLevel } from "~/types/backend/user";
 
 export function useReadProgress() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
 	const { notify } = useNotificationStore();
 
 	function isChapterRead(chapter: NovelaChapter): boolean {
@@ -85,13 +86,21 @@ export function useReadProgress() {
     }
 
     try {
-      await $api(`/api/novela/chapter/${chapterId}/mark-as-read`, {
+      const data = await $api<UserLevel>(`/api/novela/chapter/${chapterId}/mark-as-read`, {
         method: "POST",
       });
 
-      isRead = true;
-    } catch (e) {
-      notify({ title: "Ошибка", type: "error", content: e instanceof Error ? e.message : String(e) });
+      if (data !== null || data !== undefined) {
+        user!.user_level = data;
+        isRead = true;
+      }
+    } catch (e: any) {
+      if (e instanceof Error && e.message == "Ошибка: Chapter already read") {
+        isRead = true;
+        notify({ title: "Внимание", type: "warning", content: "Награда за прочтение этой главы уже получена" });
+      } else {
+        notify({ title: "Ошибка", type: "error", content: e instanceof Error ? e.message : String(e) });
+      }
     } finally {
       return isRead;
     }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useReader } from "~/composables/api/novela/useReader";
 import { useReaderSettings } from "~/composables/ui/useReaderSettings";
-import { useReaderScrollPosition } from "~/composables/api/novela/useReadProgress";
+import { useReaderScrollPosition, useReadProgress } from "~/composables/api/novela/useReadProgress";
 import { staticImage } from "@/utils/str";
 import ReaderSettings from "~/components/app/novela/ReaderSettings.vue";
 import ReaderTOC from "~/components/app/novela/ReaderTOC.vue";
@@ -14,6 +14,8 @@ const route = useRoute();
 const { chapters, isLoading, isAppending, fetchChapter } = useReader();
 const { fontSize, fontFamily, lineWeight, isAutoScrollEnabled } = useReaderSettings();
 const { hasPermission } = useRolePermissions();
+const { markChapterAsRead } = useReadProgress();
+const markedChapters = ref(new Set<string>());
 
 const novelaId = computed(() => route.params.novelaId as string);
 const chapterId = computed(() => route.params.chapterId as string);
@@ -62,6 +64,13 @@ watch(chapterId, (newId) => {
 	currentChapterId.value = newId;
 });
 
+watch(currentChapterId, async (_newId, oldId) => {
+	if (!oldId || oldId === _newId) return;
+	if (markedChapters.value.has(oldId)) return;
+
+	markedChapters.value.add(oldId);
+	await markChapterAsRead(oldId);
+});
 
 const firstChapter = computed(() => chapters.value[0]);
 const lastChapter = computed(() => chapters.value[chapters.value.length - 1]);
@@ -100,9 +109,27 @@ function goToNextChapter() {
 	const nextId = currentChapter.value?.next_chapter_id;
 	if (!nextId) return;
 
+	const currentId = currentChapter.value?.id;
+	if (currentId && !markedChapters.value.has(currentId)) {
+		markedChapters.value.add(currentId);
+		markChapterAsRead(currentId);
+	}
+
 	if (isAutoScrollEnabled.value && scrollToChapter(nextId)) return;
 
 	navigateTo(`/novela/reader/${novelaId.value}/${nextId}`);
+}
+
+function goToNextChapterFromFooter() {
+	const last = lastChapter.value;
+	if (!last?.next_chapter_id) return;
+
+	if (last.id && !markedChapters.value.has(last.id)) {
+		markedChapters.value.add(last.id);
+		markChapterAsRead(last.id);
+	}
+
+	navigateTo(`/novela/reader/${novelaId.value}/${last.next_chapter_id}`);
 }
 
 function goToPrevChapter() {
@@ -288,16 +315,16 @@ const textColor = ref("text-zinc-900 dark:text-zinc-200");
 				</NuxtLink>
 
 				<div class="flex items-center gap-4 w-full sm:w-auto">
-					<NuxtLink 
-						v-if="lastChapter?.next_chapter_id" 
-						:to="`/novela/reader/${novelaId}/${lastChapter.next_chapter_id}`"
-						class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-1.5 ml-4 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-zinc-900/10 dark:shadow-none"
+					<button
+						v-if="lastChapter?.next_chapter_id"
+						@click="goToNextChapterFromFooter"
+						class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-1.5 ml-4 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-zinc-900/10 dark:shadow-none cursor-pointer"
 					>
 						<span>Далее</span>
 						<Icon name="ph:caret-right-bold" size="20" />
-					</NuxtLink>
-					<NuxtLink 
-						v-else 
+					</button>
+					<NuxtLink
+						v-else
 						:to="`/novela/${novelaId}`"
 						class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-1.5 bg-yellow-500 text-white rounded-xl font-bold transition-all active:scale-95"
 					>
