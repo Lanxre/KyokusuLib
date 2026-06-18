@@ -10,9 +10,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/lanxre/kyokusulib/internal/constants"
 	"github.com/lanxre/kyokusulib/internal/models/db"
 	"github.com/lanxre/kyokusulib/internal/models/dto"
 	"github.com/lanxre/kyokusulib/internal/repository"
+	"github.com/lanxre/kyokusulib/internal/strategy"
 	"github.com/lanxre/kyokusulib/internal/utils/files"
 	"github.com/redis/go-redis/v9"
 )
@@ -23,8 +25,11 @@ type NovelaService struct {
 	BookmarkRepo        *repository.NovelaBookmarkRepository
 	LikeRepo            *repository.NovelaLikeRepository
 	UserRepo            *repository.UserRepository
+	UserProfileRepo     *repository.UserProfileRepository
+	UserTagRepo         *repository.UserTagRepository
 	NotificationService *NotificationService
 	redis          		*redis.Client
+	awardStrategies     []strategy.AwardStrategy
 }
 
 func NewNovelaService(repo *repository.NovelaRepository,
@@ -32,18 +37,58 @@ func NewNovelaService(repo *repository.NovelaRepository,
 	novelaBookmarkRepo *repository.NovelaBookmarkRepository,
 	novelaLikeRepo *repository.NovelaLikeRepository,
 	userRepo *repository.UserRepository,
+	userProfileRepo *repository.UserProfileRepository,
+	userTagRepo *repository.UserTagRepository,
 	notificationService *NotificationService,
 	redisClient *redis.Client,
 ) *NovelaService {
+
+	ctx := context.Background()
+	
 	return &NovelaService{
 		Repo:                repo,
 		RatingRepo:          novelaRatingRepo,
 		BookmarkRepo:        novelaBookmarkRepo,
 		LikeRepo:            novelaLikeRepo,
 		UserRepo:            userRepo,
+		UserProfileRepo:     userProfileRepo,
 		NotificationService: notificationService,
 		redis:               redisClient,
+		awardStrategies:     initStrategies(ctx, userTagRepo, userRepo),
 	}
+}
+
+func initStrategies(
+	ctx context.Context,
+	userTagRepo *repository.UserTagRepository,
+	userRepo *repository.UserRepository,
+) []strategy.AwardStrategy {
+
+	strategies := []strategy.AwardStrategy{}
+
+	// при прочтение десяти глав
+	if tag, err := userTagRepo.GetUserTagById(ctx, int(constants.ReadTenChaptersTagId)); err == nil {
+		strategies = append(strategies, strategy.NewTagAward(
+			string(constants.ReadTenChaptersTagName),
+			tag.ID,
+			10,
+			strategy.EventReadChapter,
+			userRepo,
+		))
+	}
+
+	// при получение второго уровня
+	if tag, err := userTagRepo.GetUserTagById(ctx, int(constants.LevelTwoNewbieTagId)); err == nil {
+		strategies = append(strategies, strategy.NewTagAward(
+			string(constants.LevelTwoNewbieTagName),
+			tag.ID,
+			2,
+			strategy.EventLevelUp,
+			userRepo,
+		))
+	}
+
+	return strategies
 }
 
 func (s *NovelaService) GetNovelaById(ctx context.Context, id, userID int) (*dto.NovelaResponse, error) {
@@ -448,17 +493,31 @@ func (s *NovelaService) DeleteChapter(ctx context.Context, chapterID string, use
 	return s.Repo.DeleteChapter(ctx, chapterID)
 }
 
-func (s *NovelaService) MarkChapterAsRead(ctx context.Context, userID int, chapterID string) error {
+func (s *NovelaService) MarkChapterAsRead(ctx context.Context, userID int, chapterID string) (*db.UserLevel, error) {
 	exist, err := s.Repo.IsExistChapter(ctx, chapterID)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
 	if !exist {
-		return errors.New("Chapter not found")
+		return nil, errors.New("Chapter not found")
 	}
 
-	return s.Repo.MarkChapterAsRead(ctx, userID, chapterID)
+	read, err := s.Repo.IsReadChapter(ctx, userID, chapterID)
+	if err != nil || read {
+		return nil, errors.New("Chapter already read")
+	}
+
+	if userID > 0 {
+		if _, err := s.Repo.MarkChapterAsRead(ctx, userID, chapterID); err != nil {
+			return nil, err
+		}
+	}
+	
+	dataLevel, err := s.UpLevelForReading(ctx, userID)
+	if err := s.AwardUser(ctx, userID, strategy.EventReadChapter, nil); err != nil {
+		return nil, err
+	}
+	return dataLevel, nil
 }
 
 func (s *NovelaService) canManageChapter(ctx context.Context, userID int, chapterID string) (bool, error) {
@@ -525,4 +584,64 @@ func (s *NovelaService) GetMostSearched(ctx context.Context, limit int) (*dto.Mo
 	}
 
 	return res, nil
+}
+
+func (s *NovelaService) UpLevelForReading(ctx context.Context, userID int) (*db.UserLevel, error) {
+	userProfile, err := s.UserProfileRepo.GetUserLevel(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("User not found. cannot uplevel: %w", err)
+	}
+
+	var experience int64
+	leveledUp := false
+	
+
+	totalLevel, err := s.UserProfileRepo.GetLevelDefinition(ctx, userProfile.Level + 1)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get level definition: %w", err)
+	}
+	
+	if totalLevel == nil {
+		return nil, fmt.Errorf("level definition not found for level %d", userProfile.Level + 1)
+	}
+
+	if constants.UpLevelExperienceThreshold >= userProfile.XPForNext {
+		s.UserProfileRepo.UpUserLevel(ctx, userID)
+		leveledUp = true
+		userProfile.LevelTitle = totalLevel.Title
+		userProfile.Level = totalLevel.Level
+		experience = (userProfile.Experience + constants.UpLevelExperienceThreshold) - int64(totalLevel.TotalXpRequired)
+	} else {
+		experience = userProfile.Experience + constants.UpLevelExperienceThreshold
+	}
+
+	s.UserProfileRepo.SetUserExperiance(ctx, userID, experience)
+
+	if leveledUp {
+		s.AwardUser(ctx, userID, strategy.EventLevelUp, map[string]any{
+			"level": totalLevel.Level,
+		})
+		s.NotificationService.Create(ctx, int64(userID), "Повышение уровня", fmt.Sprintf("Вы достигли уровня %d - (%s)", userProfile.Level, userProfile.LevelTitle))
+	}
+
+	return &db.UserLevel{
+		Level:         userProfile.Level,
+		LevelTitle:    userProfile.LevelTitle,
+		Experience:    experience,
+		XPForNext:     int64(totalLevel.TotalXpRequired) - experience,
+	}, nil
+}
+
+func (s *NovelaService) AwardUser(ctx context.Context, userID int, eventType string, extra map[string]any) error {
+	for _, st := range s.awardStrategies {
+		if err := st.Evaluate(ctx, strategy.AwardEvent{
+			Type:   eventType,
+			UserID: userID,
+			Extra:  extra,
+		}); err != nil {
+			return err
+		}
+	}
+	
+	return nil
 }

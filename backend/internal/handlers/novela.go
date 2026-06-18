@@ -678,12 +678,13 @@ func (h *NovelaHandler) MarkChapterAsRead(w http.ResponseWriter, r *http.Request
 	chapter_id := mux.Vars(r)["id"]
 	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
 
-	if err := h.service.MarkChapterAsRead(r.Context(), userID, chapter_id); err != nil {
+	dataLevel, err := h.service.MarkChapterAsRead(r.Context(), userID, chapter_id)
+	if err != nil {
 		response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка: %s", err.Error()))
 		return
 	}
-
-	response.SuccessOkEmpty(w)
+	
+	response.JSON(w, http.StatusOK, dataLevel)
 }
 
 func (h *NovelaHandler) GetMostSearched(w http.ResponseWriter, r *http.Request) {

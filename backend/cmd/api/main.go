@@ -41,6 +41,7 @@ func main() {
 			repository.NewNovelaRepository,
 			repository.NewTeamRepository,
 			repository.NewNovelaStatisticsRepository,
+			repository.NewUserTagRepository,
 
 			service.NewNotificationService,
 			service.NewAuthService,

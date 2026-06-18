@@ -500,12 +500,6 @@ func (r *NovelaRepository) GetChapterReaderDetails(ctx context.Context, chapterI
 		return nil, err
 	}
 
-	if userID > 0 {
-		if err := r.MarkChapterAsRead(ctx, userID, chapterID); err != nil {
-			fmt.Printf("failed to mark chapter as read: %v\n", err)
-		}
-	}
-
 	imgQuery := `SELECT id, image_url, caption, position FROM novela_chapter_images WHERE chapter_id = $1 ORDER BY position ASC`
 	rows, err := r.DB.QueryContext(ctx, imgQuery, chapterID)
 	if err != nil {
@@ -880,13 +874,20 @@ func (r *NovelaRepository) GetVolumeIDByChapterID(ctx context.Context, chapterID
 	return volumeID, err
 }
 
-func (r *NovelaRepository) MarkChapterAsRead(ctx context.Context, userID int, chapterID string) error {
+func (r *NovelaRepository) MarkChapterAsRead(ctx context.Context, userID int, chapterID string) (bool, error) {
 	query := `
 		INSERT INTO read_chapters (user_id, chapter_id) 
 		VALUES ($1, $2) 
 		ON CONFLICT (user_id, chapter_id) DO NOTHING`
-	_, err := r.DB.ExecContext(ctx, query, userID, chapterID)
-	return err
+	result, err := r.DB.ExecContext(ctx, query, userID, chapterID)
+	if err != nil {
+		return false, err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	return rows > 0, nil
 }
 
 func (r *NovelaRepository) GetUserReadChaptersByNovela(ctx context.Context, userID, novelaID int) ([]db.ReadChapter, error) {
@@ -916,10 +917,9 @@ func (r *NovelaRepository) GetUserReadChaptersByNovela(ctx context.Context, user
 
 func (r *NovelaRepository) UpdateChapterReadPosition(ctx context.Context, userID int, chapterID string, scrollPosition int) error {
 	query := `
-		INSERT INTO read_chapters (user_id, chapter_id, scroll_position) 
-		VALUES ($1, $2, $3)
-		ON CONFLICT (user_id, chapter_id) 
-		DO UPDATE SET scroll_position = $3`
+		UPDATE read_chapters
+		SET scroll_position = $3
+		WHERE user_id = $1 AND chapter_id = $2`
 	_, err := r.DB.ExecContext(ctx, query, userID, chapterID, scrollPosition)
 	return err
 }
@@ -928,6 +928,13 @@ func (r NovelaRepository) IsExistChapter(ctx context.Context, chapterID string) 
 	query := `SELECT EXISTS(SELECT 1 FROM novela_chapters WHERE id = $1)`
 	var exists bool
 	err := r.DB.QueryRowContext(ctx, query, chapterID).Scan(&exists)
+	return exists, err
+}
+
+func (r NovelaRepository) IsReadChapter(ctx context.Context, userID int, chapterID string) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM read_chapters WHERE user_id = $1 AND chapter_id = $2)`
+	var exists bool
+	err := r.DB.QueryRowContext(ctx, query, userID, chapterID).Scan(&exists)
 	return exists, err
 }
 

@@ -460,6 +460,32 @@ func (r *UserRepository) UpdateUserTag(ctx context.Context, userID int, tagID in
 	return err
 }
 
+func (r *UserRepository) HasUserTag(ctx context.Context, userID int, tagID int) (bool, error) {
+	query := `SELECT 1 FROM users_user_tags WHERE user_id = $1 AND tag_id = $2`
+	var exists int
+	err := r.DB.QueryRowContext(ctx, query, userID, tagID).Scan(&exists)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+func (r *UserRepository) GrantUserTag(ctx context.Context, userID int, tagID int) error {
+	query := `INSERT INTO users_user_tags (user_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`
+	_, err := r.DB.ExecContext(ctx, query, userID, tagID)
+	return err
+}
+
+func (r *UserRepository) GetReadChaptersCount(ctx context.Context, userID int) (int, error) {
+	query := `SELECT COUNT(*) FROM read_chapters WHERE user_id = $1`
+	var count int
+	err := r.DB.QueryRowContext(ctx, query, userID).Scan(&count)
+	return count, err
+}
+
 func (r *UserRepository) GetUserStats(ctx context.Context, userID int) (int, int, error) {
 	var totalComments, readChapters int
 
