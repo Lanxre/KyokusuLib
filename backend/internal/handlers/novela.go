@@ -300,15 +300,18 @@ func (h *NovelaHandler) GetNovelas(w http.ResponseWriter, r *http.Request) {
 	}
 
 	filters := dto.NovelaFilters{
-		Limit:      toInt("limit", 20),
-		Offset:     toInt("offset", 0),
-		Search:     q.Get("search"),
-		Sort:       dto.NovelaSort(q.Get("sort")),
-		Type:       q.Get("type"),
-		Status:     q.Get("status"),
-		Genres:     parseCSV("genres"),
-		Categories: parseCSV("categories"),
-		AuthorID:   toInt("author_id", 0),
+		Limit:             toInt("limit", 20),
+		Offset:            toInt("offset", 0),
+		Search:            q.Get("search"),
+		Sort:              dto.NovelaSort(q.Get("sort")),
+		Type:              q.Get("type"),
+		Status:            q.Get("status"),
+		TranslationStatus: q.Get("translation_status"),
+		ChaptersFrom:      toInt("chapters_from", 0),
+		ChaptersTo:        toInt("chapters_to", 0),
+		Genres:            parseCSV("genres"),
+		Categories:        parseCSV("categories"),
+		AuthorID:          toInt("author_id", 0),
 	}
 	
 	novelas, total, err := h.service.GetNovelas(r.Context(), userID, filters)

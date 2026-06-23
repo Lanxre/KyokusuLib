@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import type { NovelaDetails } from "~/types/backend/novela";
+import type { NovelaDetails } from "@/types/backend/novela";
 import { staticImage } from "@/utils/str";
 import { roundTo } from "@/utils/num";
 
 interface Props {
 	novela: NovelaDetails;
 }
+
 defineProps<Props>();
 </script>
 
 <template>
     <NuxtLink 
         :to="`/novela/${novela.id}`" 
-        class="group flex flex-col gap-3 min-w-[140px] md:min-w-[180px] snap-start"
+        class="group flex flex-col gap-3 min-w-35 md:min-w-55 snap-start"
     >
-        <div class="relative aspect-[2/3] rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 shadow-sm transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-yellow-500/10 group-hover:-translate-y-1.5 border border-transparent dark:group-hover:border-zinc-700">
+        <div class="relative aspect-2/3 rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 shadow-sm transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-yellow-500/10 group-hover:-translate-y-1.5 border border-transparent dark:group-hover:border-zinc-700">
             <img 
                 :src="staticImage(novela.poster_url || '')" 
                 class="w-full h-full transition-transform duration-700 group-hover:scale-110" 

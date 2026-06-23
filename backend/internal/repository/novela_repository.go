@@ -576,6 +576,38 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 		argID++
 	}
 
+	if f.Status != "" {
+		where = append(where, fmt.Sprintf("n.status = $%d", argID))
+		args = append(args, f.Status)
+		argID++
+	}
+
+	if f.TranslationStatus != "" {
+		where = append(where, fmt.Sprintf("n.translation_status = $%d", argID))
+		args = append(args, f.TranslationStatus)
+		argID++
+	}
+
+	if f.ChaptersFrom > 0 {
+		where = append(where, fmt.Sprintf(`(
+			SELECT COUNT(*) FROM novela_chapters ch 
+			JOIN novela_volumes v ON ch.novela_volume_id = v.id 
+			WHERE v.novela_id = n.id AND ch.status = 'approved' AND v.status = 'approved'
+		) >= $%d`, argID))
+		args = append(args, f.ChaptersFrom)
+		argID++
+	}
+
+	if f.ChaptersTo > 0 {
+		where = append(where, fmt.Sprintf(`(
+			SELECT COUNT(*) FROM novela_chapters ch 
+			JOIN novela_volumes v ON ch.novela_volume_id = v.id 
+			WHERE v.novela_id = n.id AND ch.status = 'approved' AND v.status = 'approved'
+		) <= $%d`, argID))
+		args = append(args, f.ChaptersTo)
+		argID++
+	}
+
 	if f.AuthorID > 0 {
 		where = append(where, fmt.Sprintf(`EXISTS (
 			SELECT 1 FROM novela_authors na 

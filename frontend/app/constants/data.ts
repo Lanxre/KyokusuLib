@@ -85,6 +85,14 @@ export const USER_ACTIVITY_INTERVAL = 30000;
 // Idle timeout for user activity (in milliseconds)
 export const USER_ACTIVITY_IDLE_TIMEOUT = 60 * 1000;
 
+// Catalog
+export const NOVELA_CATALOG_PAGE_SIZE = 30;
+
+// CatalogNovelaCard
+export const NOVELA_CATALOG_CARD_TITLE_MAX_LENGTH = 30;
+export const NOVELA_CATALOG_CARD_TITLE_DEVIDE = 43;
+
+
 // COMMENTS
 export const REPORT_COMMNET_REASONS = [
 	{ id: "spam", label: "Спам и реклама" },

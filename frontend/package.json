@@ -15,27 +15,27 @@
 		"check": "bunx biome check . --diagnostic-level=warning"
 	},
 	"dependencies": {
-		"@kyokusu-ui/vue": "^0.0.5",
-		"baseline-browser-mapping": "^2.10.34",
-		"caniuse-lite": "^1.0.30001797",
+		"@kyokusu-ui/vue": "^0.0.6",
+		"baseline-browser-mapping": "^2.10.38",
+		"caniuse-lite": "^1.0.30001799",
 		"chart.js": "^4.5.1",
-		"nuxt": "^4.4.7",
-		"vue": "^3.5.35",
+		"nuxt": "^4.4.8",
+		"vue": "^3.5.38",
 		"vue-chartjs": "^5.3.3",
 		"vue-router": "^5.1.0"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.4.16",
-		"@iconify-json/lucide": "^1.2.111",
+		"@biomejs/biome": "2.5.0",
+		"@iconify-json/lucide": "^1.2.114",
 		"@iconify-json/ph": "^1.2.2",
 		"@nuxt/icon": "^2.2.3",
-		"@nuxtjs/color-mode": "^4.0.0",
+		"@nuxtjs/color-mode": "^4.0.1",
 		"@nuxtjs/tailwindcss": "^6.14.0",
 		"@pinia/nuxt": "^0.11.3",
-		"@tailwindcss/vite": "^4.3.0",
+		"@tailwindcss/vite": "^4.3.1",
 		"@vueuse/nuxt": "^14.3.0",
-		"browserslist": "^4.28.2",
+		"browserslist": "^4.28.4",
 		"pinia": "^3.0.4",
-		"tailwindcss": "^4.3.0"
+		"tailwindcss": "^4.3.1"
 	}
 }

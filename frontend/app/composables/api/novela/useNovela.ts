@@ -1,25 +1,35 @@
 import type { NovelaDetails } from "@/types/backend/novela";
-import { $api, useApi } from "~/composables/api/useApi";
-import { useNotificationStore } from "~/stores/notification";
-import type { NovelsQueryParams } from "~/types/frontend/query/novela-query";
+import { $api } from "@/composables/api/useApi"; 
+import { useNotificationStore } from "@/stores/notification";
+import type { NovelsQueryParams } from "@/types/frontend/query/novela-query";
 
 export function useNovela() {
 	const novela = useState<NovelaDetails | null>("novela-data", () => null);
+	
 	const { notify } = useNotificationStore();
-	const isLoading = useState("novela-loading", () => false);
-	const isUpdating = useState("novela-updating", () => false);
+	
+	const isLoading = ref(false);
+	const isUpdating = ref(false);
+
+	const handleError = (e: any, defaultMessage: string) => {
+		console.error(e);
+		notify({
+			type: "error",
+			title: "Ошибка",
+			content: e?.data?.message || e?.message || defaultMessage,
+		});
+	};
 
 	const fetchNovels = async (params: NovelsQueryParams) => {
 		isLoading.value = true;
 		try {
-			const { data, error } = await useApi<NovelaDetails[]>("/api/novela", {
-				params: params,
+			const data = await $api<NovelaDetails[]>("/api/novela", {
+				params,
 			});
-
-			if (error.value) throw error.value;
-			return data.value;
+			return data;
 		} catch (e) {
-			console.error(e);
+			handleError(e, "Не удалось загрузить каталог новелл");
+			return [];
 		} finally {
 			isLoading.value = false;
 		}
@@ -28,10 +38,11 @@ export function useNovela() {
 	const fetchNovela = async (id: string | number) => {
 		isLoading.value = true;
 		try {
-			const { data, error } = await useApi<NovelaDetails>(`/api/novela/${id}`);
-			if (error.value) throw error.value;
-			novela.value = data.value!;
-			return data.value;
+			const data = await $api<NovelaDetails>(`/api/novela/${id}`);
+			novela.value = data;
+			return data;
+		} catch (e) {
+			handleError(e, "Не удалось загрузить данные новеллы");
 		} finally {
 			isLoading.value = false;
 		}
@@ -52,26 +63,26 @@ export function useNovela() {
 
 			notify({
 				type: "success",
-				title: "Новела обновлена",
-				content: "Новела успешно обновлена",
+				title: "Успех",
+				content: "Новелла успешно обновлена",
 			});
+			
+			await fetchNovela(id);
+		} catch (e) {
+			handleError(e, "Ошибка при обновлении новеллы");
 		} finally {
 			isUpdating.value = false;
 		}
 	};
 
-	const addVolume = async (
-		novelaId: number,
-		volumeNumber: number,
-		title: string,
-	) => {
+	const addVolume = async (novelaId: number, volumeNumber: number, title: string) => {
 		try {
 			const res = await $api<{ id: string; message: string; status: string }>(
 				`/api/novela/${novelaId}/volumes`,
 				{
 					method: "POST",
 					body: { volume_number: volumeNumber, title },
-				},
+				}
 			);
 			notify({
 				type: "success",
@@ -80,7 +91,7 @@ export function useNovela() {
 			});
 			return { id: res.id, title, number: volumeNumber, status: res.status };
 		} catch (e) {
-			console.error(e);
+			handleError(e, "Не удалось добавить том");
 		}
 	};
 
@@ -97,27 +108,22 @@ export function useNovela() {
 				{
 					method: "POST",
 					body: { chapter_number: chapterNumber, title, content },
-				},
+				}
 			);
 			return res;
 		} catch (e) {
-			console.error(e);
+			handleError(e, "Не удалось добавить главу");
 		}
 	};
 
-	const addChapterImage = async (
-		chapterId: string,
-		imageUrl: string,
-		caption: string,
-		position: number,
-	) => {
+	const addChapterImage = async (chapterId: string, imageUrl: string, caption: string, position: number) => {
 		try {
 			await $api(`/api/novela/chapters/${chapterId}/images`, {
 				method: "POST",
 				body: { image_url: imageUrl, caption, position },
 			});
 		} catch (e) {
-			console.error(e);
+			handleError(e, "Не удалось добавить изображение");
 		}
 	};
 
@@ -127,7 +133,7 @@ export function useNovela() {
 				method: "DELETE",
 			});
 		} catch (e) {
-			console.error(e);
+			handleError(e, "Не удалось удалить изображения");
 		}
 	};
 
@@ -146,11 +152,10 @@ export function useNovela() {
 			notify({
 				type: "success",
 				title: "Успех",
-				content: "Том успешно удален",
+				content: "Том удален",
 			});
-			await fetchNovela(novelaId);
 		} catch (e) {
-			console.error(e);
+			handleError(e, "Не удалось удалить том");
 		}
 	};
 
@@ -172,11 +177,10 @@ export function useNovela() {
 			notify({
 				type: "success",
 				title: "Успех",
-				content: "Глава успешно удалена",
+				content: "Глава удалена",
 			});
-			await fetchNovela(novelaId);
 		} catch (e) {
-			console.error(e);
+			handleError(e, "Не удалось удалить главу");
 		}
 	};
 
@@ -209,11 +213,10 @@ export function useNovela() {
 			notify({
 				type: "success",
 				title: "Успех",
-				content: "Глава успешно обновлена",
+				content: "Глава обновлена",
 			});
-			await fetchNovela(novelaId);
 		} catch (e) {
-			console.error(e);
+			handleError(e, "Не удалось обновить главу");
 		}
 	};
 

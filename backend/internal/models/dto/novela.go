@@ -118,15 +118,18 @@ type UpdateNovelaRequest struct {
 }
 
 type NovelaFilters struct {
-	Search     string     `json:"search"`
-	Genres     []string   `json:"genres"`
-	Categories []string   `json:"categories"`
-	Type       string     `json:"type"`
-	Status     string     `json:"status"`
-	Sort       NovelaSort `json:"sort"`
-	Limit      int        `json:"limit"`
-	Offset     int        `json:"offset"`
-	AuthorID   int        `json:"author_id"`
+	Search            string     `json:"search"`
+	Genres            []string   `json:"genres"`
+	Categories        []string   `json:"categories"`
+	Type              string     `json:"type"`
+	Status            string     `json:"status"`
+	TranslationStatus string     `json:"translation_status"`
+	ChaptersFrom      int        `json:"chapters_from"`
+	ChaptersTo        int        `json:"chapters_to"`
+	Sort              NovelaSort `json:"sort"`
+	Limit             int        `json:"limit"`
+	Offset            int        `json:"offset"`
+	AuthorID          int        `json:"author_id"`
 }
 
 type UserNovelaBookmark struct {
