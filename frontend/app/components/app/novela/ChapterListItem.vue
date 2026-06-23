@@ -5,7 +5,8 @@ import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
 import { KyokusuAppRole } from "~/types/enums/role-enum";
 import { useNovela } from "~/composables/api/novela/useNovela";
 import ModalConfirm from "~/components/common/ModalConfirm.vue";
-import TeleportedTooltip from "~/components/common/TeleportedTooltip.vue";
+import { TeleportedTooltip } from "@kyokusu-ui/vue";
+
 
 const props = defineProps<{
 	chapter: NovelaChapter;
