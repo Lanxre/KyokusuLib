@@ -631,7 +631,7 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 
 	query := fmt.Sprintf(`
     SELECT 
-        n.id, n.title, COALESCE(n.alternative_titles, '{}')::text[], n.type, n.status, n.poster_url, n.views,
+        n.id, n.title, n.description, n.age_rating, n.release_date, n.translation_status, n.country, COALESCE(n.alternative_titles, '{}')::text[], n.type, n.status, n.poster_url, n.views,
         COALESCE((SELECT array_agg(g.name) FROM novela_genres ng JOIN genres g ON ng.genre_id = g.id WHERE ng.novela_id = n.id), '{}')::text[],
         COALESCE((SELECT array_agg(c.name) FROM novela_categories nc JOIN categories c ON nc.category_id = c.id WHERE nc.novela_id = n.id), '{}')::text[],
         COALESCE((SELECT AVG(rating) FROM novela_ratings WHERE novela_id = n.id), 0) as avg_rating,
@@ -639,8 +639,8 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
         
         (SELECT c.name FROM user_novela_bookmarks b JOIN bookmark_categories c ON b.category_id = c.id WHERE b.novela_id = n.id AND b.user_id = $1) as user_bookmark,
         
-        COALESCE((SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $1), FALSE) as has_liked
-
+        COALESCE((SELECT has_liked FROM user_novela_likes WHERE novela_id = n.id AND user_id = $1), FALSE) as has_liked,
+        COALESCE((SELECT COUNT(*) FROM user_novela_likes WHERE novela_id = n.id), 0) as like_count
     FROM novela n
     WHERE %s
     ORDER BY %s
@@ -662,6 +662,11 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 		err := rows.Scan(
 			&n.ID,
 			&n.Title,
+			&n.Description,
+			&n.AgeRating,
+			&n.ReleaseDate,
+			&n.TranslationStatus,
+			&n.Country,
 			pq.Array(&n.AlternativeTitles),
 			&n.Type,
 			&n.Status,
@@ -673,6 +678,7 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 			&lastChapterAt,
 			&bookmark,
 			&n.HasLiked,
+			&n.LikeCount,
 		)
 		if err != nil {
 			return nil, 0, err

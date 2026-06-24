@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import type { NovelaDetails } from '@/types/backend/novela';
 import CatalogNovelaCard from '@/components/app/catalog/CatalogNovelaCard.vue';
+import CatalogNovelaPopover from '@/components/app/catalog/CatalogNovelaPopover.vue';
 
 defineProps<{
 	novels: NovelaDetails[];
@@ -58,7 +59,10 @@ useIntersectionObserver(
 
 		<div v-else class="flex flex-col gap-6">
 			<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-				<CatalogNovelaCard v-for="novela in novels" :key="novela.id" :novela="novela" />
+				<div v-for="novela in novels" :key="novela.id" class="relative group/popover h-full justify-self-center md:justify-self-stretch">
+					<CatalogNovelaCard :novela="novela" />
+					<CatalogNovelaPopover :novela="novela" />
+				</div>
 			</div>
 
 			<div ref="loadMoreTrigger" class="w-full h-10 flex items-center justify-center mt-4">

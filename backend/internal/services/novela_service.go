@@ -91,16 +91,16 @@ func initStrategies(
 	return strategies
 }
 
-func (s *NovelaService) GetNovelaById(ctx context.Context, id, userID int) (*dto.NovelaResponse, error) {
+func (s *NovelaService) GetNovelaById(ctx context.Context, id, userID int) (dto.NovelaResponse, error) {
 	tx, err := s.Repo.DB.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
 	if err != nil {
-		return nil, err
+		return dto.NovelaResponse{}	, err
 	}
 	defer tx.Rollback()
 
 	novela, err := s.Repo.GetFullByID(tx, ctx, id, userID)
 	if err != nil || novela == nil {
-		return nil, ErrNovelaNotFound
+		return dto.NovelaResponse{}, ErrNovelaNotFound
 	}
 
 	ratingData, _ := s.RatingRepo.GetRating(tx, ctx, novela.ID)
@@ -211,8 +211,7 @@ func (s *NovelaService) GetNovelas(ctx context.Context, userID int, f dto.Novela
 
 	res := make([]dto.NovelaResponse, 0, len(dbNovelas))
 	for _, n := range dbNovelas {
-
-		d := *s.novelaToDto(&n)
+		d := s.novelaToDto(&n)
 		ratingData, _ := s.RatingRepo.GetRating(tx, ctx, d.ID)
 		bookmarkData, _ := s.BookmarkRepo.GetBookmarkStats(tx, ctx, d.ID)
 
@@ -259,7 +258,7 @@ func (s *NovelaService) GetUserNovelaBookmarks(ctx context.Context, userID int, 
 	return ns, nil
 }
 
-func (s *NovelaService) novelaToDto(n *db.Novela) *dto.NovelaResponse {
+func (s *NovelaService) novelaToDto(n *db.Novela) dto.NovelaResponse {
 	authors := make([]dto.NovelaAuthor, 0)
 	for _, a := range n.Authors {
 		authors = append(authors, dto.NovelaAuthor{ID: a.ID, Name: a.Name, Role: a.Role})
@@ -293,7 +292,7 @@ func (s *NovelaService) novelaToDto(n *db.Novela) *dto.NovelaResponse {
 		lastReadChapterScroll = &n.LastReadChapter.ScrollPosition
 	}
 
-	return &dto.NovelaResponse{
+	return dto.NovelaResponse{
 		ID: n.ID, Title: n.Title, AlternativeTitles: n.AlternativeTitles, Description: n.Description,
 		Type: n.Type, AgeRating: n.AgeRating, ReleaseDate: n.ReleaseDate.Format("2006-01-02"),
 		Status: n.Status, TranslationStatus: n.TranslationStatus, PosterURL: n.PosterURL,

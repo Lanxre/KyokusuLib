@@ -21,11 +21,15 @@ const novelaTitle = computed(() => {
   props.novela.title.slice(0, NOVELA_CATALOG_CARD_TITLE_DEVIDE) + '...' : props.novela.title
 })
 
+const novelaReleaseYear = computed(() => {
+  return props.novela.release_date ? new Date(props.novela.release_date).getFullYear() : 'N/A'
+})
+
 </script>
 
 <template>
 	<Card
-		class="cursor-pointer group"
+		class="cursor-pointer group h-full w-fit md:w-full"
 	    variant="outline"
         padding="md"
 		shadow
@@ -34,7 +38,7 @@ const novelaTitle = computed(() => {
 	>
 	    <div class="flex group/card transition-opacity duration-300">
            	<div class="
-          		relative h-52.5 md:h-64 w-full rounded-xl overflow-hidden 
+          		relative h-52.5 md:h-64 w-44 md:w-full rounded-xl overflow-hidden 
           		shadow-lg dark:shadow-2xl border border-zinc-200 dark:border-zinc-800 
           		transition-all duration-300 group-hover/card:scale-[1.02] group-hover/card:shadow-xl dark:group-hover/card:shadow-[0_0_30px_rgba(255,255,255,0.1)] bg-zinc-200 dark:bg-zinc-900 cursor-pointer
            	">
@@ -48,17 +52,21 @@ const novelaTitle = computed(() => {
           		</div>
            	</div>
 		</div>
-		<div class="mt-1 ml-1">
-			<h1 class="font-bold text-zinc-900 dark:text-white text-[12px] group-hover:text-yellow-500 transition-colors duration-300 text-wrap wrap-break-words hyphens-auto leading-snug" lang="ru">
+		<div class="mt-1 ml-1 max-w-44 md:max-w-full">
+			<h1 class="font-bold text-zinc-900 dark:text-white text-[12px] group-hover:text-yellow-500 transition-colors duration-300 truncate md:text-wrap md:break-words md:hyphens-auto leading-snug" lang="ru">
 			    {{ novelaTitle }}
 			</h1>
 		</div>
-		<div class="mt-1 ml-1">
-            <div class="flex items-center gap-2 text-[10px] text-zinc-500 dark:text-zinc-500 font-bold uppercase tracking-tighter">
-                <span>{{ novela.type }}</span>
-                <span class="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700"></span>
-                <span class="truncate">{{ novela.status }}</span>
-            </div>
+		
+		<div class="grid grid-cols-[auto_auto_1fr] gap-x-2 mt-1 ml-1 text-[10px] text-zinc-500 dark:text-zinc-500 font-bold uppercase tracking-tighter">
+            <span>{{ novela.type }}</span>
+            <span class="w-1 h-1 mt-1.5 rounded-full bg-zinc-300 dark:bg-zinc-700"></span>
+            <span class="truncate">{{ novela.status }}</span>
+
+            <span>{{ novelaReleaseYear }}</span>
+            <span class="w-1 h-1 mt-1.5 rounded-full bg-zinc-300 dark:bg-zinc-700"></span>
+            <span class="truncate">{{ novela.country }}</span>
 		</div>
+		
 	</Card>
 </template>
