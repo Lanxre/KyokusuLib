@@ -594,6 +594,12 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 		argID++
 	}
 
+	if f.AgeRating != "" {
+		where = append(where, fmt.Sprintf("n.age_rating = $%d", argID))
+		args = append(args, f.AgeRating)
+		argID++
+	}
+
 	if f.ChaptersFrom > 0 {
 		where = append(where, fmt.Sprintf(`(
 			SELECT COUNT(*) FROM novela_chapters ch 

@@ -314,6 +314,7 @@ func (h *NovelaHandler) GetNovelas(w http.ResponseWriter, r *http.Request) {
 		Genres:            parseCSV("genres"),
 		Categories:        parseCSV("categories"),
 		Country: 		   parseCSV("country"),
+		AgeRating: 		   q.Get("ageRating"),	
 		AuthorID:          toInt("author_id", 0),
 	}
 
