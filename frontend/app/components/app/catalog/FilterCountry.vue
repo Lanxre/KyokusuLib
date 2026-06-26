@@ -33,11 +33,11 @@ function onSearch(query: string) {
 <template>
 	<div>
 		<MultiSelect
-			id="filter-genres"
-			label="Жанры"
+			id="filter-country"
+			label="Страна"
 			:model-value="modelValue"
 			:options="multiOptions"
-			placeholder="Выберите жанры..."
+			placeholder="Страна издателя..."
 			@update:model-value="onUpdate"
 			@search="onSearch"
 		/>

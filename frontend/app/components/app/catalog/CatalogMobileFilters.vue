@@ -9,6 +9,7 @@ const emit = defineEmits<{
 	close: [];
 	apply: [params: Record<string, any>];
 	reset: [];
+	'search-update': [params: Record<string, any>];
 }>();
 </script>
 
@@ -42,6 +43,7 @@ const emit = defineEmits<{
 			<div class="p-4">
 				<CatalogFilters
 					@apply="(params) => emit('apply', params)"
+					@search-update="(params) => emit('search-update', params)"
 					@reset="() => emit('reset')"
 				/>
 			</div>

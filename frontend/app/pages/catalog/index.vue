@@ -15,6 +15,7 @@ const {
 	isInitialLoading,
 	loadNextPage,
 	onApplyFilters,
+	onSearchUpdate,
 	onResetFilters,
 } = await useCatalog();
 </script>
@@ -49,10 +50,11 @@ const {
 						@intersect="loadNextPage"
 					/>
 
-					<CatalogFilterSidebar
-						@apply="onApplyFilters"
-						@reset="onResetFilters"
-					/>
+				<CatalogFilterSidebar
+					@apply="onApplyFilters"
+					@search-update="onSearchUpdate"
+					@reset="onResetFilters"
+				/>
 				</div>
 			</div>
 		</div>
@@ -61,6 +63,7 @@ const {
 			:is-open="isFilterOpen"
 			@close="closeFilters"
 			@apply="onApplyFilters"
+			@search-update="onSearchUpdate"
 			@reset="onResetFilters"
 		/>
 	</PageLayout>

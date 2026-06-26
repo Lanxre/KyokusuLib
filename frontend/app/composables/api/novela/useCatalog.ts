@@ -1,12 +1,13 @@
 import { ref } from 'vue';
 import type { NovelaDetails } from '@/types/backend/novela';
+import type { NovelaFilters } from '@/types/frontend/novela/novela-filters';
 import { useNovela } from '@/composables/api/novela/useNovela';
 import { NOVELA_CATALOG_PAGE_SIZE } from '@/constants/data';
 
 export async function useCatalog() {
 	const { fetchNovels } = useNovela();
 
-	const appliedFilterParams = ref<Record<string, any>>({});
+	const appliedFilterParams = ref<NovelaFilters>({});
 
 	const isFilterOpen = ref(false);
 	const toggleFilters = () => { isFilterOpen.value = !isFilterOpen.value; };
@@ -60,6 +61,15 @@ export async function useCatalog() {
 		hasMore.value = initialData.value.length === NOVELA_CATALOG_PAGE_SIZE;
 	}
 
+	async function onSearchUpdate(filterParams: Record<string, any>) {
+		appliedFilterParams.value = filterParams;
+		page.value = 1;
+		hasMore.value = true;
+		await refresh();
+		allNovels.value = [...initialData.value];
+		hasMore.value = initialData.value.length === NOVELA_CATALOG_PAGE_SIZE;
+	}
+
 	async function onResetFilters() {
 		appliedFilterParams.value = {};
 		closeFilters();
@@ -80,6 +90,7 @@ export async function useCatalog() {
 		isInitialLoading,
 		loadNextPage,
 		onApplyFilters,
+		onSearchUpdate,
 		onResetFilters,
 	};
 }

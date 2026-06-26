@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { NovelaFilterOption } from '~/types/frontend/query/novela-filters';
 import {
 	STATUS_OPTIONS,
 	TRANSLATION_STATUS_OPTIONS,

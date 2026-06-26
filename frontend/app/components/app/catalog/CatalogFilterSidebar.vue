@@ -4,6 +4,7 @@ import CatalogFilters from '@/components/app/catalog/CatalogFilters.vue';
 const emit = defineEmits<{
 	apply: [params: Record<string, any>];
 	reset: [];
+	'search-update': [params: Record<string, any>];
 }>();
 </script>
 
@@ -15,6 +16,6 @@ const emit = defineEmits<{
 			<Icon name="ph:funnel-bold" size="16" class="text-yellow-500" />
 			Фильтры
 		</h2>
-		<CatalogFilters @apply="(params) => emit('apply', params)" @reset="() => emit('reset')" />
+		<CatalogFilters @apply="(params) => emit('apply', params)" @search-update="(params) => emit('search-update', params)" @reset="() => emit('reset')" />
 	</div>
 </template>
