@@ -309,11 +309,14 @@ func (h *NovelaHandler) GetNovelas(w http.ResponseWriter, r *http.Request) {
 		TranslationStatus: q.Get("translation_status"),
 		ChaptersFrom:      toInt("chapters_from", 0),
 		ChaptersTo:        toInt("chapters_to", 0),
+		YearFrom:          toInt("year_from", 0),
+		YearTo:            toInt("year_to", 0),
 		Genres:            parseCSV("genres"),
 		Categories:        parseCSV("categories"),
+		Country: 		   parseCSV("country"),
 		AuthorID:          toInt("author_id", 0),
 	}
-	
+
 	novelas, total, err := h.service.GetNovelas(r.Context(), userID, filters)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err.Error())

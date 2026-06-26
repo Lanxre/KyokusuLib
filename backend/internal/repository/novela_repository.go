@@ -570,6 +570,12 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 		argID++
 	}
 
+	if len(f.Country) > 0 {
+		where = append(where, fmt.Sprintf(`n.country = ANY($%d)`, argID))
+		args = append(args, pq.Array(f.Country))
+		argID++
+	}
+
 	if f.Type != "" {
 		where = append(where, fmt.Sprintf("n.type = $%d", argID))
 		args = append(args, f.Type)
@@ -605,6 +611,18 @@ func (r *NovelaRepository) GetNovelas(tx *sql.Tx, ctx context.Context, userID in
 			WHERE v.novela_id = n.id AND ch.status = 'approved' AND v.status = 'approved'
 		) <= $%d`, argID))
 		args = append(args, f.ChaptersTo)
+		argID++
+	}
+
+	if f.YearFrom > 0 {
+		where = append(where, fmt.Sprintf("EXTRACT(YEAR FROM n.release_date) >= $%d", argID))
+		args = append(args, f.YearFrom)
+		argID++
+	}
+
+	if f.YearTo > 0 {
+		where = append(where, fmt.Sprintf("EXTRACT(YEAR FROM n.release_date) <= $%d", argID))
+		args = append(args, f.YearTo)
 		argID++
 	}
 
