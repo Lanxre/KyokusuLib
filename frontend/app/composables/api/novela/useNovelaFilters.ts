@@ -20,7 +20,8 @@ export function useNovelaFilters() {
 			filters.chaptersFrom !== null ||
 			filters.chaptersTo !== null ||
 			filters.yearFrom !== null ||
-			filters.yearTo !== null
+      filters.yearTo !== null ||
+      filters.ageRating !== ''
 		);
 	});
 
@@ -32,7 +33,8 @@ export function useNovelaFilters() {
     count += filters.country.length;
 		if (filters.status !== '') count++;
 		if (filters.translationStatus !== '') count++;
-		if (filters.type !== '') count++;
+    if (filters.type !== '') count++;
+    if (filters.ageRating !== '') count++;
 		if (filters.chaptersFrom !== null || filters.chaptersTo !== null) count++;
 		if (filters.yearFrom !== null || filters.yearTo !== null) count++;
 		return count;
@@ -47,7 +49,8 @@ export function useNovelaFilters() {
     if (filters.country.length > 0) params.country = filters.country;
 		if (filters.status) params.status = filters.status;
 		if (filters.translationStatus) params.translation_status = filters.translationStatus;
-		if (filters.type) params.type = filters.type;
+    if (filters.type) params.type = filters.type;
+    if (filters.ageRating) params.ageRating = filters.ageRating;
 		if (filters.chaptersFrom) params.chapters_from = filters.chaptersFrom;
 		if (filters.chaptersTo) params.chapters_to = filters.chaptersTo;
 		if (filters.yearFrom) params.year_from = filters.yearFrom;

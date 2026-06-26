@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Input as BaseInput } from '@kyokusu-ui/vue';
+import { Input as BaseInput, Label } from '@kyokusu-ui/vue';
 
 const chaptersFrom = defineModel<number | null>('chaptersFrom', { default: null });
 const chaptersTo = defineModel<number | null>('chaptersTo', { default: null });
@@ -7,9 +7,7 @@ const chaptersTo = defineModel<number | null>('chaptersTo', { default: null });
 
 <template>
 	<div class="space-y-2">
-		<label class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-			Количество глав
-		</label>
+        <Label label="Количество глав"/>
 		<div class="flex items-center gap-2">
 			<BaseInput
 				id="filter-chapters-from"

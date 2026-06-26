@@ -1,4 +1,4 @@
-import { COUNTRIES_LIST } from '@/constants/data'
+import { COUNTRIES_LIST, AGE_RATINGS } from '@/constants/data'
 
 export interface NovelaFilterState {
 	search: string;
@@ -11,7 +11,8 @@ export interface NovelaFilterState {
 	chaptersTo: number | null;
 	yearFrom: number | null;
   yearTo: number | null;
-  country: string[]; 
+  country: string[];
+  ageRating: string;
 }
 
 export const DEFAULT_FILTER_STATE: NovelaFilterState = {
@@ -25,7 +26,8 @@ export const DEFAULT_FILTER_STATE: NovelaFilterState = {
 	chaptersTo: null,
 	yearFrom: null,
   yearTo: null,
-  country: []
+  country: [],
+  ageRating: ''
 };
 
 export interface NovelaFilterOption {
@@ -95,5 +97,12 @@ export const COUNTRY_OPTIONS: NovelaFilterOption[] = COUNTRIES_LIST.map((nameCou
   return {
     label: nameCountry,
     value: nameCountry,
+  }
+})
+
+export const AGE_RATING_OPTIONS: NovelaFilterOption[] = AGE_RATINGS.map((ageRating) => {
+  return {
+    label: ageRating,
+    value: ageRating
   }
 })

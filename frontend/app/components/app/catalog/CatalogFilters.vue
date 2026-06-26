@@ -97,6 +97,7 @@ onUnmounted(() => {
 			v-model:status="filters.status"
 			v-model:translationStatus="filters.translationStatus"
 			v-model:type="filters.type"
+			v-model:ageRating="filters.ageRating"
 		/>
 
 		<Separator />
