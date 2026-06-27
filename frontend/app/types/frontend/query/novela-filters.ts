@@ -13,6 +13,7 @@ export interface NovelaFilterState {
   yearTo: number | null;
   country: string[];
   ageRating: string;
+  sort: string;
 }
 
 export const DEFAULT_FILTER_STATE: NovelaFilterState = {
@@ -27,7 +28,8 @@ export const DEFAULT_FILTER_STATE: NovelaFilterState = {
 	yearFrom: null,
   yearTo: null,
   country: [],
-  ageRating: ''
+  ageRating: '',
+  sort: '',
 };
 
 export interface NovelaFilterOption {
@@ -106,3 +108,11 @@ export const AGE_RATING_OPTIONS: NovelaFilterOption[] = AGE_RATINGS.map((ageRati
     value: ageRating
   }
 })
+
+export const SORT_OPTIONS: NovelaFilterOption[] = [
+  { value: 'new', label: 'Новизне' },
+  { value: 'popular', label: 'Популярности' },
+  { value: 'rating', label: 'Рейтингу' },
+  { value: 'updated', label: 'Дате добавления' },
+  { value: 'trending', label: 'Трендам' },
+]

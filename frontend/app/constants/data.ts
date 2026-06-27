@@ -95,7 +95,7 @@ export const NOVELA_CATALOG_CARD_TITLE_DEVIDE = 43;
 
 // COMMENTS
 export const REPORT_COMMNET_REASONS = [
-	{ id: "spam", label: "Спам и реклама" },
+    { id: "spam", label: "Спам и реклама" },
     { id: "insult", label: "Оскорбления и агрессия" },
     { id: "spoiler", label: "Спойлеры без маскировки" },
     { id: "inappropriate", label: "Непристойный контент" },

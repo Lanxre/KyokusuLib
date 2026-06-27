@@ -24,7 +24,7 @@ const {
 	<PageLayout>
 		<div
 			class="
-				min-h-full bg-zinc-50 dark:bg-[#0f0f0f] text-zinc-900 dark:text-zinc-200 transition-colors duration-300
+				min-h-full lg:w-350 bg-zinc-50 dark:bg-[#0f0f0f] text-zinc-900 dark:text-zinc-200 transition-colors duration-300
 				border border-zinc-200 dark:border-zinc-800 rounded-3xl sm:rounded-[2.5rem] shadow-sm
 			"
 		>
@@ -40,7 +40,7 @@ const {
 					<Separator />
 				</div>
 
-				<div class="grid grid-cols-1 lg:grid-cols-[7fr_3fr] gap-12">
+				<div class="grid grid-cols-1 lg:grid-cols-[7fr_2fr] gap-12">
 					<CatalogNovelaList
 						:novels="allNovels"
 						:is-initial-loading="isInitialLoading"
@@ -50,11 +50,11 @@ const {
 						@intersect="loadNextPage"
 					/>
 
-				<CatalogFilterSidebar
-					@apply="onApplyFilters"
-					@search-update="onSearchUpdate"
-					@reset="onResetFilters"
-				/>
+    				<CatalogFilterSidebar
+    					@apply="onApplyFilters"
+    					@search-update="onSearchUpdate"
+    					@reset="onResetFilters"
+    				/>
 				</div>
 			</div>
 		</div>

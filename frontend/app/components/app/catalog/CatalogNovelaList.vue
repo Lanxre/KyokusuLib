@@ -58,7 +58,7 @@ useIntersectionObserver(
 		</div>
 
 		<div v-else class="flex flex-col gap-6">
-			<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+			<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
 				<div v-for="novela in novels" :key="novela.id" class="relative group/popover h-full justify-self-center md:justify-self-stretch">
 					<CatalogNovelaCard :novela="novela" />
 					<CatalogNovelaPopover :novela="novela" />
