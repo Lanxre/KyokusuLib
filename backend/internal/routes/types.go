@@ -53,3 +53,7 @@ type ModerationRoutes struct {
 type NovelaStatisticsRoutes struct {
 	Handler *handlers.NovelaStatisticsHandler
 }
+
+type CatalogRoutes struct {
+	Handler *handlers.CatalogHandler
+}

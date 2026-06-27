@@ -42,6 +42,7 @@ func main() {
 			repository.NewTeamRepository,
 			repository.NewNovelaStatisticsRepository,
 			repository.NewUserTagRepository,
+			repository.NewCatalogRepository,
 
 			service.NewNotificationService,
 			service.NewAuthService,
@@ -54,6 +55,7 @@ func main() {
 			service.NewCommentService,
 			service.NewTeamService,
 			service.NewModerationService,
+			service.NewCatalogService,
 			rhService.NewRanobeHubParseService,
 			service.NewNovelaStatisticsService,
 			app.NewEmailService,
@@ -73,6 +75,7 @@ func main() {
 			handlers.NewModerationHandler,
 			handlers.NewParseHandler,
 			handlers.NewNovelaStatisticsHandler,
+			handlers.NewCatalogHandler,
 
 			app.AsRoute(func(h *handlers.HealthHandler) *routes.HealthRoutes { return &routes.HealthRoutes{Handler: h} }),
 			app.AsRoute(func(h *handlers.AuthHandler) *routes.AuthRoutes { return &routes.AuthRoutes{Handler: h} }),
@@ -102,6 +105,9 @@ func main() {
 			}),
 			app.AsRoute(func(h *handlers.NovelaStatisticsHandler) *routes.NovelaStatisticsRoutes {
 				return &routes.NovelaStatisticsRoutes{Handler: h}
+			}),
+			app.AsRoute(func(h *handlers.CatalogHandler) *routes.CatalogRoutes {
+				return &routes.CatalogRoutes{Handler: h}
 			}),
 
 			fx.Annotate(
