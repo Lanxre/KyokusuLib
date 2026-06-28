@@ -234,13 +234,13 @@ onMounted(() => {
       </div>
 
       <form class="space-y-6" @submit.prevent="onSubmit">
-        <div class="bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-5 shadow-xl shadow-zinc-200/50 dark:shadow-none">
+        <div class="bg-white/70 dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-5 shadow-xl shadow-zinc-200/50 dark:shadow-none">
           <div class="flex items-center gap-2 mb-2">
             <Icon name="ph:info-bold" size="18" class="text-zinc-400" />
             <h2 class="text-lg font-bold">Основная информация</h2>
           </div>
 
-          <div>
+          <div class="relative z-20">
             <label class="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
               <Icon name="ph:books-bold" size="16" class="text-zinc-400" />
               Том
@@ -285,7 +285,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-xl shadow-zinc-200/50 dark:shadow-none">
+        <div class="bg-white/70 dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-xl shadow-zinc-200/50 dark:shadow-none">
           <div class="flex items-center justify-between mb-4">
             <h2 class="flex items-center gap-2 text-lg font-bold">
               <Icon name="ph:list-bullets-bold" size="20" class="text-zinc-400" />

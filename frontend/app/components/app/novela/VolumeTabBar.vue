@@ -16,6 +16,12 @@ const scrollContainer = ref<HTMLElement | null>(null);
 const { onMouseDown, onMouseLeaveOrUp, onMouseMove } =
 	useDraggableScroll(scrollContainer);
 
+function onWheel(e: WheelEvent) {
+	const el = scrollContainer.value;
+	if (!el) return;
+	el.scrollLeft = Math.max(0, el.scrollLeft + e.deltaY);
+}
+
 watch(
 	() => props.activeVolumeId,
 	async () => {
@@ -40,11 +46,12 @@ watch(
 <template>
 	<div
 		ref="scrollContainer"
-		class="flex gap-2 overflow-x-auto no-scrollbar max-w-full items-center cursor-grab active:cursor-grabbing"
+		class="flex gap-2 overflow-x-auto no-scrollbar min-w-0 max-w-full items-center cursor-grab active:cursor-grabbing"
 		@mousedown="onMouseDown"
 		@mouseleave="onMouseLeaveOrUp"
 		@mouseup="onMouseLeaveOrUp"
 		@mousemove="onMouseMove"
+		@wheel.prevent="onWheel"
 	>
 		<button
 			v-for="vol in volumes"
