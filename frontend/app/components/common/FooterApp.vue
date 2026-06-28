@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Tooltip } from '@kyokusu-ui/vue';
+import { SORT_OPTIONS, NOVELA_TYPE_OPTIONS } from '@/types/frontend/query/novela-filters' 
 
 const socialLinks = [
 	{ name: "Telegram", icon: "ph:telegram-logo", href: "https://t.me/KyokusuLib" },
@@ -44,8 +45,8 @@ const socialLinks = [
           <h2 class="text-xs font-black uppercase tracking-[0.2em] text-zinc-100">Разделы</h2>
           <nav class="flex flex-col gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
              <NuxtLink to="/top" class="hover:text-zinc-900 dark:hover:text-white transition-colors">Популярное</NuxtLink>
-             <NuxtLink to="/catalog" class="hover:text-zinc-900 dark:hover:text-white transition-colors">Новинки</NuxtLink>
-             <NuxtLink to="/catalog" class="hover:text-zinc-900 dark:hover:text-white transition-colors">Каталог ранобе</NuxtLink>
+             <NuxtLink :to="{ path: '/catalog', query: { sort: SORT_OPTIONS[0]?.value } }" class="hover:text-zinc-900 dark:hover:text-white transition-colors">Новинки</NuxtLink>
+             <NuxtLink :to="{ path: '/catalog', query: { type: NOVELA_TYPE_OPTIONS[0]?.value } }" class="hover:text-zinc-900 dark:hover:text-white transition-colors">Каталог ранобе</NuxtLink>
           </nav>
         </div>
 

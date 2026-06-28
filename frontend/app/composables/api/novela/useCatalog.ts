@@ -4,10 +4,10 @@ import type { NovelaFilters } from '@/types/frontend/novela/novela-filters';
 import { useNovela } from '@/composables/api/novela/useNovela';
 import { NOVELA_CATALOG_PAGE_SIZE } from '@/constants/data';
 
-export async function useCatalog() {
+export async function useCatalog(initialFilters: NovelaFilters = {}) {
 	const { fetchNovels } = useNovela();
 
-	const appliedFilterParams = ref<NovelaFilters>({});
+	const appliedFilterParams = ref<NovelaFilters>({ ...initialFilters });
 
 	const isFilterOpen = ref(false);
 	const toggleFilters = () => { isFilterOpen.value = !isFilterOpen.value; };

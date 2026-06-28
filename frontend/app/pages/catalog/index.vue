@@ -1,9 +1,25 @@
 <script setup lang="ts">
+import { watch } from 'vue';
 import { PageLayout, Separator } from '@kyokusu-ui/vue';
+
+import { useRoute } from 'vue-router'
 import { useCatalog } from '@/composables/api/novela/useCatalog';
+
 import CatalogNovelaList from '@/components/app/catalog/CatalogNovelaList.vue';
 import CatalogFilterSidebar from '@/components/app/catalog/CatalogFilterSidebar.vue';
 import CatalogMobileFilters from '@/components/app/catalog/CatalogMobileFilters.vue';
+import { useNovelaFilters } from '~/composables/api/novela/useNovelaFilters';
+
+const route = useRoute();
+
+// Build initial filter params from query BEFORE catalog fetch
+const initialFilterParams: Record<string, string> = {};
+if (typeof route.query.sort === 'string' && route.query.sort) initialFilterParams.sort = route.query.sort;
+if (typeof route.query.type === 'string' && route.query.type) initialFilterParams.type = route.query.type;
+if (typeof route.query.status === 'string' && route.query.status) initialFilterParams.status = route.query.status;
+if (typeof route.query.translation_status === 'string' && route.query.translation_status) initialFilterParams.translation_status = route.query.translation_status;
+if (typeof route.query.ageRating === 'string' && route.query.ageRating) initialFilterParams.ageRating = route.query.ageRating;
+if (typeof route.query.search === 'string' && route.query.search) initialFilterParams.search = route.query.search;
 
 const {
 	isFilterOpen,
@@ -17,7 +33,43 @@ const {
 	onApplyFilters,
 	onSearchUpdate,
 	onResetFilters,
-} = await useCatalog();
+} = await useCatalog(initialFilterParams);
+
+const {
+  filters
+} = useNovelaFilters();
+
+// Sync module-level filters with initial query params (for Select display in sidebar)
+if (initialFilterParams.sort) filters.sort = initialFilterParams.sort;
+if (initialFilterParams.type) filters.type = initialFilterParams.type;
+if (initialFilterParams.status) filters.status = initialFilterParams.status;
+if (initialFilterParams.translation_status) filters.translationStatus = initialFilterParams.translation_status;
+if (initialFilterParams.ageRating) filters.ageRating = initialFilterParams.ageRating;
+if (initialFilterParams.search) filters.search = initialFilterParams.search;
+
+// Watch for subsequent query changes (NOT immediate — avoids hydration clash)
+watch(() => route.query, async (query) => {
+  filters.sort = '';
+  filters.type = '';
+  filters.status = '';
+  filters.translationStatus = '';
+  filters.ageRating = '';
+  filters.search = '';
+
+  let hasQuery = false;
+
+  if (typeof query.sort === 'string' && query.sort) { filters.sort = query.sort; hasQuery = true; }
+  if (typeof query.type === 'string' && query.type) { filters.type = query.type; hasQuery = true; }
+  if (typeof query.status === 'string' && query.status) { filters.status = query.status; hasQuery = true; }
+  if (typeof query.translation_status === 'string' && query.translation_status) { filters.translationStatus = query.translation_status; hasQuery = true; }
+  if (typeof query.ageRating === 'string' && query.ageRating) { filters.ageRating = query.ageRating; hasQuery = true; }
+  if (typeof query.search === 'string' && query.search) { filters.search = query.search; hasQuery = true; }
+
+  if (hasQuery) {
+    await onApplyFilters();
+  }
+});
+
 </script>
 
 <template>
