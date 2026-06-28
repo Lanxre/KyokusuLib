@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 
+	"github.com/lanxre/kyokusulib/internal/models/db"
 	"github.com/lanxre/kyokusulib/internal/models/dto"
 )
 
@@ -16,8 +17,8 @@ func NewCatalogRepository(db *sql.DB) *CatalogRepository {
 	return &CatalogRepository{DB: db}
 }
 
-func (r *CatalogRepository) SaveFilters(ctx context.Context, userID int, name string, filters json.RawMessage) (*dto.CatalogFilterPreset, error) {
-	var preset dto.CatalogFilterPreset
+func (r *CatalogRepository) SaveFilters(ctx context.Context, userID int, name string, filters json.RawMessage) (*db.CreateCatalogFilterPreset, error) {
+	var preset db.CreateCatalogFilterPreset
 	err := r.DB.QueryRowContext(ctx, `
 		INSERT INTO user_catalog_filters (user_id, name, filters)
 		VALUES ($1, $2, $3)
@@ -31,9 +32,9 @@ func (r *CatalogRepository) SaveFilters(ctx context.Context, userID int, name st
 	return &preset, nil
 }
 
-func (r *CatalogRepository) GetUserFilters(ctx context.Context, userID int) ([]*dto.CatalogFilterPreset, error) {
+func (r *CatalogRepository) GetUserFilters(ctx context.Context, userID int) ([]*db.GetCatalogFilterPreset, error) {
 	rows, err := r.DB.QueryContext(ctx, `
-		SELECT id, user_id, name, filters, created_at
+		SELECT id, name, filters, created_at
 		FROM user_catalog_filters
 		WHERE user_id = $1
 		ORDER BY created_at DESC
@@ -43,10 +44,10 @@ func (r *CatalogRepository) GetUserFilters(ctx context.Context, userID int) ([]*
 	}
 	defer rows.Close()
 
-	var presets []*dto.CatalogFilterPreset
+	var presets []*db.GetCatalogFilterPreset
 	for rows.Next() {
-		var preset dto.CatalogFilterPreset
-		if err := rows.Scan(&preset.ID, &preset.UserID, &preset.Name, &preset.Filters, &preset.CreatedAt); err != nil {
+		var preset db.GetCatalogFilterPreset
+		if err := rows.Scan(&preset.ID, &preset.Name, &preset.Filters, &preset.CreatedAt); err != nil {
 			return nil, err
 		}
 		presets = append(presets, &preset)
@@ -82,4 +83,16 @@ func (r *CatalogRepository) DeleteFilter(ctx context.Context, filterID, userID i
 		return sql.ErrNoRows
 	}
 	return nil
+}
+
+func (r *CatalogRepository) CountUserFilters(ctx context.Context, userID int) (int, error) {
+    var count int
+
+    err := r.DB.QueryRowContext(ctx, `
+        SELECT COUNT(*)
+        FROM user_catalog_filters
+        WHERE user_id = $1
+    `, userID).Scan(&count)
+
+    return count, err
 }

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { Tooltip, Button } from '@kyokusu-ui/vue';
-import { useNovelaFilters } from '~/composables/api/novela/useNovelaFilters';
-import { useAuthStore } from '#imports';
+import { useNovelaFilters } from '@/composables/api/novela/useNovelaFilters';
+import { useAuthStore } from '@/stores/auth';
 
 import CatalogFilters from '@/components/app/catalog/CatalogFilters.vue';
 import FilterSavePresetModal from './FilterSavePresetModal.vue';
+import FilterLoadPresetModal from './FilterLoadPresetModal.vue';
+import type { CatalogFilterPreset } from '@/types/backend/catalog-filters';
 
 const emit = defineEmits<{
 	apply: [params: Record<string, any>];
@@ -13,20 +15,44 @@ const emit = defineEmits<{
 }>();
 
 const saveFilterPresetOpen = ref(false);
+const loadFilterPresetOpen = ref(false);
 
 const { isAuthenticated } = useAuthStore();
 
 const {
-  hasActiveFilters
+  savedFilters,
+  hasSavedFilters,
+  hasActiveFilters,
+  saveFilters,
+  getFilters,
+  deleteFilterPreset,
+  loadPreset,
 } = useNovelaFilters();
 
 const openFilterSaveModal = () => {
   saveFilterPresetOpen.value = true;
 }
 
-const saveFilterPreset = () => {
-  
+const openFilterLoadModal = () => {
+  loadFilterPresetOpen.value = true;
 }
+
+const saveFilterPreset = async (presetName: string) => {
+  await saveFilters(presetName);
+}
+
+const onLoadPreset = (preset: CatalogFilterPreset) => {
+  loadPreset(preset);
+  emit('apply', {});
+}
+
+const onDeletePreset = async (id: number) => {
+  await deleteFilterPreset(id);
+}
+
+onMounted(async () => {
+  await getFilters();
+})
 
 </script>
 
@@ -51,6 +77,12 @@ const saveFilterPreset = () => {
     					<Icon name="ph:archive-bold" size="16" class="text-yellow-500" />
     				</Button>
     			</Tooltip>
+       
+		        <Tooltip v-if="hasSavedFilters" text="Сохраненные шаблоны">
+    			    <Button size="md" variant="outline" @click="openFilterLoadModal">
+    					<Icon name="ph:hard-drives-bold" size="16" class="text-yellow-500" />
+    				</Button>
+    			</Tooltip>
 		</div>
 		<CatalogFilters 
 		    @apply="(params) => emit('apply', params)" 
@@ -61,6 +93,13 @@ const saveFilterPreset = () => {
 		<FilterSavePresetModal 
 		    v-model="saveFilterPresetOpen"
 			@save="saveFilterPreset"
+		/>
+
+		<FilterLoadPresetModal
+		    v-model="loadFilterPresetOpen"
+			:presets="savedFilters"
+			@load="onLoadPreset"
+			@delete="onDeletePreset"
 		/>
 	</div>
 </template>

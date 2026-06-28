@@ -18,6 +18,10 @@ export function staticImage(picture: string | null | undefined) {
 	}
 }
 
+export function hasSpecialSymbols(str: string): boolean {
+  return /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(str)
+}
+
 export const formatDateUserActivity = (dateString: string) => {
 	const date = new Date(dateString);
 	const now = new Date();

@@ -26,7 +26,7 @@ type SaveFilterPresetRequest struct {
 
 type CatalogFilterPreset struct {
 	ID        int              `json:"id"`
-	UserID    int              `json:"user_id"`
+	UserID    int              `json:"user_id,omitempty"`
 	Name      string           `json:"name"`
 	Filters   json.RawMessage  `json:"filters"`
 	CreatedAt time.Time        `json:"created_at"`

@@ -27,12 +27,8 @@ func NewCatalogHandler(catalogService *service.CatalogService, validator *valida
 }
 
 func (h *CatalogHandler) SaveFilters(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
-	if !ok {
-		response.Error(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
-
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
+	
 	var req dto.SaveFilterPresetRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, http.StatusBadRequest, "Invalid request body")
@@ -54,11 +50,7 @@ func (h *CatalogHandler) SaveFilters(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *CatalogHandler) GetUserFilters(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
-	if !ok {
-		response.Error(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
 
 	presets, err := h.catalogService.GetUserFilters(r.Context(), userID)
 	if err != nil {
@@ -70,11 +62,7 @@ func (h *CatalogHandler) GetUserFilters(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *CatalogHandler) GetFilterByID(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
-	if !ok {
-		response.Error(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
 
 	filterID, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
@@ -96,11 +84,7 @@ func (h *CatalogHandler) GetFilterByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *CatalogHandler) DeleteFilter(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
-	if !ok {
-		response.Error(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
 
 	filterID, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {

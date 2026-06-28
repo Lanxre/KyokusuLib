@@ -1,13 +1,27 @@
 import { reactive, computed } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
-import type { NovelaFilterState } from '~/types/frontend/query/novela-filters';
-import { DEFAULT_FILTER_STATE } from '~/types/frontend/query/novela-filters';
+
+import { $api, useApi } from "@/composables/api/useApi";
+import { useNotificationStore } from '@/stores/notification';
+
+import { hasSpecialSymbols } from '@/utils/str';
+
+import type { NovelaFilterState } from '@/types/frontend/query/novela-filters';
+import { DEFAULT_FILTER_STATE } from '@/types/frontend/query/novela-filters';
+import type { CatalogFilterPreset } from '@/types/backend/catalog-filters';
 
 const filters = reactive<NovelaFilterState>({
 	...DEFAULT_FILTER_STATE,
 });
 
 export function useNovelaFilters() {
+
+  const { isAuthenticated } = useAuthStore();
+  const savedFilters = ref<CatalogFilterPreset[]>([]);
+
+  const { notify } = useNotificationStore();
+
+  const hasSavedFilters = computed(() => savedFilters.value.length > 0);
 
 	const hasActiveFilters = computed(() => {
 		return (
@@ -85,20 +99,125 @@ export function useNovelaFilters() {
 		} else {
 			filters.categories = filters.categories.filter((c) => c !== category);
 		}
-	}
+  }
+
+  async function saveFilters(name: string) {
+    name = name.trim();
+    if (name === '' || name === null || name === undefined) {
+      notify({
+        title: 'Внимание!',
+        content: 'Название должно содержать мин. один символ.',
+        type: 'warning'
+      })
+      return
+    }
+
+    if (hasSpecialSymbols(name)) {
+      notify({
+        title: 'Внимание!',
+        content: 'В название не должно быть спец. символов',
+        type: 'warning'
+      })
+      return
+    }
+
+    if (!hasActiveFilters) {
+        notify({
+          title: 'Внимание!',
+          content: 'Вы не выбрали неодного фильтра, что бы сохранить шаблон выберите хотя бы один.',
+          type: 'warning'
+        })
+        return
+      }
+    
+      try {
+  			const created = await $api<CatalogFilterPreset>("/api/catalog/filters", {
+  				method: "POST",
+          body: {
+            name: name,
+            filters: filters,
+          },
+        });
+
+        savedFilters.value.push(created);
+
+        notify({
+          title: 'Успех',
+          content: 'Шаблон поиска сохранён',
+          type: "success"
+        })
+    
+    		} catch (e) {
+        console.error("Failed to save filter preset:", e);
+        notify({
+          title: 'Неудача',
+          content: `Произошла ошибка: ${e.message}`,
+          type: "error"
+        })
+  			throw e;
+    		} 
+  };
+
+  async function getFilters() {
+    if (!isAuthenticated) return;
+
+    try {
+      const presets = await $api<CatalogFilterPreset[]>('/api/catalog/filters');
+      savedFilters.value = presets ?? [];
+    } catch (e) {
+      console.error('Failed to fetch filter presets:', e);
+      notify({
+        title: 'Неудача',
+        content: 'Не удалось получить шаблоны поиска',
+        type: 'error',
+      });
+    }
+  }
+
+  async function deleteFilterPreset(id: number) {
+    try {
+      await $api(`/api/catalog/filters/${id}`, { method: 'DELETE' });
+      savedFilters.value = savedFilters.value.filter((p) => p.id !== id);
+      notify({
+        title: 'Успех',
+        content: 'Шаблон удалён',
+        type: 'success',
+      });
+    } catch (e) {
+      console.error('Failed to delete filter preset:', e);
+      notify({
+        title: 'Неудача',
+        content: `Не удалось удалить шаблон: ${e.message}`,
+        type: 'error',
+      });
+    }
+  }
+
+  function loadPreset(preset: CatalogFilterPreset) {
+    Object.assign(filters, {
+      ...DEFAULT_FILTER_STATE,
+      ...preset.filters,
+    });
+  }
 
 	const debouncedSearch = useDebounceFn((value: string) => {
 		filters.search = value;
 	}, 400);
 
 	return {
-		filters,
+    filters,
+    savedFilters,
+    hasSavedFilters,
 		hasActiveFilters,
 		activeFilterCount,
 		buildQueryParams,
 		resetFilters,
 		setGenre,
-		setCategory,
+    setCategory,
+    saveFilters,
+    getFilters,
+    deleteFilterPreset,
+    loadPreset,
 		debouncedSearch,
 	};
 }

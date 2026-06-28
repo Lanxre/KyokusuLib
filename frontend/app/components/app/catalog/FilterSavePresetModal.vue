@@ -9,7 +9,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: boolean];
   close: [];
-  save: [];
+  save: [presetName: string];
 }>();
 
 const presetName = defineModel<string>('presetName', { default: '' });
@@ -25,7 +25,8 @@ const onClose = () => {
 };
 
 const onSave = () => {
-  emit('save');
+  emit('save', presetName.value);
+  emit('close');
 };
 </script>
 
