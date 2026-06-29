@@ -12,6 +12,7 @@ func (a *ProfileSettingRoutes) Register(cfg *config.Config, r *mux.Router) {
 	s := r.PathPrefix("/api/profile").Subrouter()
 
 	s.HandleFunc("/update", middleware.AuthMiddleware(a.Handler.UpdateProfile, cfg.JWTSecret)).Methods("PUT", "POST")
+	s.HandleFunc("/delete", middleware.AuthMiddleware(a.Handler.DeleteAccount, cfg.JWTSecret)).Methods("DELETE")
 	
 	s.Handle("/avatar", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.UpdateAvatar), cfg.JWTSecret)).Methods("POST")
 	s.Handle("/banner", middleware.AuthMiddleware(http.HandlerFunc(a.Handler.UpdateBanner), cfg.JWTSecret)).Methods("POST")

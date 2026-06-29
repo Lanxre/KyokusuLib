@@ -325,7 +325,7 @@ func (r *UserRepository) createOrUpdateProfile(u *db.User) error {
 	return tx.Commit()
 }
 
-func (r *UserRepository) Delete(id int) error {
+func (r *UserRepository) Delete(ctx context.Context, id int) error {
 	query := `DELETE FROM users WHERE id = $1`
 	_, err := r.DB.Exec(query, id)
 	return err

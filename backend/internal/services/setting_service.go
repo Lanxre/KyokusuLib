@@ -205,3 +205,7 @@ func (s *ProfileSettingService) UpdateInterfaceSettings(ctx context.Context, use
 func (s *ProfileSettingService) UpdateReaderSettings(ctx context.Context, userID int, settings dto.ReaderSettingsPatchDTO) error {
 	return s.ProfileSettingsRepo.UpdateReaderSettings(ctx, userID, settings)
 }
+
+func (s *ProfileSettingService) DeleteAccountProfile(ctx context.Context, userID int) error {
+	return s.Repo.Delete(ctx, userID) 
+}

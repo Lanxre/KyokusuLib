@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/lanxre/kyokusulib/internal/middleware"
@@ -328,4 +329,22 @@ func (h *ProfileSettingHandler) UpdateReaderSettings(w http.ResponseWriter, r *h
 	}
 
 	response.Success(w, http.StatusOK, "Reader settings was updated")
+}
+
+func (h *ProfileSettingHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
+
+	err := h.Service.DeleteAccountProfile(r.Context(), userID)
+	if err != nil {
+		http.Error(w, "Account not was delete", http.StatusBadRequest)
+		return
+	}
+
+	response.JSON(
+		w, 
+		http.StatusOK, 
+		map[string]string{
+			"message": fmt.Sprintf("Account id: %d was delete", userID),
+		},
+	)
 }

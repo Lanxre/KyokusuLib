@@ -268,7 +268,36 @@ export function useProfileSettings() {
 		} finally {
 			isLoading.value = false;
 		}
-	};
+  };
+
+	const handleDeleteAccount = async () => {
+		const { error } = await useApi<{ message: string }>("/api/profile/delete", {
+			method: "POST",
+		});
+
+		if (error.value) {
+			notify({
+				title: "Неудача",
+				content: `Аккаунт не был удалён: ${error.value.data?.error || error.value.message}`,
+				type: "error",
+			});
+			return;
+		}
+
+		notify({
+			title: "Успех",
+			content: "Ваш аккаунт был успешно удалён!",
+			type: "success",
+		});
+
+		notify({
+			title: "Перенаправление",
+			content: "Вы будете перенаправлены на главную страницу",
+			type: "info",
+		});
+
+		navigateTo("/");
+	}
 
 	return {
 		profile,
@@ -282,7 +311,8 @@ export function useProfileSettings() {
 		handleFileChange,
 		removeAvatar,
 		handleBannerClick,
-		handleBannerChange,
+    handleBannerChange,
+    handleDeleteAccount,
 		removeBanner,
 		saveChanges,
 	};
