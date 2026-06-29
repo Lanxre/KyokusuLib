@@ -9,7 +9,8 @@ const props = withDefaults(defineProps<{
   cardTitle?: string;
   description?: string;
   text?: string;
-  
+  sectionId?: string;
+
   subcards?: PrivacySubCard[];
 }>(), {
   cardTitle: "Заголовок",
@@ -19,9 +20,10 @@ const props = withDefaults(defineProps<{
 
 <template>
   <div 
+  :id="sectionId"
   class="
   flex flex-col 
-  bg-white dark:bg-zinc-900/40 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm mb-8"
+  bg-white dark:bg-zinc-900/40 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm mb-8 scroll-mt-24"
   >
       <h2 class="text-2xl font-bold mb-4">
           <span v-if="index">{{ index }}. </span>{{ cardTitle }}
