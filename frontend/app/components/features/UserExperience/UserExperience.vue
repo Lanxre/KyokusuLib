@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Tooltip as BaseToolTip } from "@kyokusu-ui/vue";
 
 interface Props {
 	currentExp: number;
@@ -29,7 +28,7 @@ const progress = computed(() => {
         
         <div class="flex-1 flex flex-col gap-1 min-w-0">
             <div class="flex justify-between items-end leading-none">
-                <span class="text-[9px] font-black uppercase tracking-[0.2em] ml-[1px] text-zinc-400 group-hover:text-yellow-600 transition-colors">
+                <span class="text-[9px] font-black uppercase tracking-[0.2em] ml-px text-zinc-400 group-hover:text-yellow-600 transition-colors">
                     Уровень: {{ levelTitle }}
                 </span>
                 <span class="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 tabular-nums">

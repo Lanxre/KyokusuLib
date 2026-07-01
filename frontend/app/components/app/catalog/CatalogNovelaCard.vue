@@ -53,7 +53,7 @@ const novelaReleaseYear = computed(() => {
            	</div>
 		</div>
 		<div class="mt-1 ml-1 max-w-44 md:max-w-full">
-			<h1 class="font-bold text-zinc-900 dark:text-white text-[12px] group-hover:text-yellow-500 transition-colors duration-300 truncate md:text-wrap md:break-words md:hyphens-auto leading-snug" lang="ru">
+			<h1 class="font-bold text-zinc-900 dark:text-white text-[12px] group-hover:text-yellow-500 transition-colors duration-300 truncate md:text-wrap md:wrap-break-words md:hyphens-auto leading-snug" lang="ru">
 			    {{ novelaTitle }}
 			</h1>
 		</div>

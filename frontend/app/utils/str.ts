@@ -1,6 +1,6 @@
 import PersonIcon from "@/assets/images/special/user.png";
 import { getApiBase } from "@/constants/urls";
-import type { KyokusuAppRole } from "~/types/enums/role-enum";
+import { KyokusuAppRole } from "~/types/enums/role-enum";
 
 export function correctProfileImageLink(link: string) {
 	const backendUrl = getApiBase();
@@ -43,20 +43,28 @@ export const formatDateUserActivity = (dateString: string) => {
 	});
 };
 
-export const roleConv = (role: KyokusuAppRole, lang: string) => {
-  switch (role) {
-    case "admin":
-      return lang === "ru" ? "Администратор" : "admin";
-    case "moderator":
-      return lang === "ru" ? "Модератор" : "moderator";
-    case "user":
-      return lang === "ru" ? "Пользователь" : "user";
-    case "publisher":
-      return lang === "ru" ? "Публикатор" : "publisher";
-    default:
-      return role;
-  }
-}
+type Lang = "ru" | "eng"
+
+const ROLE_LABELS: Record<KyokusuAppRole, Record<Lang, string>> = {
+  [KyokusuAppRole.ADMIN]: {
+    eng: "admin",
+    ru: "Администратор",
+  },
+  [KyokusuAppRole.MODERATOR]: {
+    eng: "moderator",
+    ru: "Модератор",
+  },
+  [KyokusuAppRole.PUBLISHER]: {
+    eng: "publisher",
+    ru: "Публикатор",
+  },
+  [KyokusuAppRole.USER]: {
+    eng: "user",
+    ru: "Пользователь",
+  },
+};
+
+export const roleConv = (role: KyokusuAppRole | `${KyokusuAppRole}`, lang: Lang) => ROLE_LABELS[role][lang];
 
 export const replaceTags = (text: string) => {
   return text.replace(/<[^>]*>/g, "");

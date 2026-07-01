@@ -19,3 +19,29 @@ export function parseStringToDate(input: string): Date {
 export function getStingYear(input: string): string {
 	return new Date(input).getFullYear().toString();
 }
+
+export function fmtDateTime(dateStr: string | null | undefined): string {
+	if (!dateStr) return "—";
+	return new Date(dateStr).toLocaleDateString("ru-RU", {
+		day: "numeric",
+		month: "long",
+		year: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
+}
+
+
+export function fmtDate(dateStr: string | null | undefined): string {
+	if (!dateStr) return "—";
+	return new Date(dateStr).toLocaleDateString("ru-RU", {
+		day: "numeric",
+		month: "long",
+		year: "numeric",
+	});
+}
+
+export function fmtNumber(n: number | null | undefined): string {
+	if (n == null) return "—";
+	return n.toLocaleString("ru-RU");
+}

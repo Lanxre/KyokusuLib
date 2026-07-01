@@ -5,6 +5,7 @@ import {
 	useWindowFocus,
 	useOnline,
 	useIntervalFn,
+	useEventListener,
 } from "@vueuse/core";
 import { useAuthStore } from "@/stores/auth";
 import { OnlineStatusEnum } from "@/types/enums/online-status-enum";
@@ -57,6 +58,22 @@ export const useActivityStore = defineStore("activity", () => {
 
 	const initActivityTracking = () => {
 		if (import.meta.server) return;
+
+		const sendOffline = () => {
+			if (!isAuthenticated.value) return;
+			navigator.sendBeacon(
+				"/api/user/activity",
+				new Blob(
+					[JSON.stringify({
+						status: OnlineStatusEnum.OFFLINE,
+						last_active: Date.now(),
+					})],
+					{ type: "application/json" },
+				),
+			);
+		};  
+
+		useEventListener(window, "beforeunload", sendOffline);
 
 		watch(
 			isAuthenticated,
