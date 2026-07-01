@@ -22,19 +22,32 @@ func (r *UserRepository) GetUsers(ctx context.Context, search string, limit int,
 	var rows *sql.Rows
 	var err error
 
+	columns := `
+		u.id, u.email,
+		u.role, u.status, u.last_login,
+		u.is_verified, u.isPublic,
+		u.create_at,
+		p.name, p.picture, p.banner, p.about, p.birthday, p.gender,
+		t.tag,
+		ups.is_show_tag, ups.is_show_bookmark`
+
 	if search != "" {
 		query = `
-			SELECT u.id, p.name, p.picture, u.role 
-			FROM users u 
-			LEFT JOIN user_profiles p ON p.user_id = u.id 
+			SELECT` + columns + `
+			FROM users u
+			LEFT JOIN user_profiles p ON p.user_id = u.id
+			LEFT JOIN user_tags t ON t.id = p.tag_id
+			LEFT JOIN user_profile_settings ups ON ups.user_id = u.id
 			WHERE p.name ILIKE $1::text OR u.email ILIKE $1::text
 			ORDER BY u.id DESC LIMIT $2 OFFSET $3`
 		rows, err = r.DB.QueryContext(ctx, query, "%"+search+"%", limit, offset)
 	} else {
 		query = `
-			SELECT u.id, p.name, p.picture, u.role 
-			FROM users u 
-			LEFT JOIN user_profiles p ON p.user_id = u.id 
+			SELECT` + columns + `
+			FROM users u
+			LEFT JOIN user_profiles p ON p.user_id = u.id
+			LEFT JOIN user_tags t ON t.id = p.tag_id
+			LEFT JOIN user_profile_settings ups ON ups.user_id = u.id
 			ORDER BY u.id DESC LIMIT $1 OFFSET $2`
 		rows, err = r.DB.QueryContext(ctx, query, limit, offset)
 	}
@@ -47,16 +60,58 @@ func (r *UserRepository) GetUsers(ctx context.Context, search string, limit int,
 	var users []*db.User
 	for rows.Next() {
 		var u db.User
-		var name, picture sql.NullString
-		if err := rows.Scan(&u.ID, &name, &picture, &u.Role); err != nil {
+		var (
+			name                       sql.NullString
+			picture                    sql.NullString
+			banner                     sql.NullString
+			about                      sql.NullString
+			birthday                   sql.NullTime
+			gender                     sql.NullString
+			tag                        sql.NullString
+			isShowTag                  sql.NullBool
+			isShowBookmark             sql.NullBool
+		)
+
+		if err := rows.Scan(
+			&u.ID, &u.Email,
+			&u.Role, &u.Status, &u.LastLogin,
+			&u.IsVerified, &u.IsPublic,
+			&u.CreateAt,
+			&name, &picture, &banner, &about, &birthday, &gender,
+			&tag,
+			&isShowTag, &isShowBookmark,
+		); err != nil {
 			return nil, err
 		}
+
 		if name.Valid {
 			u.Name = name.String
 		}
 		if picture.Valid {
 			u.Picture = picture.String
 		}
+		if banner.Valid {
+			u.Banner = banner.String
+		}
+		if about.Valid {
+			u.About = about.String
+		}
+		if birthday.Valid {
+			u.Birthday = &birthday.Time
+		}
+		if gender.Valid {
+			u.Gender = db.UserGenere(gender.String)
+		}
+		if tag.Valid {
+			u.Tag = tag.String
+		}
+		if isShowTag.Valid {
+			u.IsShowTag = isShowTag.Bool
+		}
+		if isShowBookmark.Valid {
+			u.IsShowBookmark = isShowBookmark.Bool
+		}
+
 		users = append(users, &u)
 	}
 	if err := rows.Err(); err != nil {

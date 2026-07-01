@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/lanxre/kyokusulib/internal/models/db"
 	"github.com/lanxre/kyokusulib/internal/models/dto"
 	"github.com/lanxre/kyokusulib/internal/repository"
 )
@@ -32,23 +33,28 @@ func (s *UserService) GetUsers(ctx context.Context, search string, limit int, of
 	usersDto := make([]*dto.GetUserDTO, len(usersDb))
 	for i, user := range usersDb {
 		userLevel, err := s.UserProfileRepo.GetUserLevel(context.Background(), user.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		userTags, err := s.GetUserTags(user.ID)
 
 		if err != nil {
 			return nil, err
 		}
-		
-		usersDto[i] = &dto.GetUserDTO{
-			ID:      user.ID,
-			Name:    user.Name,
-			Picture: user.Picture,
-			Role:    user.Role,
-			UserLevel: dto.UserLevelDTO{
-				Level: userLevel.Level,
-				Experience: userLevel.Experience,
-				LevelTitle: userLevel.LevelTitle,
-				XPForNext: userLevel.XPForNext,
-			},
+
+		totalComments, readChapters, err := s.Repo.GetUserStats(context.Background(), user.ID)
+		if err != nil {
+			return nil, err
 		}
+		
+		usersDto[i] = toUserDTO(user, userLevel, userTags, dto.PublicUserSettingsDTO{
+			IsShowTag:     user.IsShowTag,
+			IsShowBookmark: user.IsShowBookmark,
+		}, dto.UserStatsDTO{
+			TotalComments: totalComments,
+			ReadChapters:  readChapters,
+		})
 	}
 	return usersDto, nil
 }
@@ -65,13 +71,7 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 		return nil, err
 	}
 	
-	userPublicSettings := dto.PublicUserSettingsDTO{
-		IsShowTag: userDb.IsShowTag,
-		IsShowBookmark: userDb.IsShowBookmark,
-	}
-	
 	userLevel, err := s.UserProfileRepo.GetUserLevel(context.Background(), userId)
-
 	if err != nil {
 		return nil, err
 	}
@@ -81,33 +81,13 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 		return nil, err
 	}
 	
-	return  &dto.GetUserDTO{
-		ID:       userDb.ID,
-		Name:     userDb.Name,
-		Picture:  userDb.Picture,
-		Role:     userDb.Role,
-		Status:   userDb.Status,
-		About:    userDb.About,
-		Birthday: userDb.Birthday,
-		Gender:   string(userDb.Gender),
-		IsPublic: userDb.IsPublic,
-		LastLogin: userDb.LastLogin,
-		CreateAt: userDb.CreateAt,
-		Banner: userDb.Banner,
-		ActiveTag: userDb.Tag,
-		AllTags: userTags,
-		Settings: userPublicSettings,
-		UserLevel: dto.UserLevelDTO{
-			Level: userLevel.Level,
-			Experience: userLevel.Experience,
-			LevelTitle: userLevel.LevelTitle,
-			XPForNext: userLevel.XPForNext,
-		},
-		UserStats: dto.UserStatsDTO{
-			TotalComments: totalComments,
-			ReadChapters:  readChapters,
-		},
-	}, err
+	return toUserDTO(userDb, userLevel, userTags, dto.PublicUserSettingsDTO{
+		IsShowTag:     userDb.IsShowTag,
+		IsShowBookmark: userDb.IsShowBookmark,
+	}, dto.UserStatsDTO{
+		TotalComments: totalComments,
+		ReadChapters:  readChapters,
+	}), nil
 }
 
 func (s *UserService) UpdateUserStatus(ctx context.Context, userId int, dto dto.UpdateUserStatusDTO) error {
@@ -139,4 +119,32 @@ func (s *UserService) GetUserTags(userId int) ([]dto.UserTagDTO, error) {
 	}
 	
 	return userTags, nil
+}
+
+func toUserDTO(user *db.User, level *db.UserLevel, tags []dto.UserTagDTO, settings dto.PublicUserSettingsDTO, stats dto.UserStatsDTO) *dto.GetUserDTO {
+	return &dto.GetUserDTO{
+		ID:        user.ID,
+		Email:     user.Email,
+		Name:      user.Name,
+		Picture:   user.Picture,
+		Banner:    user.Banner,
+		Role:      user.Role,
+		Status:    user.Status,
+		About:     user.About,
+		Birthday:  user.Birthday,
+		Gender:    string(user.Gender),
+		IsPublic:  user.IsPublic,
+		LastLogin: user.LastLogin,
+		CreateAt:  user.CreateAt,
+		ActiveTag: user.Tag,
+		AllTags:   tags,
+		Settings:  settings,
+		UserStats: stats,
+		UserLevel: dto.UserLevelDTO{
+			Level:       level.Level,
+			Experience:  level.Experience,
+			LevelTitle:  level.LevelTitle,
+			XPForNext:   level.XPForNext,
+		},
+	}
 }
