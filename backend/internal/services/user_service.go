@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/lanxre/kyokusulib/internal/constants"
 	"github.com/lanxre/kyokusulib/internal/models/db"
 	"github.com/lanxre/kyokusulib/internal/models/dto"
 	"github.com/lanxre/kyokusulib/internal/repository"
@@ -90,14 +92,18 @@ func (s *UserService) GetUserById(userId int) (*dto.GetUserDTO, error) {
 	}), nil
 }
 
-func (s *UserService) UpdateUserStatus(ctx context.Context, userId int, dto dto.UpdateUserStatusDTO) error {
- 	lastActiveTime := time.UnixMilli(dto.LastActive)
-
-    if dto.LastActive == 0 {
-        lastActiveTime = time.Now()
+func (s *UserService) UpdateUserStatus(ctx context.Context, userID int, dto dto.UpdateUserStatusDTO) error {
+    lastActive := time.Now()
+    if dto.LastActive != 0 {
+        lastActive = time.UnixMilli(dto.LastActive)
     }
-    
-	return s.Repo.UpdateDtoStatus(ctx, userId, dto.Status, lastActiveTime)
+
+    status := constants.UserStatus(dto.Status)
+    if !status.IsValid() {
+        return errors.New("Invalid user status")
+    }
+
+    return s.Repo.UpdateDtoStatus(ctx, userID, status, lastActive)
 }
 
 func (s *UserService) UpdateUserTag(ctx context.Context, userId int, dto dto.UpdateUserTagDTO) error {

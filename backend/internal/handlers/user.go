@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"github.com/lanxre/kyokusulib/internal/middleware"
 	"github.com/lanxre/kyokusulib/internal/models/dto"
@@ -15,11 +17,13 @@ import (
 
 type UserHandler struct {
 	UserService *service.UserService
+	Validator   *validator.Validate
 }
 
-func NewUserHandler(userService *service.UserService) *UserHandler {
+func NewUserHandler(userService *service.UserService, validator *validator.Validate) *UserHandler {
 	return &UserHandler{
 		UserService: userService,
+		Validator: validator,
 	}
 }
 
@@ -72,16 +76,17 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
-	if !ok {
-		http.Error(w, "User not found in context", http.StatusInternalServerError)
-		return
-	}
+	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
 	
 	var req dto.UpdateUserStatusDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		fmt.Print(err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	
+	if err := h.Validator.Struct(req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Validation error: "+err.Error())
 		return
 	}
 
@@ -90,9 +95,7 @@ func (h *UserHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Profile updated successfully"})
+	response.Success(w, http.StatusOK, "User status was updated: "+time.Now().Format("02-01-2006"))
 }
 
 func (h *UserHandler) UpdateUserTag(w http.ResponseWriter, r *http.Request) {

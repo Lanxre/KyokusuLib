@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/lanxre/kyokusulib/internal/constants"
 	"github.com/lanxre/kyokusulib/internal/models/db"
 )
 
@@ -401,10 +402,15 @@ func (r *UserRepository) UpdateStatus(userID int, status string) error {
 	return err
 }
 
-func (r *UserRepository) UpdateDtoStatus(ctx context.Context, userId int, status string, lastActive time.Time) error {
-	query := `UPDATE users SET status = $1, last_login = $2 WHERE id = $3`
-	_, err := r.DB.Exec(query, status, lastActive, userId)
-	return err
+func (r *UserRepository) UpdateDtoStatus(
+    ctx context.Context,
+    userID int,
+    status constants.UserStatus,
+    lastActive time.Time,
+) error {
+    query := `UPDATE users SET status = $1, last_login = $2 WHERE id = $3`
+    _, err := r.DB.ExecContext(ctx, query, status, lastActive, userID)
+    return err
 }
 
 func (r *UserRepository) UpdateAvatar(userID int, avatar string) error {

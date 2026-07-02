@@ -48,7 +48,7 @@ type UserLevelDTO struct {
 }
 
 type UpdateUserStatusDTO struct {
-	Status 	 string `json:"status"`
+	Status 	 string `json:"status" validate:"required,oneof=online offline idle ban"`
 	LastActive int64 `json:"last_active"`
 }
 
