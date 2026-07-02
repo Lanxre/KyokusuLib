@@ -76,7 +76,7 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) {
-	userID, _ := r.Context().Value(middleware.UserIDKey).(int)
+	userID, _ := strconv.Atoi(mux.Vars(r)["userId"])
 	
 	var req dto.UpdateUserStatusDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
