@@ -100,22 +100,22 @@ func (h *UserHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !req.IsHeartBeat {
-		activityMetaData, _ := json.Marshal(map[string]any{
-    	"user_id": moderatorId,
-     	"title": "Произведенно обновление статуса аккаунт пользователя",
-     	"status": req.Status,
-        "time": time.Now().Format("02-01-2006"),
-		})
-		
-		h.ActivityService.CreateUserActivity(r.Context(), moderatorId, &dto.CreateUserActivity{
-			ActivityType: "update_account_status",
-			TargetID: userID,
-			Metadata: activityMetaData,
-		})
-		
-		h.NotificationService.Create(r.Context(), int64(moderatorId), "Обновление статуса аккаунта", fmt.Sprintf("Обновил статус аккаунта пользователя: %d", userID))
-	}
+	
+	activityMetaData, _ := json.Marshal(map[string]any{
+   	"user_id": moderatorId,
+   	"title": "Произведенно обновление статуса аккаунт пользователя",
+   	"status": req.Status,
+    "time": time.Now().Format("02-01-2006"),
+	})
+	
+	h.ActivityService.CreateUserActivity(r.Context(), moderatorId, &dto.CreateUserActivity{
+		ActivityType: "update_account_status",
+		TargetID: userID,
+		Metadata: activityMetaData,
+	})
+	
+	h.NotificationService.Create(r.Context(), int64(moderatorId), "Обновление статуса аккаунта", fmt.Sprintf("Обновил статус аккаунта пользователя: %d", userID))
+
 
 	response.Success(w, http.StatusOK, "User status was updated: "+time.Now().Format("02-01-2006"))
 }
