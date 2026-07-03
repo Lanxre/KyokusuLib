@@ -34,7 +34,7 @@ const profileIcon = computed(() => props.user.is_public ? "ph:user-square-bold" 
 					class="text-zinc-400 shrink-0"
 				/>
 			</div>
-			<p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+			<p class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
 				{{ formatGender(user.gender) }}
 			</p>
 		</div>
@@ -53,7 +53,7 @@ const profileIcon = computed(() => props.user.is_public ? "ph:user-square-bold" 
 					class="text-zinc-400 shrink-0"
 				/>
 			</div>
-			<p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+			<p class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
 				{{ fmtDate(user.birthday) }}
 			</p>
 		</div>
@@ -81,8 +81,7 @@ const profileIcon = computed(() => props.user.is_public ? "ph:user-square-bold" 
 					size="14"
 					class="text-green-500"
 				/>
-				<Icon v-else name="ph:lock-bold" size="14" class="text-zinc-400" />
-				<span>{{ user.is_public ? "Публичный" : "Приватный" }}</span>
+				<span class="font-semibold text-zinc-700 dark:text-zinc-300">{{ user.is_public ? "Публичный" : "Приватный" }}</span>
 			</div>
 		</div>
 	</div>

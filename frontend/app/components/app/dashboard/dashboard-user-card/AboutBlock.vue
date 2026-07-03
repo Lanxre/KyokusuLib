@@ -14,6 +14,6 @@ defineProps<{ about: string }>()
     			class="text-zinc-400 shrink-0"
 			/>
         </div>
-    	<p class="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed text-wrap wrap-break-word">{{ about ? about : "Пользователь решил не рассказаывать о себе."}}</p>
+    	<p class="text-sm font-semibold text-zinc-600 dark:text-zinc-400 leading-relaxed text-wrap wrap-break-word">{{ about ? about : "Пользователь решил не рассказаывать о себе."}}</p>
     </div>
 </template>
