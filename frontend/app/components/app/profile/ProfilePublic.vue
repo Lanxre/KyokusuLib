@@ -26,7 +26,6 @@ const {
 	userRoleColor,
 	getGenderText,
     lastLogin,
-	lastJoinSiteDate,
 	isLogin,
 } = useProfile();
 const { activities, fetchActivities, isLoadingActivities } = useUserActivity();
@@ -176,11 +175,16 @@ const { status } = await useAsyncData(
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl text-center">
                             <div class="text-2xl font-bold dark:text-white">{{ profileData?.user_stats?.read_chapters || 0 }}</div>
-                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Прочитано</div>
+                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">
+                                <p>Прочитано</p>
+                                <p>Глав</p>
+                            </div>
                         </div>
                         <div class="bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl text-center">
                             <div class="text-2xl font-bold dark:text-white">{{ profileData?.user_stats?.total_comments || 0 }}</div>
-                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Отзывов</div>
+                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">
+                                <p>Комментариев</p>
+                            </div>
                         </div>
                     </div>
                 </div>
