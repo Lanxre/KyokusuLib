@@ -383,8 +383,22 @@ func (r *UserRepository) createOrUpdateProfile(u *db.User) error {
 
 func (r *UserRepository) Delete(ctx context.Context, id int) error {
 	query := `DELETE FROM users WHERE id = $1`
-	_, err := r.DB.Exec(query, id)
-	return err
+
+	result, err := r.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return errors.New("user not found")
+	}
+
+	return nil
 }
 
 func (r *UserRepository) DeleteExpiredUnverified() error {
@@ -409,7 +423,7 @@ func (r *UserRepository) UpdateDtoStatus(
     lastActive time.Time,
 ) error {
     query := `UPDATE users SET status = $1, last_login = $2 WHERE id = $3`
-    _, err := r.DB.ExecContext(ctx, query, status, lastActive, userID)
+    _, err := r.DB.ExecContext(ctx, query, status.String(), lastActive, userID)
     return err
 }
 
@@ -567,4 +581,16 @@ func (r *UserRepository) GetUserStats(ctx context.Context, userID int) (int, int
 	}
 
 	return totalComments, readChapters, nil
+}
+
+func (r *UserRepository) IsExist(ctx context.Context, userID int) (bool, error) {
+    query := `SELECT EXISTS (SELECT 1 FROM users WHERE id = $1)`
+
+    var exists bool
+    err := r.DB.QueryRowContext(ctx, query, userID).Scan(&exists)
+    if err != nil {
+        return false, err
+    }
+
+    return exists, nil
 }

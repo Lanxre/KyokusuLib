@@ -127,6 +127,19 @@ func (s *UserService) GetUserTags(userId int) ([]dto.UserTagDTO, error) {
 	return userTags, nil
 }
 
+func (s *UserService) DeleteUserById(ctx context.Context, userID int) error {
+    exists, err := s.Repo.IsExist(ctx, userID)
+    if err != nil {
+        return err
+    }
+
+    if !exists {
+        return errors.New("user not found")
+    }
+
+    return s.Repo.Delete(ctx, userID)
+}
+
 func toUserDTO(user *db.User, level *db.UserLevel, tags []dto.UserTagDTO, settings dto.PublicUserSettingsDTO, stats dto.UserStatsDTO) *dto.GetUserDTO {
 	return &dto.GetUserDTO{
 		ID:        user.ID,

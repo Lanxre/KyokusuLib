@@ -16,14 +16,18 @@ import (
 )
 
 type UserHandler struct {
-	UserService *service.UserService
-	Validator   *validator.Validate
+	UserService 	 	*service.UserService
+	Validator    	 	*validator.Validate
+	ActivityService  	*service.UserActivityService
+	NotificationService *service.NotificationService
 }
 
-func NewUserHandler(userService *service.UserService, validator *validator.Validate) *UserHandler {
+func NewUserHandler(userService *service.UserService, validator *validator.Validate, activityService *service.UserActivityService, notificationService *service.NotificationService) *UserHandler {
 	return &UserHandler{
 		UserService: userService,
 		Validator: validator,
+		ActivityService: activityService,
+		NotificationService: notificationService,
 	}
 }
 
@@ -76,6 +80,7 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) {
+	moderatorId, _ := r.Context().Value(middleware.UserIDKey).(int)
 	userID, _ := strconv.Atoi(mux.Vars(r)["userId"])
 	
 	var req dto.UpdateUserStatusDTO
@@ -95,7 +100,45 @@ func (h *UserHandler) UpdateUserStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !req.IsHeartBeat {
+		activityMetaData, _ := json.Marshal(map[string]any{
+    	"user_id": moderatorId,
+     	"title": "Произведенно обновление статуса аккаунт пользователя",
+     	"status": req.Status,
+        "time": time.Now().Format("02-01-2006"),
+		})
+		
+		h.ActivityService.CreateUserActivity(r.Context(), moderatorId, &dto.CreateUserActivity{
+			ActivityType: "update_account_status",
+			TargetID: userID,
+			Metadata: activityMetaData,
+		})
+		
+		h.NotificationService.Create(r.Context(), int64(moderatorId), "Обновление статуса аккаунта", fmt.Sprintf("Обновил статус аккаунта пользователя: %d", userID))
+	}
+
 	response.Success(w, http.StatusOK, "User status was updated: "+time.Now().Format("02-01-2006"))
+}
+
+func (h *UserHandler) UpdateMyStatus(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok {
+		http.Error(w, "User not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	var req dto.UpdateUserStatusDTO
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.UserService.UpdateUserStatus(r.Context(), userID, req); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response.Success(w, http.StatusOK, "OK")
 }
 
 func (h *UserHandler) UpdateUserTag(w http.ResponseWriter, r *http.Request) {
@@ -117,4 +160,31 @@ func (h *UserHandler) UpdateUserTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Success(w, http.StatusOK, "Тэг профиля успешно обновлен")
+}
+
+func (h *UserHandler) DeleteUserById(w http.ResponseWriter, r *http.Request) {
+	moderatorId, _ := r.Context().Value(middleware.UserIDKey).(int)
+	userID, _ := strconv.Atoi(mux.Vars(r)["userId"])
+
+	if err := h.UserService.DeleteUserById(r.Context(), userID); err != nil {
+		response.Error(w, http.StatusBadRequest, "Unexpected error: "+err.Error())
+		return
+	}
+
+	activityMetaData, _ := json.Marshal(map[string]any{
+    	"user_id": moderatorId,
+     	"title": "Произведенно удаление аккаунта пользователя",
+     	"delete_account_id": userID,
+        "time": time.Now().Format("02-01-2006"),
+	})
+	
+	h.ActivityService.CreateUserActivity(r.Context(), moderatorId, &dto.CreateUserActivity{
+		ActivityType: "delete_user",
+		TargetID: userID,
+		Metadata: activityMetaData,
+	})
+
+	h.NotificationService.Create(r.Context(), int64(moderatorId), "Удаление аккаунта", fmt.Sprintf("Удалил аккаунта пользователя: %d", userID))
+
+	response.Success(w, http.StatusOK, "User was delete on: "+time.Now().Format("02-01-2006"))
 }
