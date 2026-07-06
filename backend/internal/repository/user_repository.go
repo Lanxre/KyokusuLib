@@ -570,12 +570,8 @@ func (r *UserRepository) GetUserStats(ctx context.Context, userID int) (int, int
 		return 0, 0, err
 	}
 
-	bookmarksQuery := `
-		SELECT COUNT(b.novela_id)
-		FROM user_novela_bookmarks b
-		JOIN bookmark_categories c ON b.category_id = c.id
-		WHERE b.user_id = $1 AND c.name = 'completed'`
-	err = r.DB.QueryRowContext(ctx, bookmarksQuery, userID).Scan(&readChapters)
+	readChaptersQuery := `SELECT COUNT(*) FROM read_chapters WHERE user_id = $1`
+	err = r.DB.QueryRowContext(ctx, readChaptersQuery, userID).Scan(&readChapters)
 	if err != nil {
 		return 0, 0, err
 	}
