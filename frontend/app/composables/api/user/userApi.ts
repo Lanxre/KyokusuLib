@@ -5,7 +5,6 @@ import type { GetUserDto } from "@/types/backend/user";
 import type { DashboardRowUserStatus } from "~/types/enums/dashboard-table";
 import { KyokusuAppRole } from "~/types/enums/role-enum";
 
-
 export function useUserApi() {
   const { hasPermission } = useRolePermissions();
   const { notify } = useNotificationStore();
@@ -26,7 +25,7 @@ export function useUserApi() {
 			return null;
 		}
   };
-
+	
   const deleteUser = async (userId: number) => {
     if (!hasPermission(KyokusuAppRole.ADMIN)) {
       notify({
@@ -44,14 +43,14 @@ export function useUserApi() {
   
       notify({
         title: "Успех",
-        content: "Статус пользователя обновлен",
+        content: "Пользователь удалён",
         type: "success",
       });
       
     } catch (e: any) {
       notify({
         title: "Ошибка",
-        content: e.message ?? "Не удалось обновить статус",
+        content: e.message ?? "Не удалось удалить пользователя",
         type: "error",
       });
     }
@@ -79,7 +78,7 @@ export function useUserApi() {
   
       notify({
         title: "Успех",
-        content: "Статус пользователя обновлен",
+        content: "Статус пользователя обновлён",
         type: "success",
       });
       
