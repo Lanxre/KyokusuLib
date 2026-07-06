@@ -2,9 +2,6 @@
 import { computed } from "vue";
 import { ModalWindow } from "@kyokusu-ui/vue";
 
-import { formatGender } from "@/utils/dashboard"
-import { fmtDate } from "@/utils/date"
-
 import type { DashboardUser } from "@/types/frontend/dashboard/users";
 
 import ImageBlock from "./ImageBlock.vue";

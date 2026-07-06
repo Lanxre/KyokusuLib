@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { KyokusuAppRole } from '~/types/enums/role-enum';
 import type { DashboardUser } from "@/types/frontend/dashboard/users";
 
 import { staticImage } from "@/utils/str";
@@ -29,7 +28,7 @@ defineProps<{ user: DashboardUser }>();
            					<div class="flex items-center gap-2 mt-1">
           						<span
          							class="inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
-         							:class="getUserRoleColor(user.role as KyokusuAppRole)"
+         							:class="getUserRoleColor(user.role)"
           						>
          							{{ formatRole(user.role) }}
           						</span>
