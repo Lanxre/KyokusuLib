@@ -53,8 +53,8 @@ const LEVEL_TIERS = [
   { max: Infinity, bg: "bg-rose-500",            text: "text-white" },
 ] as const;
 
-export const getUserRoleColor = (role: KyokusuAppRole) => ROLE_COLORS[role];
-export const getUserStatusColor = (status: DashboardRowUserStatus) => STATUS_COLORS[status];
+export const getUserRoleColor = (role: string) => ROLE_COLORS[role as KyokusuAppRole | `${KyokusuAppRole}`];
+export const getUserStatusColor = (status: string) => STATUS_COLORS[status as DashboardRowUserStatus | `${DashboardRowUserStatus}`];
 
 export const formatRole = (role: string): string => roleConv(role as KyokusuAppRole | `${KyokusuAppRole}`, "ru");
 export const formatStatus = (status: DashboardRowUserStatus | `${DashboardRowUserStatus}`):
