@@ -1,0 +1,82 @@
+<script setup lang="ts">
+import { getUserRoleColor, getUserStatusColor } from "@/utils/dashboard";
+import type { UserEditForm } from "@/composables/api/dashboard/useUserEdit";
+import { STATUS_OPTIONS, ROLE_OPTIONS } from "@/composables/api/dashboard/useUserEdit";
+
+defineProps<{
+	form: UserEditForm;
+}>();
+</script>
+
+<template>
+	<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+		<!-- role -->
+		<div class="flex flex-col gap-1.5">
+			<label
+				class="text-sm font-medium"
+				:style="{ color: 'var(--k-editor-label)' }"
+			>
+				Роль
+			</label>
+			<div class="relative">
+				<select
+					v-model="form.role"
+					class="w-full h-10 rounded-lg border pl-3 pr-10 text-sm outline-none appearance-none transition focus:ring-2"
+					:style="{
+						backgroundColor: 'var(--k-editor-bg)',
+						borderColor: 'var(--k-editor-border)',
+						color: 'var(--k-editor-text)',
+					}"
+				>
+					<option
+						v-for="opt in ROLE_OPTIONS"
+						:key="opt.value"
+						:value="opt.value"
+					>
+						{{ opt.label }}
+					</option>
+				</select>
+				<span
+					v-if="form.role"
+					class="absolute right-3 top-1/2 -translate-y-1/2 inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider pointer-events-none"
+					:class="getUserRoleColor(form.role)"
+				>
+					{{ form.role }}
+				</span>
+			</div>
+		</div>
+
+		<!-- status -->
+		<div class="flex flex-col gap-1.5">
+			<label
+				class="text-sm font-medium"
+				:style="{ color: 'var(--k-editor-label)' }"
+			>
+				Статус
+			</label>
+			<div class="relative">
+				<select
+					v-model="form.status"
+					class="w-full h-10 rounded-lg border pl-3 pr-10 text-sm outline-none appearance-none transition focus:ring-2"
+					:style="{
+						backgroundColor: 'var(--k-editor-bg)',
+						borderColor: 'var(--k-editor-border)',
+						color: 'var(--k-editor-text)',
+					}"
+				>
+					<option
+						v-for="opt in STATUS_OPTIONS"
+						:key="opt.value"
+						:value="opt.value"
+					>
+						{{ opt.label }}
+					</option>
+				</select>
+				<span
+					class="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full pointer-events-none"
+					:class="getUserStatusColor(form.status)"
+				/>
+			</div>
+		</div>
+	</div>
+</template>
