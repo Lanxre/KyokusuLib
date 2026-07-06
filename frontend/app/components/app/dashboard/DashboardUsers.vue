@@ -2,7 +2,6 @@
 import { ref, computed } from "vue";
 import { useUsers } from "@/composables/api/dashboard/useUsers";
 import { useUserApi } from "@/composables/api/user/userApi";
-import { useNotificationStore } from "@/stores/notification";
 import {
   mapToRows,
   getUserRoleColor,
@@ -14,7 +13,10 @@ import {
 
 import UiTable from "@/components/ui/Table.vue";
 import UiTableSearch from "@/components/ui/TableSearch.vue";
+
 import DashboardUserCard from "@/components/app/dashboard/dashboard-user-card/DashboardUserCard.vue";
+import DashboardUserEdit from "@/components/app/dashboard/dashboard-user-edit/DashboardUserEdit.vue"
+
 import CircleBlock from "@/components/ui/CircleBlock.vue";
 import ModalConfirm from "@/components/common/ModalConfirm.vue";
 
@@ -23,14 +25,16 @@ import type { DashboardUser } from "@/types/frontend/dashboard/users";
 
 
 const { users, isLoading } = useUsers();
-const { notify } = useNotificationStore();
-const { deleteUser } = useUserApi();
+const { deleteUser }       = useUserApi();
 
 const searchQuery       = ref("");
 const selectedUserId    = ref<number | null>(null);
 
 const showDeleteConfirm = ref(false);
-const deleteTargetUser  = ref<DashboardUser | null>(null);
+const showEdit          = ref(false);
+
+const targetDeleteUser  = ref<DashboardUser | null>(null);
+const targetEditUser    = ref<DashboardUser | null>(null);
 
 const tableColumns: UiTableColumn[] = [
 	{ key: "id", label: "ID", align: "center", sortable: true },
@@ -51,22 +55,19 @@ const selectedUser = computed<DashboardUser | null>(() => {
 });
 
 function onEdit(userId: number) {
-	notify({
-		title: "Редактирование",
-		content: `Редактирование пользователя #${userId} — в разработке`,
-		type: "info",
-	});
+    targetEditUser.value = users.value.find(u => u.id === userId) ?? null;
+    showEdit.value = true;
 }
 
 function onDelete(userId: number) {
-	deleteTargetUser.value = users.value.find(u => u.id === userId)!;
+	targetDeleteUser.value = users.value.find(u => u.id === userId)!;
 	showDeleteConfirm.value = true;
 }
 
 async function confirmDelete() {
-	if (deleteTargetUser.value == null) return;
-	await deleteUser(deleteTargetUser.value.id);
-	deleteTargetUser.value = null;
+	if (targetDeleteUser.value == null) return;
+	await deleteUser(targetDeleteUser.value.id);
+	targetDeleteUser.value = null;
 }
 </script>
 
@@ -169,10 +170,16 @@ async function confirmDelete() {
 		@update:model-value="selectedUserId = null"
 	/>
 
+	<DashboardUserEdit
+    	:model-value="targetEditUser != null"
+    	:user="targetEditUser"
+    	@update:model-value="targetEditUser = null"
+	/>
+
 	<ModalConfirm
 		v-model="showDeleteConfirm"
 		title="Удаление пользователя"
-		:description="`Вы уверены, что хотите удалить пользователя ${deleteTargetUser?.name}? Это действие нельзя отменить.`"
+		:description="`Вы уверены, что хотите удалить пользователя ${targetDeleteUser?.name}? Это действие нельзя отменить.`"
 		confirm-text="Удалить"
 		@confirm="confirmDelete"
 	/>
