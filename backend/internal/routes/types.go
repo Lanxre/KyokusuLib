@@ -57,3 +57,7 @@ type NovelaStatisticsRoutes struct {
 type CatalogRoutes struct {
 	Handler *handlers.CatalogHandler
 }
+
+type UserExperianceRoutes struct {
+	Handler *handlers.UserExperianceHandler
+}
