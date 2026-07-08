@@ -6,6 +6,7 @@ import DashboardUserImageEdit from "./DashboardUserImageEdit.vue";
 import DashboardUserBasicEdit from "./DashboardUserBasicEdit.vue";
 import DashboardUserRoleEdit from "./DashboardUserRoleEdit.vue";
 import DashboardUserActions from "./DashboardUserActions.vue";
+import DashboardUserVisibilityEdit from "./DashboardUserVisibilityEdit.vue";
 
 import { useUserEdit } from "@/composables/api/dashboard/useUserEdit";
 
@@ -87,6 +88,28 @@ function handleCancel() {
 				<Label label="Роль и статус"/>
 				<div class="flex p-4 rounded-lg border bg-white dark:bg-zinc-900/50 dark:border-zinc-700/50">
 					<DashboardUserRoleEdit :form="form" />
+				</div>
+			</div>
+
+			<div class="flex flex-col gap-2">
+			    <Label label="Уровень и опыт"/>
+				<div class="flex p-4 rounded-lg border bg-white dark:bg-zinc-900/50 dark:border-zinc-700/50">
+				    
+				</div>
+			</div>
+
+			<div class="flex flex-col gap-2">
+			    <Label label="Теги"/>
+				<div class="flex p-4 rounded-lg border bg-white dark:bg-zinc-900/50 dark:border-zinc-700/50">
+				    
+				</div>
+			</div>
+
+			<!-- visibility settings -->
+			<div class="flex flex-col gap-2">
+			    <Label label="Настройки видимости"/>
+				<div class="flex p-4 rounded-lg border bg-white dark:bg-zinc-900/50 dark:border-zinc-700/50">
+					<DashboardUserVisibilityEdit :form="form" />
 				</div>
 			</div>
 

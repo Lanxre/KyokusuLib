@@ -16,6 +16,8 @@ export interface UserEditForm {
 	status: string;
 	picture: string;
 	banner: string;
+	isShowTag: boolean;
+	isShowBookmark: boolean;
 }
 
 export const GENDER_OPTIONS = Object.values(DashboardRowUserGender).map((value) => ({
@@ -47,6 +49,8 @@ export function useUserEdit() {
 		status: "offline",
 		picture: "",
 		banner: "",
+		isShowTag: false,
+		isShowBookmark: false,
 	});
 
 	const isDirty = computed(() => {
@@ -62,6 +66,8 @@ export function useUserEdit() {
 		form.status = user.status;
 		form.picture = user.picture;
 		form.banner = user.banner;
+		form.isShowTag = user.settings?.is_show_tag ?? false;
+		form.isShowBookmark = user.settings?.is_show_bookmark ?? false;
 
 		// clean birthday for DatePicker — same logic as AccountSettings
 		let bd = user.birthday ?? "";
@@ -90,17 +96,21 @@ export function useUserEdit() {
 		form.status = "offline";
 		form.picture = "";
 		form.banner = "";
+		form.isShowTag = false;
+		form.isShowBookmark = false;
 	}
 
-	async function save(userId: number): Promise<boolean> {
-		try {
-			await updateUser(userId, {
-				name: form.name,
-				about: form.about,
-				gender: form.gender,
-				birthday: form.birthday,
-				is_public: form.isPublic,
-			});
+		async function save(userId: number): Promise<boolean> {
+			try {
+				await updateUser(userId, {
+					name: form.name,
+					about: form.about,
+					gender: form.gender,
+					birthday: form.birthday,
+					is_public: form.isPublic,
+					is_show_tag: form.isShowTag,
+					is_show_bookmark: form.isShowBookmark,
+				});
 
 			notify({
 				title: "Успех",
