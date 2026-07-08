@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Label } from "@kyokusu-ui/vue"
 import { getUserRoleColor, getUserStatusColor } from "@/utils/dashboard";
 import type { UserEditForm } from "@/composables/api/dashboard/useUserEdit";
 import { STATUS_OPTIONS, ROLE_OPTIONS } from "@/composables/api/dashboard/useUserEdit";
@@ -11,13 +12,8 @@ defineProps<{
 <template>
 	<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
 		<!-- role -->
-		<div class="flex flex-col gap-1.5">
-			<label
-				class="text-sm font-medium"
-				:style="{ color: 'var(--k-editor-label)' }"
-			>
-				Роль
-			</label>
+		<div class="flex flex-col gap-2">
+		    <Label label="Роль в системе"/>
 			<div class="relative">
 				<select
 					v-model="form.role"
@@ -47,13 +43,8 @@ defineProps<{
 		</div>
 
 		<!-- status -->
-		<div class="flex flex-col gap-1.5">
-			<label
-				class="text-sm font-medium"
-				:style="{ color: 'var(--k-editor-label)' }"
-			>
-				Статус
-			</label>
+		<div class="flex flex-col gap-2">
+		    <Label label="Статус"/>
 			<div class="relative">
 				<select
 					v-model="form.status"

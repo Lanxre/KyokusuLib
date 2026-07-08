@@ -100,24 +100,24 @@ export function useUserEdit() {
 		form.isShowBookmark = false;
 	}
 
-		async function save(userId: number): Promise<boolean> {
-			try {
-				await updateUser(userId, {
-					name: form.name,
-					about: form.about,
-					gender: form.gender,
-					birthday: form.birthday,
-					is_public: form.isPublic,
-					is_show_tag: form.isShowTag,
-					is_show_bookmark: form.isShowBookmark,
-				});
-
-			notify({
-				title: "Успех",
-				content: "Пользователь обновлён",
-				type: "success",
+	async function save(userId: number): Promise<boolean> {
+		try {
+			await updateUser(userId, {
+				name: form.name,
+				about: form.about,
+				gender: form.gender,
+				birthday: form.birthday,
+				is_public: form.isPublic,
+				is_show_tag: form.isShowTag,
+				is_show_bookmark: form.isShowBookmark,
 			});
-			return true;
+
+  		notify({
+  			title: "Успех",
+  			content: "Пользователь обновлён",
+  			type: "success",
+  		});
+  		return true;
 		} catch (e: any) {
 			notify({
 				title: "Ошибка",

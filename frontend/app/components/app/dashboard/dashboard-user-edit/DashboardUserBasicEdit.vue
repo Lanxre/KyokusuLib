@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Input, RichText, DatePicker } from "@kyokusu-ui/vue";
+import { Input, RichText, DatePicker, Label } from "@kyokusu-ui/vue";
 import TabToggleSettings from "../../settings/TabToggleSettings.vue";
 import type { UserEditForm } from "@/composables/api/dashboard/useUserEdit";
 import { GENDER_OPTIONS } from "@/composables/api/dashboard/useUserEdit";
@@ -12,19 +12,16 @@ defineProps<{
 <template>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-5 w-full">
         <!-- name + gender in one row -->
-        <Input
-            v-model="form.name"
-            label="Имя пользователя"
-            placeholder="Введите имя"
-        />
+        <div class="flex flex-col gap-2">
+            <Label label="Имя пользователя"/>
+            <Input
+                v-model="form.name"
+                placeholder="Введите имя"
+            />
+        </div>
 
-        <div class="flex flex-col gap-1.5">
-            <label
-                class="text-sm font-medium"
-                :style="{ color: 'var(--k-editor-label)' }"
-            >
-                Пол
-            </label>
+        <div class="flex flex-col gap-2">
+            <Label label="Пол"/>
             <select
                 v-model="form.gender"
                 class="w-full h-10 rounded-lg border px-3 text-sm outline-none transition focus:ring-2"
@@ -47,16 +44,20 @@ defineProps<{
         <!-- birthday -->
         <div class="sm:col-span-2">
             <ClientOnly>
-                <DatePicker
-                    id="birthday"
-                    label="Дата рождения"
-                    v-model="form.birthday"
-                />
-                <template #fallback>
-                    <Input
+                <div class="flex flex-col gap-2">
+                    <Label label="Дата рождения"/>
+                    <DatePicker
+                        id="birthday"
                         v-model="form.birthday"
-                        label="Дата рождения"
                     />
+                </div>
+                <template #fallback>
+                    <div class="flex flex-col gap-2">
+                        <Label label="Дата рождения"/>
+                        <Input
+                            v-model="form.birthday"
+                        />
+                    </div>
                 </template>
             </ClientOnly>
         </div>
