@@ -61,3 +61,7 @@ type CatalogRoutes struct {
 type UserExperianceRoutes struct {
 	Handler *handlers.UserExperianceHandler
 }
+
+type UserTagRoutes struct {
+	Handler *handlers.UserTagHandler
+}

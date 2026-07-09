@@ -60,6 +60,7 @@ func main() {
 			rhService.NewRanobeHubParseService,
 			service.NewNovelaStatisticsService,
 			service.NewUserExperianceService,
+			service.NewUserTagService,
 			app.NewEmailService,
 
 			handlers.NewNotificationHandler,
@@ -79,6 +80,7 @@ func main() {
 			handlers.NewNovelaStatisticsHandler,
 			handlers.NewCatalogHandler,
 			handlers.NewUserExperianceHandler,
+			handlers.NewUserTagHandler,
 
 			app.AsRoute(func(h *handlers.HealthHandler) *routes.HealthRoutes { return &routes.HealthRoutes{Handler: h} }),
 			app.AsRoute(func(h *handlers.AuthHandler) *routes.AuthRoutes { return &routes.AuthRoutes{Handler: h} }),
@@ -114,6 +116,9 @@ func main() {
 			}),
 			app.AsRoute(func(h *handlers.UserExperianceHandler) *routes.UserExperianceRoutes {
 				return &routes.UserExperianceRoutes{Handler: h}
+			}),
+			app.AsRoute(func(h *handlers.UserTagHandler) *routes.UserTagRoutes {
+				return &routes.UserTagRoutes{Handler: h}
 			}),
 			
 			fx.Annotate(
