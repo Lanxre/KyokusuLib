@@ -42,3 +42,9 @@ export interface UserLevel {
 	xp_needed_for_next: number;
 	level_title: string;
 }
+
+export interface UserDefinitions {
+  level: number;
+  title: string;
+  total_xp_required: number;
+}
