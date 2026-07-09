@@ -7,6 +7,7 @@ import DashboardUserBasicEdit from "./DashboardUserBasicEdit.vue";
 import DashboardUserRoleEdit from "./DashboardUserRoleEdit.vue";
 import DashboardUserActions from "./DashboardUserActions.vue";
 import DashboardUserVisibilityEdit from "./DashboardUserVisibilityEdit.vue";
+import DashboardUserLevelEdit from "./DashboardUserLevelEdit.vue";
 
 import { useUserEdit } from "@/composables/api/dashboard/useUserEdit";
 
@@ -31,10 +32,17 @@ const saving = ref(false);
 
 const { form, isDirty, loadUser, reset, save } = useUserEdit();
 
+const userLevel = ref(1);
+const userExperience = ref(0);
+
 watch(
 	() => props.user,
 	(u) => {
-		if (u) loadUser(u);
+		if (u) {
+			loadUser(u);
+			userLevel.value = u.user_level?.level ?? 1;
+			userExperience.value = u.user_level?.experience ?? 0;
+		}
 	},
 	{ immediate: true },
 );
@@ -90,11 +98,15 @@ function handleCancel() {
 					<DashboardUserRoleEdit :form="form" />
 				</div>
 			</div>
-
+			
 			<div class="flex flex-col gap-2">
 			    <Label label="Уровень и опыт"/>
 				<div class="flex p-4 rounded-lg border bg-white dark:bg-zinc-900/50 dark:border-zinc-700/50">
-				    
+					<DashboardUserLevelEdit
+							:key="user?.id"
+							v-model:level="userLevel"
+							v-model:experience="userExperience"
+						/>
 				</div>
 			</div>
 
@@ -105,7 +117,6 @@ function handleCancel() {
 				</div>
 			</div>
 
-			<!-- visibility settings -->
 			<div class="flex flex-col gap-2">
 			    <Label label="Настройки видимости"/>
 				<div class="flex p-4 rounded-lg border bg-white dark:bg-zinc-900/50 dark:border-zinc-700/50">

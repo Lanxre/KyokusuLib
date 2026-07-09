@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { Input, RichText, DatePicker, Label } from "@kyokusu-ui/vue";
 import TabToggleSettings from "../../settings/TabToggleSettings.vue";
 import type { UserEditForm } from "@/composables/api/dashboard/useUserEdit";
@@ -7,6 +8,8 @@ import { GENDER_OPTIONS } from "@/composables/api/dashboard/useUserEdit";
 defineProps<{
     form: UserEditForm;
 }>();
+
+const isGenderOpen = ref(false);
 </script>
 
 <template>
@@ -22,23 +25,33 @@ defineProps<{
 
         <div class="flex flex-col gap-2">
             <Label label="Пол"/>
-            <select
-                v-model="form.gender"
-                class="w-full h-10 rounded-lg border px-3 text-sm outline-none transition focus:ring-2"
-				:style="{
-					backgroundColor: 'var(--k-editor-bg)',
-					borderColor: 'var(--k-editor-border)',
-					color: 'var(--k-editor-text)',
-				}"
-            >
-                <option
-                    v-for="opt in GENDER_OPTIONS"
-                    :key="opt.value"
-                    :value="opt.value"
+            <div class="relative">
+                <select
+                    v-model="form.gender"
+                    class="w-full h-10 rounded-lg border pl-3 pr-10 text-sm outline-none appearance-none transition focus:ring-2"
+                    :style="{
+                        backgroundColor: 'var(--k-editor-bg)',
+                        borderColor: 'var(--k-editor-border)',
+                        color: 'var(--k-editor-text)',
+                    }"
+                    @focus="isGenderOpen = true"
+                    @blur="isGenderOpen = false"
                 >
-                    {{ opt.label }}
-                </option>
-            </select>
+                    <option
+                        v-for="opt in GENDER_OPTIONS"
+                        :key="opt.value"
+                        :value="opt.value"
+                    >
+                        {{ opt.label }}
+                    </option>
+                </select>
+                <Icon
+                    name="ph:caret-down-bold"
+                    size="14"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none transition-transform duration-200"
+                    :class="{ 'rotate-180': isGenderOpen}"
+                />
+            </div>
         </div>
 
         <!-- birthday -->
