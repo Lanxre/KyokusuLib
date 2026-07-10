@@ -5,13 +5,15 @@ import { ModalWindow, Label } from "@kyokusu-ui/vue";
 import DashboardUserImageEdit from "./DashboardUserImageEdit.vue";
 import DashboardUserBasicEdit from "./DashboardUserBasicEdit.vue";
 import DashboardUserRoleEdit from "./DashboardUserRoleEdit.vue";
-import DashboardUserActions from "./DashboardUserActions.vue";
 import DashboardUserVisibilityEdit from "./DashboardUserVisibilityEdit.vue";
 import DashboardUserLevelEdit from "./DashboardUserLevelEdit.vue";
-
-import { useUserEdit } from "@/composables/api/dashboard/useUserEdit";
+import DashboardUserTagsEdit from "./DashboardUserTagsEdit.vue";
 
 import type { DashboardUser } from "@/types/frontend/dashboard/users";
+
+import { useUserEdit } from "@/composables/api/dashboard/useUserEdit";
+import { useRolePermissions } from "@/composables/api/role/useRolePermissions";
+import { KyokusuAppRole } from "~/types/enums/role-enum";
 
 const props = defineProps<{
 	modelValue: boolean;
@@ -32,8 +34,11 @@ const saving = ref(false);
 
 const { form, isDirty, loadUser, reset, save } = useUserEdit();
 
+const { hasPermission } = useRolePermissions();
+
 const userLevel = ref(1);
 const userExperience = ref(0);
+const userTags = ref<DashboardUser["tags"]>([]);
 
 watch(
 	() => props.user,
@@ -42,6 +47,7 @@ watch(
 			loadUser(u);
 			userLevel.value = u.user_level?.level ?? 1;
 			userExperience.value = u.user_level?.experience ?? 0;
+			userTags.value = [...(u.tags ?? [])];
 		}
 	},
 	{ immediate: true },
@@ -99,7 +105,7 @@ function handleCancel() {
 				</div>
 			</div>
 			
-			<div class="flex flex-col gap-2">
+			<div v-if="hasPermission(KyokusuAppRole.ADMIN)" class="flex flex-col gap-2">
 			    <Label label="Уровень и опыт"/>
 				<div class="flex p-4 rounded-lg border bg-white dark:bg-zinc-900/50 dark:border-zinc-700/50">
 					<DashboardUserLevelEdit
@@ -113,23 +119,19 @@ function handleCancel() {
 			<div class="flex flex-col gap-2">
 			    <Label label="Теги"/>
 				<div class="flex p-4 rounded-lg border bg-white dark:bg-zinc-900/50 dark:border-zinc-700/50">
-				    
+					<DashboardUserTagsEdit
+						:key="user?.id"
+						v-model:tags="userTags"
+					/>
 				</div>
 			</div>
 
-			<div class="flex flex-col gap-2">
+			<div v-if="hasPermission(KyokusuAppRole.ADMIN)" class="flex flex-col gap-2">
 			    <Label label="Настройки видимости"/>
 				<div class="flex p-4 rounded-lg border bg-white dark:bg-zinc-900/50 dark:border-zinc-700/50">
 					<DashboardUserVisibilityEdit :form="form" />
 				</div>
 			</div>
-
-			<!-- actions -->
-			<DashboardUserActions
-				:saving="saving"
-				@save="handleSave"
-				@cancel="handleCancel"
-			/>
 		</div>
 	</ModalWindow>
 </template>

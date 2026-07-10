@@ -4,14 +4,21 @@ import { getUserRoleColor, getUserStatusColor } from "@/utils/dashboard";
 import type { UserEditForm } from "@/composables/api/dashboard/useUserEdit";
 import { STATUS_OPTIONS, ROLE_OPTIONS } from "@/composables/api/dashboard/useUserEdit";
 
+import { useRolePermissions } from "~/composables/api/role/useRolePermissions";
+import { KyokusuAppRole } from "@/types/enums/role-enum";
+
 defineProps<{
 	form: UserEditForm;
 }>();
+
+const { hasPermission } = useRolePermissions();
+
+const showRole = computed(() => hasPermission(KyokusuAppRole.ADMIN));
 </script>
 
 <template>
-	<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-		<!-- role -->
+	<div class="grid grid-cols-1 gap-4 w-full" :class="showRole && 'sm:grid-cols-2'">
+		<template v-if="showRole">
 		<div class="flex flex-col gap-2">
 		    <Label label="Роль в системе"/>
 			<div class="relative">
@@ -41,6 +48,7 @@ defineProps<{
 				</span>
 			</div>
 		</div>
+		</template>
 
 		<!-- status -->
 		<div class="flex flex-col gap-2">

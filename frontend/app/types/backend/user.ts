@@ -48,3 +48,8 @@ export interface UserDefinitions {
   title: string;
   total_xp_required: number;
 }
+
+export interface UserTagDefinitions {
+  tag_id: number;
+  tag:    string;
+}
