@@ -2,9 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 
-	"github.com/lanxre/kyokusulib/internal/repository"
 	"github.com/lanxre/kyokusulib/internal/models/dto"
+	"github.com/lanxre/kyokusulib/internal/repository"
 )
 
 type UserTagService struct {
@@ -32,4 +33,19 @@ func (s *UserTagService) GetDefinitions(ctx context.Context) ([]dto.UserTagDTO, 
 	}
 	
 	return userTags, nil
+}
+
+func (s *UserTagService) UpdateUserTags(ctx context.Context, userID int, tagIds []int) error {
+	exist, err := s.UserTagRepo.IsExist(ctx, tagIds)
+	if err != nil {
+		return err
+	}
+
+	if !exist {
+		return errors.New("Not has such tag id")
+	}
+
+	s.UserTagRepo.UpdateUserTags(ctx, userID, tagIds)
+
+	return nil
 }

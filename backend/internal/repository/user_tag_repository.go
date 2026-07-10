@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/lanxre/kyokusulib/internal/models/db"
+	"github.com/lib/pq"
 )
 
 type UserTagRepository struct {
@@ -50,4 +51,37 @@ func (r *UserTagRepository) GetUserTagById(ctx context.Context, id int) (*db.Use
 	}
 
 	return &tag, nil
+}
+
+func (r *UserTagRepository) UpdateUserTags(ctx context.Context, userID int, tagIds []int) error {
+	tx, err := r.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.ExecContext(ctx, `DELETE FROM users_user_tags WHERE user_id = $1`, userID); err != nil {
+		return err
+	}
+
+	for _, tagID := range tagIds {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO users_user_tags (user_id, tag_id) VALUES ($1, $2)`, userID, tagID); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (r *UserTagRepository) IsExist(ctx context.Context, tagIDs []int) (bool, error) {
+	query := `SELECT EXISTS (SELECT 1 FROM user_tags WHERE id = ANY($1))`
+
+    var exists bool
+    err := r.DB.QueryRowContext(ctx, query, pq.Array(tagIDs)).Scan(&exists)
+    
+    if err != nil {
+        return false, err
+    }
+
+    return exists, nil
 }

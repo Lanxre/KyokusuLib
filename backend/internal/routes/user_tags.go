@@ -10,4 +10,5 @@ func (a *UserTagRoutes) Register(cfg *config.Config, r *mux.Router) {
 	s := r.PathPrefix("/api/user/tags").Subrouter()
 	
 	s.HandleFunc("", middleware.AuthMiddleware(middleware.RoleGuard(a.Handler.GetTags, middleware.RoleModerator), cfg.JWTSecret)).Methods("GET")
+	s.HandleFunc("", middleware.AuthMiddleware(middleware.RoleGuard(a.Handler.UpdateUserTags, middleware.RoleModerator), cfg.JWTSecret)).Methods("PUT")
 }
