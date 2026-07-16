@@ -24,7 +24,7 @@ import type { UiTableColumn } from "@/components/ui/Table.vue";
 import type { DashboardUser } from "@/types/frontend/dashboard/users";
 
 
-const { users, isLoading } = useUsers();
+const { users, isLoading, refreshUsers } = useUsers();
 const { deleteUser }       = useUserApi();
 
 const searchQuery       = ref("");
@@ -54,9 +54,13 @@ const selectedUser = computed<DashboardUser | null>(() => {
 	return users.value?.find((u) => u.id === selectedUserId.value) ?? null;
 });
 
-function onEdit(userId: number) {
-    targetEditUser.value = users.value.find(u => u.id === userId) ?? null;
-    showEdit.value = true;
+async function onEdit(userId: number) {
+	const stale = users.value;
+	await refreshUsers();
+	targetEditUser.value = (users.value.find(u => u.id === userId)
+		?? stale.find(u => u.id === userId)
+		?? null);
+	showEdit.value = true;
 }
 
 function onDelete(userId: number) {
@@ -174,6 +178,7 @@ async function confirmDelete() {
     	:model-value="targetEditUser != null"
     	:user="targetEditUser"
     	@update:model-value="targetEditUser = null"
+    	@saved="refreshUsers()"
 	/>
 
 	<ModalConfirm

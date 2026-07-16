@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, nextTick } from "vue";
+import { useDebounceFn } from "@vueuse/core";
 import { ModalWindow, Label } from "@kyokusu-ui/vue";
 
 import DashboardUserImageEdit from "./DashboardUserImageEdit.vue";
@@ -9,11 +10,12 @@ import DashboardUserVisibilityEdit from "./DashboardUserVisibilityEdit.vue";
 import DashboardUserLevelEdit from "./DashboardUserLevelEdit.vue";
 import DashboardUserTagsEdit from "./DashboardUserTagsEdit.vue";
 
-import type { DashboardUser } from "@/types/frontend/dashboard/users";
-
 import { useUserEdit } from "@/composables/api/dashboard/useUserEdit";
+import { useUserTag } from "@/composables/api/profile/useUserTag";
 import { useRolePermissions } from "@/composables/api/role/useRolePermissions";
 import { KyokusuAppRole } from "~/types/enums/role-enum";
+
+import type { DashboardUser } from "@/types/frontend/dashboard/users";
 
 const props = defineProps<{
 	modelValue: boolean;
@@ -30,44 +32,46 @@ const visible = computed({
 	set: (val) => emit("update:modelValue", val),
 });
 
-const saving = ref(false);
-
-const { form, isDirty, loadUser, reset, save } = useUserEdit();
-
+const { form, loadUser } = useUserEdit();
 const { hasPermission } = useRolePermissions();
+const { updateUserTags } = useUserTag();
+
 
 const userLevel = ref(1);
 const userExperience = ref(0);
 const userTags = ref<DashboardUser["tags"]>([]);
 
+let suppressTagSave = false;
+
+const debouncedSaveTags = useDebounceFn(async (userId: number) => {
+	const tagIds = userTags.value.map((t) => t.tag_id);
+	const ok = await updateUserTags(userId, tagIds);
+	if (ok) {
+		emit("saved");
+	}
+}, 800);
+
+watch(userTags, () => {
+	if (suppressTagSave) return;
+	if (!props.user) return;
+	debouncedSaveTags(props.user.id);
+});
+
 watch(
 	() => props.user,
 	(u) => {
-		if (u) {
-			loadUser(u);
-			userLevel.value = u.user_level?.level ?? 1;
-			userExperience.value = u.user_level?.experience ?? 0;
-			userTags.value = [...(u.tags ?? [])];
-		}
+		if (!u) return;
+
+		loadUser(u);
+		userLevel.value = u.user_level?.level ?? 1;
+		userExperience.value = u.user_level?.experience ?? 0;
+
+		suppressTagSave = true;
+		userTags.value = [...(u.tags ?? [])];
+		void nextTick(() => { suppressTagSave = false; });
 	},
 	{ immediate: true },
 );
-
-async function handleSave() {
-	if (!props.user) return;
-	saving.value = true;
-	const ok = await save(props.user.id);
-	saving.value = false;
-	if (ok) {
-		emit("saved");
-		visible.value = false;
-	}
-}
-
-function handleCancel() {
-	reset();
-	visible.value = false;
-}
 </script>
 
 <template>
@@ -78,7 +82,6 @@ function handleCancel() {
 		width="w-full max-w-250"
 	>
 		<div v-if="user" class="flex flex-col gap-6">
-			<!-- image -->
 			<div class="flex flex-col gap-2">
 				<Label label="Настройка изображения"/>
 				<div class="flex justify-center p-4 rounded-lg border bg-white dark:bg-zinc-900/50 dark:border-zinc-700/50">
@@ -89,7 +92,6 @@ function handleCancel() {
 				</div>
 			</div>
 
-			<!-- basic info -->
 			<div class="flex flex-col gap-2">
 				<Label label="Основные данные"/>
 				<div class="flex p-4 rounded-lg border bg-white dark:bg-zinc-900/50 dark:border-zinc-700/50">
@@ -97,7 +99,6 @@ function handleCancel() {
 				</div>
 			</div>
 
-			<!-- role & status -->
 			<div class="flex flex-col gap-2">
 				<Label label="Роль и статус"/>
 				<div class="flex p-4 rounded-lg border bg-white dark:bg-zinc-900/50 dark:border-zinc-700/50">
@@ -122,6 +123,7 @@ function handleCancel() {
 					<DashboardUserTagsEdit
 						:key="user?.id"
 						v-model:tags="userTags"
+						
 					/>
 				</div>
 			</div>

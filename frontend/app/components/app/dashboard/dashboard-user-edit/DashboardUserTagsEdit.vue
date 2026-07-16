@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { MultiSelect } from "@kyokusu-ui/vue";
 import type { MultiSelectOption } from "@kyokusu-ui/vue";
 import { useUserTags } from "@/composables/api/user/useUserTags";
@@ -16,19 +16,18 @@ const emit = defineEmits<{
 
 const { getDefinitions } = useUserTags();
 
-const { data: definitions, status } = useAsyncData<UserTagDefinitions[]>(
-	"dashboard-user-tag-definitions",
-	async () => {
-		const raw = await getDefinitions();
-		if (!raw) return [];
-		return Array.isArray(raw) ? raw : [raw];
-	},
-);
+const definitions = ref<UserTagDefinitions[]>([]);
+const loading = ref(true);
 
-const defs = computed(() => definitions.value ?? []);
+onMounted(async () => {
+	loading.value = true;
+	const raw = await getDefinitions();
+	definitions.value = Array.isArray(raw) ? raw : raw ? [raw] : [];
+	loading.value = false;
+});
 
 const multiOptions = computed<MultiSelectOption[]>(() =>
-	defs.value.map((d) => ({ id: d.tag_id, label: d.tag })),
+	definitions.value.map((d) => ({ id: d.tag_id, label: d.tag })),
 );
 
 const selectedIds = computed(() => props.tags.map((t) => t.tag_id));
@@ -38,7 +37,7 @@ function onUpdate(value: (string | number | MultiSelectOption)[]) {
 		value.map((v) => (typeof v === "object" ? v.id : Number(v))),
 	);
 
-	const newTags: DashboardUserTag[] = defs.value
+	const newTags: DashboardUserTag[] = definitions.value
 		.filter((d) => ids.has(d.tag_id))
 		.map((d) => ({ tag_id: d.tag_id, tag: d.tag }));
 
@@ -48,10 +47,10 @@ function onUpdate(value: (string | number | MultiSelectOption)[]) {
 
 <template>
 	<MultiSelect
+		v-if="!loading"
 		id="user-tags"
 		:model-value="selectedIds"
 		:options="multiOptions"
-		:loading="status === 'pending'"
 		placeholder="Выберите теги..."
 		@update:model-value="onUpdate"
 	/>

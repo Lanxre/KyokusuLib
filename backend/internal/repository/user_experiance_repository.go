@@ -8,15 +8,15 @@ import (
 )
 
 
-type UserExperianceRepository struct {
+type UserExperienceRepository struct {
 	DB *sql.DB
 }
 
-func NewUserExperianceRepository(db *sql.DB) *UserExperianceRepository {
-	return &UserExperianceRepository{DB: db}
+func NewUserExperianceRepository(db *sql.DB) *UserExperienceRepository {
+	return &UserExperienceRepository{DB: db}
 }
 
-func (r *UserExperianceRepository) GetLevelDefinitions(ctx context.Context) ([]db.UserExperianceDefinitions, error) {
+func (r *UserExperienceRepository) GetLevelDefinitions(ctx context.Context) ([]db.UserExperienceDefinitions, error) {
 	query := "select level, title, total_xp_required from level_definitions"
 
 	rows, err := r.DB.Query(query)
@@ -26,9 +26,9 @@ func (r *UserExperianceRepository) GetLevelDefinitions(ctx context.Context) ([]d
 
 	defer rows.Close()
 
-	var definitions []db.UserExperianceDefinitions
+	var definitions []db.UserExperienceDefinitions
 	for rows.Next() {
-		var level db.UserExperianceDefinitions
+		var level db.UserExperienceDefinitions
 		if err := rows.Scan(&level.Level, &level.Title, &level.Total_XP_Required); err != nil {
 			return nil, err
 		}
@@ -36,4 +36,13 @@ func (r *UserExperianceRepository) GetLevelDefinitions(ctx context.Context) ([]d
 	}
 	
 	return definitions, nil
+}
+
+func (r *UserExperienceRepository) UpdateUserLevel(ctx context.Context, userID, level int, exp int64) error {
+	_, err := r.DB.ExecContext(
+		ctx,
+		`UPDATE user_profile SET level = $1, experience = $2 WHERE user_id = $3`,
+		level, exp, userID,
+	)
+	return err
 }

@@ -2,23 +2,22 @@ package service
 
 import (
 	"context"
-
-	"github.com/lanxre/kyokusulib/internal/repository"
-	"github.com/lanxre/kyokusulib/internal/models/dto"
 	"github.com/lanxre/kyokusulib/internal/models/db"
+	"github.com/lanxre/kyokusulib/internal/models/dto"
+	"github.com/lanxre/kyokusulib/internal/repository"
 )
 
-type UserExperianceService struct {
-	UserExpRepo *repository.UserExperianceRepository
+type UserExperienceService struct {
+	UserExpRepo *repository.UserExperienceRepository
 }
 
-func NewUserExperianceService(userExpRepo *repository.UserExperianceRepository) *UserExperianceService {
-	return &UserExperianceService{
+func NewUserExperianceService(userExpRepo *repository.UserExperienceRepository) *UserExperienceService {
+	return &UserExperienceService{
 		UserExpRepo: userExpRepo,
 	}
 }
 
-func (s *UserExperianceService) GetLevelDefinitions (ctx context.Context) ([]dto.LevelDefinitions, error) {
+func (s *UserExperienceService) GetLevelDefinitions (ctx context.Context) ([]dto.LevelDefinitions, error) {
 	defenitions, err := s.UserExpRepo.GetLevelDefinitions(ctx)
 	if err != nil {
 		return nil, err
@@ -32,7 +31,16 @@ func (s *UserExperianceService) GetLevelDefinitions (ctx context.Context) ([]dto
 	return levelDefinitions, nil
 }
 
-func (s *UserExperianceService) mapToDtoLevelDefinitions(level db.UserExperianceDefinitions) dto.LevelDefinitions {
+func (s *UserExperienceService) UpdateUserLevel(ctx context.Context, dto dto.UpdateUserLevel) error {
+	return s.UserExpRepo.UpdateUserLevel(
+		ctx,
+		dto.UserID,
+		dto.Level,
+		dto.Experience,
+	)
+}
+
+func (s *UserExperienceService) mapToDtoLevelDefinitions(level db.UserExperienceDefinitions) dto.LevelDefinitions {
 	return dto.LevelDefinitions{
 		Level: level.Level,
 		Title: level.Title,
