@@ -89,10 +89,10 @@ export function useNotificationManager() {
 	function toggleSelectGroup(title: string) {
 		const group = grouped.value.get(title);
 		if (!group) return;
-		const allSelected = group.every((n) => selectedIds.value.has(n.id));
+		const allGroupSelected = group.every((n) => selectedIds.value.has(n.id));
 		const next = new Set(selectedIds.value);
 		for (const n of group) {
-			if (allSelected) {
+			if (allGroupSelected) {
 				next.delete(n.id);
 			} else {
 				next.add(n.id);
@@ -106,11 +106,11 @@ export function useNotificationManager() {
 	async function handleGroupMarkRead(title: string) {
 		const group = grouped.value.get(title);
 		if (!group) return;
-		for (const n of group) {
-			if (!n.isRead) {
-				await markRead(n.id);
-			}
-		}
+		await Promise.all(
+			group
+				.filter((n) => !n.isRead)
+				.map((n) => markRead(n.id)),
+		);
 	}
 
 	async function handleGroupDelete(title: string) {
@@ -119,9 +119,9 @@ export function useNotificationManager() {
 		const idsToRemove = new Set(group.map((n) => n.id));
 		for (const id of idsToRemove) {
 			selectedIds.value.delete(id);
-			await remove(id);
 		}
 		selectedIds.value = new Set(selectedIds.value);
+		await Promise.all(Array.from(idsToRemove).map((id) => remove(id)));
 	}
 
 	// ── Single-item actions ──
@@ -141,9 +141,9 @@ export function useNotificationManager() {
 	}
 
 	async function handleDeleteSelected() {
-		for (const id of selectedIds.value) {
-			await remove(id);
-		}
+		await Promise.all(
+			Array.from(selectedIds.value).map((id) => remove(id)),
+		);
 		selectedIds.value = new Set();
 	}
 

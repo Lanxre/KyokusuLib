@@ -12,7 +12,7 @@ export function useUserComments() {
             comments.value = data || [];
 			return data;
         }
-        catch (e) {
+        catch (_e) {
             comments.value = [];
         } finally {
             isLoading.value = false;

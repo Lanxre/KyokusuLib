@@ -62,7 +62,7 @@ export const formatStatus = (status: DashboardRowUserStatus | `${DashboardRowUse
 export const formatGender = (gender: string): string => GENDER_LABELS[gender as DashboardRowUserGender | `${DashboardRowUserGender}`]
 
 export function getLevelColor(level: number | null | undefined): string {
-	if (level == null) return "bg-zinc-300 dark:bg-zinc-600 text-zinc-500 dark:text-zinc-400";
+	if (level === null) return "bg-zinc-300 dark:bg-zinc-600 text-zinc-500 dark:text-zinc-400";
 	const tier = LEVEL_TIERS.find(t => level <= t.max);
 	return tier ? `${tier.bg} ${tier.text}` : `${LEVEL_TIERS[LEVEL_TIERS.length - 1]?.bg} ${LEVEL_TIERS[LEVEL_TIERS.length - 1]?.text}`;
 }

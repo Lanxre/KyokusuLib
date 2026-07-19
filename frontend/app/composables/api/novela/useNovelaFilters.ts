@@ -1,7 +1,7 @@
 import { reactive, computed } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
 
-import { $api, useApi } from "@/composables/api/useApi";
+import { $api } from "@/composables/api/useApi";
 import { useNotificationStore } from '@/stores/notification';
 
 import { hasSpecialSymbols } from '@/utils/str';

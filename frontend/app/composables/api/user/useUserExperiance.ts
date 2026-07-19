@@ -12,7 +12,7 @@ export function useUserExperiance() {
       }
 			
       return data.value!;
-    } catch (e) {
+    } catch (_e) {
       return null
     }
   }

@@ -12,7 +12,7 @@ export function useUserTags() {
       }
 			
       return data.value!;
-    } catch (e) {
+    } catch (_e) {
       return null
     }
   }

@@ -44,7 +44,7 @@ export const useActivityStore = defineStore("activity", () => {
         const now = new Date().toISOString();
         user.value.last_login = now;
       }
-		} catch (e) {
+		} catch (_e) {
 			console.warn("Heartbeat failed");
 		}
 	};

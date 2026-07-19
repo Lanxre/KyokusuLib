@@ -100,7 +100,7 @@ export function useBookmark() {
 			});
 
 			userBookmarkNovels.value = data || [];
-		} catch (e) {
+		} catch (_e) {
 			userBookmarkNovels.value = [];
 		} finally {
 			loading.value = false;

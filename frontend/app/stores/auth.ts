@@ -21,7 +21,7 @@ export const useAuthStore = defineStore("auth", () => {
 			} else {
 				user.value = null;
 			}
-		} catch (e) {
+		} catch (_e) {
 			user.value = null;
 		} finally {
 			isAuthChecking.value = false;

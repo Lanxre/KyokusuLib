@@ -40,7 +40,7 @@ const filteredItems = computed(() => {
 		result = result.filter((item) =>
 			props.columns.some((col) => {
 				const val = item[col.key];
-				return val != null && String(val).toLowerCase().includes(q);
+				return val !== null && String(val).toLowerCase().includes(q);
 			}),
 		);
 	}

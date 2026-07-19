@@ -49,6 +49,6 @@ export function fmtDate(dateStr: string | null | undefined): string {
 }
 
 export function fmtNumber(n: number | null | undefined): string {
-	if (n == null) return "—";
+	if (n === null) return "—";
 	return n.toLocaleString("ru-RU");
 }

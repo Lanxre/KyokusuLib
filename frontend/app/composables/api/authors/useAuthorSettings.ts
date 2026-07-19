@@ -107,7 +107,7 @@ export function useAuthorSettings(initialAuthor: NovelaAuthorDetails) {
 				formData.append("picture", selectedFile.value);
 			}
 
-			const { data, error } = await useApi<any>(`/api/author/${id}`, {
+			const { error } = await useApi<any>(`/api/author/${id}`, {
 				method: "PUT",
 				body: formData,
 			});

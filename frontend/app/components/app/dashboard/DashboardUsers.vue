@@ -50,7 +50,7 @@ const tableRows = computed<Record<string, any>[]>(() => {
 });
 
 const selectedUser = computed<DashboardUser | null>(() => {
-	if (selectedUserId.value == null) return null;
+	if (selectedUserId.value === null) return null;
 	return users.value?.find((u) => u.id === selectedUserId.value) ?? null;
 });
 
@@ -69,7 +69,7 @@ function onDelete(userId: number) {
 }
 
 async function confirmDelete() {
-	if (targetDeleteUser.value == null) return;
+	if (targetDeleteUser.value === null) return;
 	await deleteUser(targetDeleteUser.value.id);
 	targetDeleteUser.value = null;
 }

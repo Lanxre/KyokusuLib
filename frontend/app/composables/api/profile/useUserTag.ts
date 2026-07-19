@@ -8,7 +8,7 @@ export function useUserTag() {
 
 		const updateUserTags = async (userId: number, tagIds: number[]): Promise<boolean> => {
 			try {
-				const { data, error } = await useApi<ResponseMessage>("/api/user/tags", {
+				const { error } = await useApi<ResponseMessage>("/api/user/tags", {
 					method: "PUT",
 					body: { user_id: userId, tag_ids: tagIds },
 				});

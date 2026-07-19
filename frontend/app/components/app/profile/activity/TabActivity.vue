@@ -18,10 +18,9 @@ const { getActivityConfig } = useActivityConfig();
 const isExpanded = ref(false);
 
 const processedActivities = computed(() => {
-	return props.activities.map((activity) => ({
-		...activity,
-		ui: getActivityConfig(activity),
-	}));
+	return props.activities.map((activity) =>
+		Object.assign(Object.create(activity), { ui: getActivityConfig(activity) }),
+	);
 });
 
 const visibleActivities = computed(() => {

@@ -95,15 +95,15 @@ export function useReadProgress() {
         isRead = true;
       }
     } catch (e: any) {
-      if (e instanceof Error && e.message == "Ошибка: Chapter already read") {
+      if (e instanceof Error && e.message === "Ошибка: Chapter already read") {
         isRead = true;
         notify({ title: "Внимание", type: "warning", content: "Награда за прочтение этой главы уже получена" });
       } else {
         notify({ title: "Ошибка", type: "error", content: e instanceof Error ? e.message : String(e) });
       }
-    } finally {
-      return isRead;
     }
+
+    return isRead;
   }
 
 	return {

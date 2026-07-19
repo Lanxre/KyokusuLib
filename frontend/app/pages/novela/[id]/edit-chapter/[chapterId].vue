@@ -102,9 +102,11 @@ async function onSubmit(_content: string) {
     // Save gallery images separately: delete old, re-create
     if (galleryImgs.length > 0) {
       await deleteChapterImages(chapterId);
-      for (let i = 0; i < galleryImgs.length; i++) {
-        await addChapterImage(chapterId, galleryImgs[i].sourceUrl, galleryImgs[i].caption, i);
-      }
+      await Promise.all(
+        galleryImgs.map((img, i) =>
+          addChapterImage(chapterId, img.sourceUrl, img.caption, i),
+        ),
+      );
     }
 
     router.push(`/novela/${novelaId}`);

@@ -96,8 +96,8 @@ const currentChapter = computed(() =>
 	chapters.value.find(c => c.id === currentChapterId.value) || chapters.value[0]
 );
 
-function scrollToChapter(chapterId: string) {
-	const el = document.querySelector(`[data-chapter-id="${chapterId}"]`);
+function scrollToChapter(targetId: string) {
+	const el = document.querySelector(`[data-chapter-id="${targetId}"]`);
 	if (el) {
 		el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 		return true;

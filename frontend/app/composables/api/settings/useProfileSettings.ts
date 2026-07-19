@@ -15,7 +15,7 @@ export function useProfileSettings() {
 	const errors = ref<Record<string, string>>({});
 	const isLoading = ref(false);
 	const isSuccess = ref(false);
-	const isBirthDateDisable = ref(user?.birthday && !user.birthday.startsWith("0001-01-01") && user.birthday !== "01.01.1" ? true : false);
+	const isBirthDateDisable = ref(!!(user?.birthday && !user.birthday.startsWith("0001-01-01") && user.birthday !== "01.01.1"));
 
 	const fileInput = ref<HTMLInputElement | null>(null);
 	const selectedFile = ref<File | null>(null);
@@ -258,7 +258,7 @@ export function useProfileSettings() {
 				content: "Настройки профиля сохранены",
 				type: "success",
 			});
-		} catch (e: any) {
+		} catch (_e: any) {
 			errors.value.global = "Ошибка при сохранении";
 			notify({
 				title: "Неудача",

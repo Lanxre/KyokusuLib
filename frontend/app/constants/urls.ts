@@ -5,7 +5,7 @@ export function getApiBase() {
 	try {
 		const config = useRuntimeConfig();
 		return config.public.apiBase;
-	} catch (e) {
+	} catch (_e) {
 		return "";
 	}
 }
